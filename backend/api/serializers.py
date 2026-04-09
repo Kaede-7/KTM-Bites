@@ -1,0 +1,156 @@
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem
+
+
+# ───── Auth Serializers ─────
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=6)
+    full_name = serializers.CharField(source='first_name')
+    phone = serializers.CharField(write_only=True, required=False, default='')
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'full_name', 'phone', 'password']
+
+    def create(self, validated_data):
+        phone = validated_data.pop('phone', '')
+        user = User.objects.create_user(
+            username=validated_data['email'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+        )
+        # Store phone in last_name field for simplicity
+        user.last_name = phone
+        user.save()
+        return user
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source='first_name')
+    phone = serializers.CharField(source='last_name')
+    address = serializers.CharField(source='profile.address', default='')
+    city = serializers.CharField(source='profile.city', default='')
+    bio = serializers.CharField(source='profile.bio', default='')
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'full_name', 'phone', 'address', 'city', 'bio']
+
+
+# ───── Menu Serializers ─────
+
+class CategorySerializer(serializers.ModelSerializer):
+    count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'icon', 'count']
+
+    def get_count(self, obj):
+        return obj.items.filter(is_available=True).count()
+
+
+class MenuItemSerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = MenuItem
+        fields = [
+            'id', 'name', 'category', 'price', 'old_price',
+            'rating', 'reviews', 'time', 'image', 'description',
+            'badge', 'is_available',
+        ]
+
+
+class MenuItemDetailSerializer(MenuItemSerializer):
+    """Extended serializer with related items."""
+    related = serializers.SerializerMethodField()
+
+    class Meta(MenuItemSerializer.Meta):
+        fields = MenuItemSerializer.Meta.fields + ['related']
+
+    def get_related(self, obj):
+        related_items = MenuItem.objects.filter(
+            category=obj.category, is_available=True
+        ).exclude(id=obj.id)[:3]
+        return MenuItemSerializer(related_items, many=True).data
+
+
+# ───── Cart Serializers ─────
+
+class CartItemSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)
+    name = serializers.CharField(source='menu_item.name', read_only=True)
+    category = serializers.CharField(source='menu_item.category.name', read_only=True)
+    price = serializers.DecimalField(source='menu_item.price', max_digits=8, decimal_places=2, read_only=True)
+    image = serializers.URLField(source='menu_item.image', read_only=True)
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'menu_item', 'name', 'category', 'price', 'quantity', 'image', 'subtotal']
+        extra_kwargs = {'menu_item': {'write_only': True}}
+
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+    total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    item_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'items', 'total', 'item_count']
+
+
+class AddToCartSerializer(serializers.Serializer):
+    menu_item_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(default=1, min_value=1)
+
+
+class UpdateCartItemSerializer(serializers.Serializer):
+    quantity = serializers.IntegerField(min_value=1)
+
+
+# ───── Order Serializers ─────
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source='menu_item.name', read_only=True)
+    image = serializers.URLField(source='menu_item.image', read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'name', 'quantity', 'price', 'image', 'subtotal']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    order_id = serializers.CharField(read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'order_id', 'status', 'status_display',
+            'payment_method', 'full_name', 'phone', 'address',
+            'city', 'landmark', 'notes', 'subtotal', 'delivery_fee',
+            'total', 'items', 'created_at',
+        ]
+        read_only_fields = ['subtotal', 'delivery_fee', 'total', 'status']
+
+
+class PlaceOrderSerializer(serializers.Serializer):
+    full_name = serializers.CharField(max_length=100)
+    phone = serializers.CharField(max_length=20)
+    address = serializers.CharField(max_length=255)
+    city = serializers.CharField(max_length=50, default='Kathmandu')
+    landmark = serializers.CharField(max_length=100, required=False, default='')
+    notes = serializers.CharField(required=False, default='')
+    payment_method = serializers.ChoiceField(choices=['esewa', 'khalti', 'cod'])
