@@ -7,7 +7,7 @@ from django.dispatch import receiver
 class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)
     icon = models.CharField(max_length=50, default='restaurant')
-
+#   items = models.ManyToManyField('MenuItem', related_name='categories', blank=True)
     class Meta:
         verbose_name_plural = 'Categories'
         ordering = ['name']
