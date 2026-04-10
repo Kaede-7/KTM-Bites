@@ -1,0 +1,302 @@
+/* ===== Order Tracking Page ===== */
+.tracking-page {
+  background: var(--cream);
+  min-height: 100vh;
+}
+
+.tracking-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.tracking-title {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.tracking-order-id {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+/* Status Card */
+.tracking-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.tracking-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tracking-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tracking-status-badge.preparing {
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+
+.tracking-status-badge.on-way {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.tracking-status-badge.delivered {
+  background: rgba(58, 157, 92, 0.1);
+  color: var(--green);
+}
+
+.tracking-status-badge .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.tracking-eta {
+  font-size: 14px;
+  color: var(--mid);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tracking-eta .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--amber);
+}
+
+/* Timeline */
+.tracking-timeline {
+  position: relative;
+  padding-left: 32px;
+}
+
+.tracking-timeline::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--line);
+}
+
+.tracking-step {
+  position: relative;
+  padding-bottom: 32px;
+}
+
+.tracking-step:last-child {
+  padding-bottom: 0;
+}
+
+.tracking-step-dot {
+  position: absolute;
+  left: -32px;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--line);
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: all var(--transition);
+}
+
+.tracking-step.completed .tracking-step-dot {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+
+.tracking-step.active .tracking-step-dot {
+  background: var(--white);
+  border-color: var(--amber);
+  box-shadow: 0 0 0 4px var(--amber-bg);
+  animation: pulseRing 2s ease-in-out infinite;
+}
+
+@keyframes pulseRing {
+  0%, 100% { box-shadow: 0 0 0 4px var(--amber-bg); }
+  50% { box-shadow: 0 0 0 8px rgba(200, 132, 26, 0.05); }
+}
+
+.tracking-step-dot .material-symbols-rounded {
+  font-size: 14px;
+  color: white;
+}
+
+.tracking-step-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+
+.tracking-step.completed .tracking-step-title {
+  color: var(--dark);
+}
+
+.tracking-step:not(.completed):not(.active) .tracking-step-title {
+  color: var(--muted);
+}
+
+.tracking-step-desc {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.tracking-step-time {
+  font-size: 12px;
+  color: var(--amber);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* Details Cards */
+.tracking-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.tracking-detail-card {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  transition: all var(--transition);
+}
+
+.tracking-detail-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.tracking-detail-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.tracking-detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.tracking-detail-sub {
+  font-size: 12px;
+  color: var(--mid);
+  margin-top: 2px;
+}
+
+/* Order Items */
+.tracking-items-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.tracking-items-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 16px;
+}
+
+.tracking-item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(212, 196, 168, 0.3);
+}
+
+.tracking-item-row:last-child {
+  border-bottom: none;
+}
+
+.tracking-item-img {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.tracking-item-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.tracking-item-qty {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tracking-item-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+/* Contact Button */
+.tracking-contact-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: var(--dark);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 24px;
+  transition: all var(--transition);
+}
+
+.tracking-contact-btn:hover {
+  background: var(--dark-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.tracking-contact-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+@media (max-width: 640px) {
+  .tracking-details {
+    grid-template-columns: 1fr;
+  }
+}
