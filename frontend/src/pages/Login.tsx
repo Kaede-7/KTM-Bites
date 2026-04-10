@@ -72,7 +72,6 @@ const Login: React.FC = () => {
                 </button>
               </div>
             </div>
-
             <div className="auth-options">
               <label className="auth-remember"><input type="checkbox" /> Remember me</label>
               <a href="#" className="auth-forgot">Forgot password?</a>
