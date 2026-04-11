@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "../css/navbar.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
-import { isLoggedIn } from "../api/auth";
+import { isLoggedIn, logout } from "../api/auth";
 import { getCart } from "../api/cart";
 
 const Navbar: React.FC = () => {
@@ -48,9 +48,14 @@ const Navbar: React.FC = () => {
             {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
           </Link>
           {loggedIn ? (
-            <Link to="/profile" className="navbar-profile-btn">
-              <span className="material-symbols-rounded">person</span>
-            </Link>
+            <>
+              <Link to="/profile" className="navbar-profile-btn" title="Profile">
+                <span className="material-symbols-rounded">person</span>
+              </Link>
+              <button className="navbar-logout-btn" onClick={logout} title="Logout" aria-label="Logout">
+                <span className="material-symbols-rounded">logout</span>
+              </button>
+            </>
           ) : (
             <>
               <Link to="/login"><button className="navbar-btn-login">Login</button></Link>
@@ -81,11 +86,15 @@ const Navbar: React.FC = () => {
           <Link to="/profile" className={`navbar-mobile-link ${isActive("/profile")}`} onClick={() => setIsMenuOpen(false)}>
             <span className="material-symbols-rounded">person</span>Profile
           </Link>
-          {!loggedIn && (
+          {!loggedIn ? (
             <div className="navbar-mobile-actions">
               <Link to="/login" onClick={() => setIsMenuOpen(false)}><button className="navbar-btn-login">Login</button></Link>
               <Link to="/signup" onClick={() => setIsMenuOpen(false)}><button className="navbar-btn-signup">Sign Up</button></Link>
             </div>
+          ) : (
+            <button className="navbar-mobile-link" onClick={() => { logout(); setIsMenuOpen(false); }} style={{ color: "#ef4444", width: "100%", textAlign: "left", cursor: "pointer" }}>
+              <span className="material-symbols-rounded">logout</span>Logout
+            </button>
           )}
         </div>
       )}
