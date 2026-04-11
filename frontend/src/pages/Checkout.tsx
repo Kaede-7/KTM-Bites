@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../css/checkout.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, type CartData } from "../api/cart";
 import { placeOrder } from "../api/orders";
 
@@ -215,7 +216,7 @@ const Checkout: React.FC = () => {
             <div className="checkout-summary">
               <h3>Order Summary</h3>
               {loading ? (
-                <p>Loading cart...</p>
+                <LoadingAnimation message="Loading cart..." />
               ) : (
                 <>
                   <div className="checkout-summary-items">
