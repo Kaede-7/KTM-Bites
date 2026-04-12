@@ -130,29 +130,40 @@
 }
 
 .admin-login-input-wrapper {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  transition: border-color var(--transition);
 }
 
-.admin-login-input-wrapper .material-symbols-rounded {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
+.admin-login-input-wrapper:focus-within {
+  border-color: var(--amber);
+}
+
+.admin-login-input-wrapper > .material-symbols-rounded {
   font-size: 20px;
   color: var(--muted);
+  flex-shrink: 0;
   transition: color var(--transition);
 }
 
+.admin-login-input-wrapper:focus-within > .material-symbols-rounded {
+  color: var(--amber);
+}
+
 .admin-login-input-wrapper input {
-  width: 100%;
-  padding: 13px 14px 13px 44px;
-  border: 2px solid var(--line);
-  border-radius: var(--radius-md);
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  border: none;
+  background: none;
   font-size: 14px;
   color: var(--dark);
-  background: var(--white);
   outline: none;
-  transition: border-color var(--transition);
   font-family: inherit;
 }
 
@@ -160,19 +171,7 @@
   color: var(--muted);
 }
 
-.admin-login-input-wrapper input:focus {
-  border-color: var(--amber);
-}
-
-.admin-login-input-wrapper input:focus ~ .material-symbols-rounded {
-  color: var(--amber);
-}
-
 .admin-toggle-password {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
@@ -180,6 +179,8 @@
   align-items: center;
   justify-content: center;
   color: var(--muted);
+  padding: 4px;
+  flex-shrink: 0;
   transition: color var(--transition);
 }
 

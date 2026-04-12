@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import "../css/order-tracking.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import LoadingAnimation from "../components/LoadingAnimation";
 import { getOrder, getOrders, type OrderData } from "../api/orders";
 
 const statusSteps = [
@@ -44,10 +45,7 @@ const OrderTracking: React.FC = () => {
       <div className="tracking-page">
         <Navbar />
         <div className="tracking-container">
-          <div className="menu-empty">
-            <span className="material-symbols-rounded">hourglass_top</span>
-            <h3>Loading order...</h3>
-          </div>
+          <LoadingAnimation message="Loading order tracking..." />
         </div>
         <Footer />
       </div>

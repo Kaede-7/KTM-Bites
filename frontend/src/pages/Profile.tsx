@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../css/profile.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import LoadingAnimation from "../components/LoadingAnimation";
 import { getProfile, updateProfile, changePassword, logout, type ProfileData } from "../api/auth";
 import { getOrders, type OrderData } from "../api/orders";
 
@@ -25,6 +26,9 @@ const Profile: React.FC = () => {
   const [passwordMsg, setPasswordMsg] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -110,6 +114,18 @@ const Profile: React.FC = () => {
       default: return 'Pending';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="profile-page">
+        <Navbar />
+        <div className="profile-container" style={{ padding: '80px 0' }}>
+          <LoadingAnimation message="Loading profile..." />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page">
@@ -265,15 +281,30 @@ const Profile: React.FC = () => {
                 <div className="profile-form-grid">
                   <div className="profile-field full-width">
                     <label>Current Password</label>
-                    <input type="password" placeholder="Enter current password" value={passwordData.current} onChange={(e) => setPasswordData(p => ({ ...p, current: e.target.value }))} />
+                    <div className="profile-password-wrapper">
+                      <input type={showCurrentPassword ? "text" : "password"} placeholder="Enter current password" value={passwordData.current} onChange={(e) => setPasswordData(p => ({ ...p, current: e.target.value }))} />
+                      <button type="button" className="profile-toggle-password" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
+                        <span className="material-symbols-rounded">{showCurrentPassword ? "visibility_off" : "visibility"}</span>
+                      </button>
+                    </div>
                   </div>
                   <div className="profile-field">
                     <label>New Password</label>
-                    <input type="password" placeholder="Enter new password" value={passwordData.newPass} onChange={(e) => setPasswordData(p => ({ ...p, newPass: e.target.value }))} />
+                    <div className="profile-password-wrapper">
+                      <input type={showNewPassword ? "text" : "password"} placeholder="Enter new password" value={passwordData.newPass} onChange={(e) => setPasswordData(p => ({ ...p, newPass: e.target.value }))} />
+                      <button type="button" className="profile-toggle-password" onClick={() => setShowNewPassword(!showNewPassword)}>
+                        <span className="material-symbols-rounded">{showNewPassword ? "visibility_off" : "visibility"}</span>
+                      </button>
+                    </div>
                   </div>
                   <div className="profile-field">
                     <label>Confirm New Password</label>
-                    <input type="password" placeholder="Confirm new password" value={passwordData.confirm} onChange={(e) => setPasswordData(p => ({ ...p, confirm: e.target.value }))} />
+                    <div className="profile-password-wrapper">
+                      <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm new password" value={passwordData.confirm} onChange={(e) => setPasswordData(p => ({ ...p, confirm: e.target.value }))} />
+                      <button type="button" className="profile-toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                        <span className="material-symbols-rounded">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <button className="profile-save-btn" onClick={handlePasswordChange} disabled={changingPassword}>

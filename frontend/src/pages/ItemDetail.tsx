@@ -4,6 +4,7 @@ import "../css/item-detail.css";
 import "../css/menu.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import LoadingAnimation from "../components/LoadingAnimation";
 import { getMenuItem, type MenuItemDetailData } from "../api/menu";
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
@@ -53,10 +54,7 @@ const ItemDetail: React.FC = () => {
       <div className="item-detail-page">
         <Navbar />
         <div className="item-detail-container">
-          <div className="menu-empty">
-            <span className="material-symbols-rounded">hourglass_top</span>
-            <h3>Loading...</h3>
-          </div>
+          <LoadingAnimation message="Loading items..." />
         </div>
         <Footer />
       </div>

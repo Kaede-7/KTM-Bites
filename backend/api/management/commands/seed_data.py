@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from api.models import Category, MenuItem, Cart, UserProfile
+import os
 
 
 class Command(BaseCommand):
@@ -142,18 +143,20 @@ class Command(BaseCommand):
             self.stdout.write(f'  Menu Item: {item_data["name"]}')
 
         # ── Demo user ──
+        demo_email = os.environ.get('DEMO_USER_EMAIL', 'saksham@email.com')
+        demo_password = os.environ.get('DEMO_USER_PASSWORD', 'password123')
         demo_user, created = User.objects.get_or_create(
-            username='saksham@email.com',
+            username=demo_email,
             defaults={
-                'email': 'saksham@email.com',
+                'email': demo_email,
                 'first_name': 'Saksham Shrestha',
                 'last_name': '+977-9812345678',
             }
         )
         if created:
-            demo_user.set_password('password123')
+            demo_user.set_password(demo_password)
             demo_user.save()
-            self.stdout.write('  Demo user created: saksham@email.com / password123')
+            self.stdout.write(f'  Demo user created: {demo_email}')
         Token.objects.get_or_create(user=demo_user)
         Cart.objects.get_or_create(user=demo_user)
 
@@ -166,14 +169,36 @@ class Command(BaseCommand):
         self.stdout.write('  Demo user profile updated')
 
         # ── Superuser ──
+        admin_email = os.environ.get('ADMIN_USER_EMAIL', 'admin@ktmbites.com')
+        admin_password = os.environ.get('ADMIN_USER_PASSWORD', 'admin123')
         if not User.objects.filter(is_superuser=True).exists():
             admin_user = User.objects.create_superuser(
-                username='admin@ktmbites.com',
-                email='admin@ktmbites.com',
-                password='admin123',
+                username=admin_email,
+                email=admin_email,
+                password=admin_password,
                 first_name='Admin',
             )
-            self.stdout.write('  Superuser created: admin / admin123')
+            self.stdout.write(f'  Superuser created: {admin_email}')
+
+        # ── Kitchen staff user ──
+        kitchen_email = os.environ.get('KITCHEN_USER_EMAIL', 'kitchen@ktmbites.com')
+        kitchen_password = os.environ.get('KITCHEN_USER_PASSWORD', 'kitchen123')
+        kitchen_user, created = User.objects.get_or_create(
+            username=kitchen_email,
+            defaults={
+                'email': kitchen_email,
+                'first_name': 'Kitchen Staff',
+                'is_staff': True,
+            }
+        )
+        if created:
+            kitchen_user.set_password(kitchen_password)
+            kitchen_user.save()
+            self.stdout.write(f'  Kitchen staff created: {kitchen_email}')
+        elif not kitchen_user.is_staff:
+            kitchen_user.is_staff = True
+            kitchen_user.save()
+            self.stdout.write('  Kitchen user updated to staff')
 
         self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))
 

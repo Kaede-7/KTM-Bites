@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "../css/cart.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, updateCartItem, removeFromCart, type CartData } from "../api/cart";
 
 const Cart: React.FC = () => {
@@ -49,10 +50,7 @@ const Cart: React.FC = () => {
       <div className="cart-page">
         <Navbar />
         <div className="cart-container">
-          <div className="cart-empty">
-            <span className="material-symbols-rounded">hourglass_top</span>
-            <h3>Loading cart...</h3>
-          </div>
+          <LoadingAnimation message="Loading cart..." />
         </div>
         <Footer />
       </div>

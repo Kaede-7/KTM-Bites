@@ -3,20 +3,24 @@ import { Link, useSearchParams } from "react-router-dom";
 import "../css/menu.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import LoadingAnimation from "../components/LoadingAnimation";
 import { getMenuItems, getCategories, type MenuItemData, type CategoryData } from "../api/menu";
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
+import { useFavorites } from "../hooks/useFavorites";
 
 const MenuBrowse: React.FC = () => {
   const [searchParams] = useSearchParams();
   const initialCat = searchParams.get("category") || "All";
+  const initialSearch = searchParams.get("search") || "";
 
   const [activeCat, setActiveCat] = useState(initialCat);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch);
   const [sort, setSort] = useState("popular");
   const [items, setItems] = useState<MenuItemData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   // Fetch categories on mount
   useEffect(() => {
@@ -31,7 +35,7 @@ const MenuBrowse: React.FC = () => {
         const data = await getMenuItems({
           category: activeCat !== "All" ? activeCat : undefined,
           search: search || undefined,
-          sort,
+          sort: sort === "favorites" ? "popular" : sort,
         });
         setItems(data);
       } catch (err) {
@@ -60,6 +64,7 @@ const MenuBrowse: React.FC = () => {
   };
 
   const allCategories = [{ id: 0, name: "All", icon: "apps", count: 0 }, ...categories];
+  const displayedItems = sort === "favorites" ? items.filter(item => isFavorite(item.id)) : items;
 
   return (
     <div className="menu-page">
@@ -80,6 +85,7 @@ const MenuBrowse: React.FC = () => {
             <option value="rating">Highest Rated</option>
             <option value="price-low">Price: Low → High</option>
             <option value="price-high">Price: High → Low</option>
+            <option value="favorites">My Favorites</option>
           </select>
         </div>
 
@@ -92,18 +98,21 @@ const MenuBrowse: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="menu-empty">
-            <span className="material-symbols-rounded">hourglass_top</span>
-            <h3>Loading menu...</h3>
-          </div>
-        ) : items.length > 0 ? (
+          <LoadingAnimation message="Loading menu..." />
+        ) : displayedItems.length > 0 ? (
           <div className="menu-grid">
-            {items.map((item) => (
+            {displayedItems.map((item) => (
               <Link to={`/menu/${item.id}`} key={item.id} className="food-card">
                 <div className="food-card-image-wrapper">
                   <img src={item.image} alt={item.name} className="food-card-image" />
                   {item.badge && <span className="food-card-badge">{item.badge}</span>}
-                  <button className="food-card-fav" onClick={(e) => e.preventDefault()}>
+                  <button 
+                    className={`food-card-fav ${isFavorite(item.id) ? "active" : ""}`} 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toggleFavorite(item.id);
+                    }}
+                  >
                     <span className="material-symbols-rounded">favorite</span>
                   </button>
                 </div>

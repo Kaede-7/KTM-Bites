@@ -280,6 +280,59 @@
   resize: vertical;
 }
 
+/* Password field with eye toggle */
+.profile-password-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--cream);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.profile-password-wrapper:focus-within {
+  border-color: var(--amber);
+  background: var(--white);
+}
+
+.profile-password-wrapper input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: var(--dark);
+  outline: none;
+}
+
+.profile-password-wrapper input::placeholder {
+  color: var(--muted);
+}
+
+.profile-toggle-password {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  padding: 4px;
+  flex-shrink: 0;
+  transition: color var(--transition);
+}
+
+.profile-toggle-password:hover {
+  color: var(--amber);
+}
+
+.profile-toggle-password .material-symbols-rounded {
+  font-size: 20px;
+}
+
 .profile-save-btn {
   padding: 12px 32px;
   background: var(--amber);

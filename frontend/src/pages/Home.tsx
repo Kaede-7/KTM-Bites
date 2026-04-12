@@ -1,16 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../css/home.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import LoadingAnimation from "../components/LoadingAnimation";
 import { getMenuItems, getCategories, type MenuItemData, type CategoryData } from "../api/menu";
 import { getStoredUser } from "../api/auth";
+import { useFavorites } from "../hooks/useFavorites";
 
 const Home: React.FC = () => {
   const [popularItems, setPopularItems] = useState<MenuItemData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
   const user = getStoredUser();
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/menu?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,8 +53,16 @@ const Home: React.FC = () => {
             <p>What would you like to eat today?</p>
           </div>
           <div className="home-banner-search">
-            <span className="material-symbols-rounded">search</span>
-            <input type="text" placeholder="Search for food, restaurants..." />
+            <span className="material-symbols-rounded" onClick={handleSearch} style={{ cursor: "pointer" }}>search</span>
+            <input 
+              type="text" 
+              placeholder="Search for food, restaurants..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+              }}
+            />
           </div>
         </div>
       </section>
@@ -77,10 +96,7 @@ const Home: React.FC = () => {
             </Link>
           </div>
           {loading ? (
-            <div className="menu-empty">
-              <span className="material-symbols-rounded">hourglass_top</span>
-              <h3>Loading...</h3>
-            </div>
+            <LoadingAnimation message="Loading popular items..." />
           ) : (
             <div className="home-popular-grid">
               {popularItems.map((item) => (
@@ -88,7 +104,13 @@ const Home: React.FC = () => {
                   <div className="home-food-card-img-wrapper">
                     <img src={item.image} alt={item.name} className="home-food-card-img" />
                     {item.badge && <span className="home-food-card-badge">{item.badge}</span>}
-                    <button className="home-food-card-fav" onClick={(e) => e.preventDefault()}>
+                    <button 
+                      className={`home-food-card-fav ${isFavorite(item.id) ? "active" : ""}`} 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleFavorite(item.id);
+                      }}
+                    >
                       <span className="material-symbols-rounded">favorite</span>
                     </button>
                   </div>

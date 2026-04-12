@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,7 +24,7 @@ API.interceptors.response.use(
       localStorage.removeItem('ktmbites_token');
       localStorage.removeItem('ktmbites_user');
       // Only redirect if not already on auth pages
-      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup') && !window.location.pathname.includes('/admin')) {
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup') && !window.location.pathname.includes('/admin') && !window.location.pathname.includes('/kitchen')) {
         window.location.href = '/login';
       }
     }

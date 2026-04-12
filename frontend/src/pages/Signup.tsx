@@ -8,6 +8,7 @@ const Signup: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ fullName: "", email: "", phone: "", password: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -113,7 +114,10 @@ const Signup: React.FC = () => {
               <label htmlFor="signup-confirm">Confirm Password</label>
               <div className="auth-input-wrapper">
                 <span className="material-symbols-rounded">lock</span>
-                <input id="signup-confirm" type="password" placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange("confirmPassword")} required />
+                <input id="signup-confirm" type={showConfirmPassword ? "text" : "password"} placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange("confirmPassword")} required />
+                <button type="button" className="auth-toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <span className="material-symbols-rounded">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
+                </button>
               </div>
             </div>
 

@@ -128,63 +128,65 @@
 }
 
 .auth-input-wrapper {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  transition: border-color var(--transition);
 }
 
-.auth-input-wrapper .material-symbols-rounded {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
+.auth-input-wrapper:focus-within {
+  border-color: var(--amber);
+}
+
+.auth-input-wrapper > .material-symbols-rounded {
   font-size: 20px;
   color: var(--muted);
+  flex-shrink: 0;
   transition: color var(--transition);
 }
 
+.auth-input-wrapper:focus-within > .material-symbols-rounded {
+  color: var(--amber);
+}
+
 .auth-input-wrapper input {
-  width: 100%;
-  padding: 13px 14px 13px 44px;
-  border: 2px solid var(--line);
-  border-radius: var(--radius-md);
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  border: none;
+  background: none;
   font-size: 14px;
   color: var(--dark);
-  background: var(--white);
   outline: none;
-  transition: border-color var(--transition);
 }
 
 .auth-input-wrapper input::placeholder {
   color: var(--muted);
 }
 
-.auth-input-wrapper input:focus {
-  border-color: var(--amber);
-}
-
-.auth-input-wrapper input:focus ~ .material-symbols-rounded,
-.auth-input-wrapper input:focus + .material-symbols-rounded {
-  color: var(--amber);
-}
-
-.auth-input-wrapper:has(input:focus) .material-symbols-rounded {
-  color: var(--amber);
-}
-
 .auth-toggle-password {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
   background: none;
   border: none;
+  cursor: pointer;
   color: var(--muted);
   padding: 4px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color var(--transition);
 }
 
 .auth-toggle-password:hover {
   color: var(--amber);
+}
+
+.auth-toggle-password .material-symbols-rounded {
+  font-size: 20px;
 }
 
 .auth-options {

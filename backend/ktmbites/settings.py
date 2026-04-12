@@ -5,12 +5,16 @@ Django settings for ktmbites project.
 from pathlib import Path
 import os
 import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-your-secret-key-change-this-in-production'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -65,7 +69,7 @@ WSGI_APPLICATION = 'ktmbites.wsgi.application'
 # Database
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres.yruhhvnjkfqobosagwnf:Postgrespas@aws-1-ap-south-1.pooler.supabase.com:6543/postgres',
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600
     )
 }

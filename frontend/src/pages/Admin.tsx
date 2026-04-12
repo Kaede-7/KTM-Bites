@@ -4,6 +4,7 @@ import "../css/admin.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 import * as adminAPI from "../api/admin";
 import * as authAPI from "../api/auth";
+import LoadingAnimation from "../components/LoadingAnimation";
 
 interface MenuItem {
   id?: number;
@@ -639,7 +640,7 @@ const Admin: React.FC = () => {
 
               <div className="admin-table-card">
                 {loading ? (
-                  <div className="admin-loading">Loading menu items...</div>
+                  <LoadingAnimation message="Loading menu items..." />
                 ) : menuItems.length === 0 ? (
                   <div className="admin-empty-state">
                     <span className="material-symbols-rounded">restaurant</span>
@@ -707,7 +708,7 @@ const Admin: React.FC = () => {
               <h2 className="admin-section-title">Orders Management</h2>
               <div className="admin-table-card">
                 {loading ? (
-                  <div className="admin-loading">Loading orders...</div>
+                  <LoadingAnimation message="Loading orders..." />
                 ) : orders.length === 0 ? (
                   <div className="admin-empty-state">
                     <span className="material-symbols-rounded">
@@ -786,7 +787,7 @@ const Admin: React.FC = () => {
               <h2 className="admin-section-title">Users Management</h2>
               <div className="admin-table-card">
                 {loading ? (
-                  <div className="admin-loading">Loading users...</div>
+                  <LoadingAnimation message="Loading users..." />
                 ) : users.length === 0 ? (
                   <div className="admin-empty-state">
                     <span className="material-symbols-rounded">people</span>
