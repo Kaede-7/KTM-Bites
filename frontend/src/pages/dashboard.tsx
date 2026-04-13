@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../css/dashboard.css";
 import LandingNavbar from "../components/LandingNavbar";
 import Footer from "../components/Footer";
@@ -16,7 +16,25 @@ interface Feature {
 }
 
 const LandingPage: React.FC = () => {
-  const [location, setLocation] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    const isLoggedIn = !!localStorage.getItem("ktmbites_token");
+
+    if (isLoggedIn) {
+      navigate(`/menu?search=${encodeURIComponent(query)}`);
+    } else {
+      navigate(`/menu?search=${encodeURIComponent(query)}&guest=true`);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleSearch();
+  };
 
   const stats: Stat[] = [
     { value: "50+", label: "Menu Items" },
@@ -61,16 +79,17 @@ const LandingPage: React.FC = () => {
 
             <div className="ktm-search-box">
               <div className="ktm-input-wrapper">
-                <span className="material-symbols-rounded ktm-input-icon">location_on</span>
+                <span className="material-symbols-rounded ktm-input-icon">search</span>
                 <input
                   type="text"
-                  placeholder="Let us know the location."
-                  value={location}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocation(e.target.value)}
+                  placeholder="Search for food items..."
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="ktm-input"
                 />
               </div>
-              <button className="ktm-btn-primary">
+              <button className="ktm-btn-primary" onClick={handleSearch}>
                 <span className="material-symbols-rounded" style={{ fontSize: "18px" }}>search</span>
                 Search
               </button>

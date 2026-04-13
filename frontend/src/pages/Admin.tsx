@@ -252,6 +252,7 @@ const Admin: React.FC = () => {
   if (!isLoggedIn) {
     return (
       <div className="admin-login-page">
+        {/* Left branding panel */}
         <div className="admin-login-left">
           <svg
             className="admin-login-geo"
@@ -263,28 +264,36 @@ const Admin: React.FC = () => {
               y1="0"
               x2="400"
               y2="600"
-              stroke="#C8841A"
+              stroke="#c8841a"
               strokeWidth="0.5"
-              opacity="0.3"
+              opacity="0.4"
             />
             <line
               x1="400"
               y1="0"
               x2="0"
               y2="600"
-              stroke="#C8841A"
+              stroke="#c8841a"
+              strokeWidth="0.5"
+              opacity="0.4"
+            />
+            <circle
+              cx="200"
+              cy="300"
+              r="150"
+              fill="none"
+              stroke="#c8841a"
               strokeWidth="0.5"
               opacity="0.3"
             />
-            <rect
-              x="80"
-              y="100"
-              width="240"
-              height="400"
+            <circle
+              cx="200"
+              cy="300"
+              r="220"
               fill="none"
-              stroke="#C8841A"
-              strokeWidth="0.5"
-              opacity="0.3"
+              stroke="#3b82f6"
+              strokeWidth="0.3"
+              opacity="0.2"
             />
           </svg>
           <div className="admin-login-left-content">
@@ -295,15 +304,28 @@ const Admin: React.FC = () => {
             />
             <h2>Admin Panel</h2>
             <p>Manage your restaurant operations</p>
+            <div className="admin-icon-feature">
+              <span className="material-symbols-rounded ai-1">
+                dashboard
+              </span>
+              <span className="material-symbols-rounded ai-2">
+                restaurant_menu
+              </span>
+              <span className="material-symbols-rounded ai-3">
+                analytics
+              </span>
+            </div>
           </div>
         </div>
 
+        {/* Right form panel */}
         <div className="admin-login-right">
           <div className="admin-login-card">
             <button className="admin-back-link" onClick={() => navigate("/")}>
               <span className="material-symbols-rounded">arrow_back</span>
               Back to Home
             </button>
+
             <img
               src={transparentLogo}
               alt="KTM Bites"
@@ -311,6 +333,11 @@ const Admin: React.FC = () => {
             />
             <h1>Admin Login</h1>
             <p className="admin-login-subtitle">Access the admin panel</p>
+
+            <div className="admin-login-badge">
+              <span className="material-symbols-rounded">admin_panel_settings</span>
+              Admin Staff Only
+            </div>
 
             {error && (
               <div className="admin-login-alert admin-login-alert-error">
@@ -366,14 +393,18 @@ const Admin: React.FC = () => {
                 </div>
               </div>
 
-              <button type="submit" className="admin-login-btn">
+              <button
+                type="submit"
+                className="admin-login-btn"
+                disabled={actionLoading}
+              >
                 <span className="material-symbols-rounded">login</span>
-                Sign In
+                {actionLoading ? "Signing In..." : "Enter Admin"}
               </button>
             </form>
 
             <div className="admin-demo-credentials">
-              <p className="admin-demo-title">Demo Credentials:</p>
+              <p className="admin-demo-title">Admin Credentials:</p>
               <p className="admin-demo-text">
                 Email: <strong>admin@ktmbites.com</strong>
               </p>

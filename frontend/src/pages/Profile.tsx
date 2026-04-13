@@ -264,9 +264,6 @@ const Profile: React.FC = () => {
                     <p className="profile-address-text">{formData.address || "Thamel, Kathmandu"}</p>
                     <p className="profile-address-sub">Near Garden of Dreams</p>
                   </div>
-                  <button className="profile-add-address-btn">
-                    <span className="material-symbols-rounded">add</span>Add New Address
-                  </button>
                 </div>
               </div>
             )}

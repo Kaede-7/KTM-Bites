@@ -6,7 +6,6 @@ import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { getMenuItems, getCategories, type MenuItemData, type CategoryData } from "../api/menu";
 import { getStoredUser } from "../api/auth";
-import { useFavorites } from "../hooks/useFavorites";
 
 const Home: React.FC = () => {
   const [popularItems, setPopularItems] = useState<MenuItemData[]>([]);
@@ -15,7 +14,7 @@ const Home: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const user = getStoredUser();
-  const { isFavorite, toggleFavorite } = useFavorites();
+
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -104,15 +103,6 @@ const Home: React.FC = () => {
                   <div className="home-food-card-img-wrapper">
                     <img src={item.image} alt={item.name} className="home-food-card-img" />
                     {item.badge && <span className="home-food-card-badge">{item.badge}</span>}
-                    <button 
-                      className={`home-food-card-fav ${isFavorite(item.id) ? "active" : ""}`} 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toggleFavorite(item.id);
-                      }}
-                    >
-                      <span className="material-symbols-rounded">favorite</span>
-                    </button>
                   </div>
                   <div className="home-food-card-body">
                     <span className="home-food-card-category">{item.category}</span>

@@ -136,10 +136,6 @@ const OrderTracking: React.FC = () => {
             </div>
           ))}
         </div>
-
-        <button className="tracking-contact-btn">
-          <span className="material-symbols-rounded">call</span>Contact Delivery Person
-        </button>
       </div>
       <Footer />
     </div>

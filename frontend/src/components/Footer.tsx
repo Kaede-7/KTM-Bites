@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import "../css/footer.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 
@@ -11,26 +10,6 @@ const Footer: React.FC = () => {
           <div className="footer-brand">
             <img src={transparentLogo} alt="KTM Bites" />
             <p>Delicious food delivered to your doorstep in Kathmandu. Fast, fresh, and affordable.</p>
-          </div>
-
-          <div className="footer-column">
-            <h4>Quick Links</h4>
-            <ul>
-              <li><Link to="/menu">Browse Menu</Link></li>
-              <li><Link to="/cart">My Cart</Link></li>
-              <li><Link to="/profile">My Profile</Link></li>
-              <li><Link to="/order-tracking/latest">Track Order</Link></li>
-            </ul>
-          </div>
-
-          <div className="footer-column">
-            <h4>Support</h4>
-            <ul>
-              <li><a href="#">Help Center</a></li>
-              <li><a href="#">Terms of Service</a></li>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Partner With Us</a></li>
-            </ul>
           </div>
 
           <div className="footer-column">
@@ -59,12 +38,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="footer-bottom">
-          <span>© 2025 KTM Bites. All rights reserved.</span>
-          <div className="footer-socials">
-            <a href="#" className="footer-social-link"><span className="material-symbols-rounded">share</span></a>
-            <a href="#" className="footer-social-link"><span className="material-symbols-rounded">tag</span></a>
-            <a href="#" className="footer-social-link"><span className="material-symbols-rounded">chat</span></a>
-          </div>
+          <span>© 2026 KTM Bites. All rights reserved.</span>
         </div>
       </div>
     </footer>

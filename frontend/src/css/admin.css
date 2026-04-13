@@ -9,7 +9,7 @@
 
 .admin-login-left {
   flex: 1;
-  display: none;
+  display: flex;
   position: relative;
   background: var(--beige);
   overflow: hidden;
@@ -251,6 +251,64 @@
 .admin-demo-text strong {
   color: var(--dark);
   font-weight: 600;
+}
+
+/* Admin Login Badge */
+.admin-login-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--amber-bg);
+  border: 1px solid rgba(200, 132, 26, 0.2);
+  color: var(--amber);
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.admin-login-badge .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* Admin Icon Feature */
+.admin-icon-feature {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.admin-icon-feature .material-symbols-rounded {
+  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.admin-icon-feature .material-symbols-rounded:hover {
+  transform: scale(1.15);
+}
+
+.admin-icon-feature .ai-1 {
+  background: rgba(200, 132, 26, 0.12);
+  color: var(--amber);
+}
+
+.admin-icon-feature .ai-2 {
+  background: rgba(200, 132, 26, 0.18);
+  color: var(--amber-hover);
+}
+
+.admin-icon-feature .ai-3 {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
 }
 
 /* Admin Dashboard */
@@ -765,7 +823,6 @@
   }
 
   .admin-login-left {
-    display: flex !important;
     min-height: 150px;
   }
 

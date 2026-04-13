@@ -49,30 +49,47 @@ const Signup: React.FC = () => {
 
   return (
     <div className="auth-page">
+      {/* Left branding panel */}
       <div className="auth-left">
         <svg className="auth-left-geo" viewBox="0 0 400 600" preserveAspectRatio="none">
-          <line x1="0" y1="0" x2="400" y2="600" stroke="#C8841A" strokeWidth="0.5" opacity="0.3" />
-          <line x1="400" y1="0" x2="0" y2="600" stroke="#C8841A" strokeWidth="0.5" opacity="0.3" />
-          <circle cx="200" cy="300" r="180" fill="none" stroke="#C8841A" strokeWidth="0.5" opacity="0.3" />
+          <line x1="0" y1="0" x2="400" y2="600" stroke="#c8841a" strokeWidth="0.5" opacity="0.4" />
+          <line x1="400" y1="0" x2="0" y2="600" stroke="#c8841a" strokeWidth="0.5" opacity="0.4" />
+          <circle cx="200" cy="300" r="150" fill="none" stroke="#c8841a" strokeWidth="0.5" opacity="0.3" />
+          <circle cx="200" cy="300" r="220" fill="none" stroke="#3b82f6" strokeWidth="0.3" opacity="0.2" />
         </svg>
         <div className="auth-left-content">
           <img src={transparentLogo} alt="KTM Bites" className="auth-left-logo" />
           <h2>Join KTM Bites!</h2>
           <p>Create your account and start ordering</p>
+          <div className="auth-icon-feature">
+            <span className="material-symbols-rounded auth-fi-1">restaurant_menu</span>
+            <span className="material-symbols-rounded auth-fi-2">shopping_cart</span>
+            <span className="material-symbols-rounded auth-fi-3">local_shipping</span>
+          </div>
         </div>
       </div>
 
+      {/* Right form panel */}
       <div className="auth-right">
         <div className="auth-card">
           <Link to="/" className="auth-back-link">
             <span className="material-symbols-rounded">arrow_back</span>
             Back to Home
           </Link>
-          <img src={transparentLogo} alt="KTM Bites" className="auth-card-logo" />
-          <h1>Create Account</h1>
-          <p className="auth-subtitle">Fill in the details to get started</p>
 
-          {error && <div className="auth-error">{error}</div>}
+          <img src={transparentLogo} alt="KTM Bites" className="auth-card-logo" />
+
+          <div className="auth-tabs">
+            <Link to="/login" className="auth-tab">Sign In</Link>
+            <button className="auth-tab active">Signup</button>
+          </div>
+
+          {error && (
+            <div className="auth-error">
+              <span className="material-symbols-rounded">error</span>
+              {error}
+            </div>
+          )}
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="auth-field">
@@ -126,10 +143,6 @@ const Signup: React.FC = () => {
               {loading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
-
-          <p className="auth-footer-text">
-            Already have an account? <Link to="/login">Login</Link>
-          </p>
         </div>
       </div>
     </div>
