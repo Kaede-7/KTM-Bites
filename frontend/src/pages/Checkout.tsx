@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, type CartData } from "../api/cart";
 import { placeOrder } from "../api/orders";
+import { getProfile } from "../api/auth";
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
@@ -24,17 +25,29 @@ const Checkout: React.FC = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchCart = async () => {
+    const fetchCheckoutData = async () => {
       try {
-        const data = await getCart();
-        setCart(data);
+        const [cartData, profileData] = await Promise.all([
+          getCart(),
+          getProfile()
+        ]);
+        setCart(cartData);
+        if (profileData) {
+          setForm(prev => ({
+            ...prev,
+            fullName: profileData.full_name || prev.fullName,
+            phone: profileData.phone || prev.phone,
+            address: profileData.address || prev.address,
+            city: profileData.city || prev.city,
+          }));
+        }
       } catch (err) {
-        console.error("Failed to fetch cart:", err);
+        console.error("Failed to fetch checkout data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchCart();
+    fetchCheckoutData();
   }, []);
 
   const handleChange =

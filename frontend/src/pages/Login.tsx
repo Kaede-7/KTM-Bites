@@ -89,6 +89,13 @@ const Login: React.FC = () => {
                 </button>
               </div>
             </div>
+<<<<<<< HEAD
+=======
+            <div className="auth-options">
+              <label className="auth-remember"><input type="checkbox" /> Remember me</label>
+              <a href="#" className="auth-forgot">Forgot password?</a>
+            </div>
+>>>>>>> eacf7192750b064e002b70d6ff6616e506e7c21d
 
             <button type="submit" className="auth-submit-btn" disabled={loading}>
               <span className="material-symbols-rounded">login</span>
