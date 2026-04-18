@@ -23,7 +23,7 @@ const LandingPage: React.FC = () => {
     const query = searchQuery.trim();
     if (!query) return;
 
-    const isLoggedIn = !!localStorage.getItem("ktmbites_token");
+    const isLoggedIn = !!(localStorage.getItem("ktmbites_token") || sessionStorage.getItem("ktmbites_token"));
 
     if (isLoggedIn) {
       navigate(`/menu?search=${encodeURIComponent(query)}`);

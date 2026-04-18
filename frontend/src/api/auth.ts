@@ -25,18 +25,27 @@ export interface ProfileData {
 
 // ── Helpers ──
 
-export function saveAuth(data: AuthResponse) {
-  localStorage.setItem("ktmbites_token", data.token);
-  localStorage.setItem("ktmbites_user", JSON.stringify(data.user));
+export function saveAuth(data: AuthResponse, rememberMe: boolean = true) {
+  if (rememberMe) {
+    localStorage.setItem("ktmbites_token", data.token);
+    localStorage.setItem("ktmbites_user", JSON.stringify(data.user));
+    sessionStorage.removeItem("ktmbites_token");
+    sessionStorage.removeItem("ktmbites_user");
+  } else {
+    sessionStorage.setItem("ktmbites_token", data.token);
+    sessionStorage.setItem("ktmbites_user", JSON.stringify(data.user));
+    localStorage.removeItem("ktmbites_token");
+    localStorage.removeItem("ktmbites_user");
+  }
 }
 
 export function getStoredUser(): AuthUser | null {
-  const raw = localStorage.getItem("ktmbites_user");
+  const raw = localStorage.getItem("ktmbites_user") || sessionStorage.getItem("ktmbites_user");
   return raw ? JSON.parse(raw) : null;
 }
 
 export function getToken(): string | null {
-  return localStorage.getItem("ktmbites_token");
+  return localStorage.getItem("ktmbites_token") || sessionStorage.getItem("ktmbites_token");
 }
 
 export function isLoggedIn(): boolean {
@@ -46,6 +55,8 @@ export function isLoggedIn(): boolean {
 export function logout() {
   localStorage.removeItem("ktmbites_token");
   localStorage.removeItem("ktmbites_user");
+  sessionStorage.removeItem("ktmbites_token");
+  sessionStorage.removeItem("ktmbites_user");
   window.location.href = "/login";
 }
 
@@ -54,9 +65,10 @@ export function logout() {
 export async function login(
   email: string,
   password: string,
+  rememberMe: boolean = true
 ): Promise<AuthResponse> {
   const { data } = await API.post("/auth/login/", { email, password });
-  saveAuth(data);
+  saveAuth(data, rememberMe);
   return data;
 }
 

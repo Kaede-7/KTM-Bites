@@ -9,7 +9,7 @@ const API = axios.create({
 
 // Attach auth token to every request if available
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('ktmbites_token');
+  const token = localStorage.getItem('ktmbites_token') || sessionStorage.getItem('ktmbites_token');
   if (token) {
     config.headers.Authorization = `Token ${token}`;
   }
@@ -23,6 +23,8 @@ API.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('ktmbites_token');
       localStorage.removeItem('ktmbites_user');
+      sessionStorage.removeItem('ktmbites_token');
+      sessionStorage.removeItem('ktmbites_user');
       // Only redirect if not already on auth pages
       if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup') && !window.location.pathname.includes('/admin') && !window.location.pathname.includes('/kitchen')) {
         window.location.href = '/login';
