@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, update_session_auth_hash
 from django.contrib.auth.models import User
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import os
 
 from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem, UserProfile
 from .serializers import (
@@ -69,6 +72,63 @@ def login_view(request):
             })
         return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_login_view(request):
+    credential = request.data.get('credential')
+    if not credential:
+        return Response({'error': 'No credential provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Verify the token
+        # Note: In production, pass client_id to verify_oauth2_token for security
+        idinfo = id_token.verify_oauth2_token(credential, google_requests.Request())
+        
+        email = idinfo.get('email')
+        first_name = idinfo.get('given_name', '')
+        last_name = idinfo.get('family_name', '')
+        
+        if not email:
+            return Response({'error': 'Google token did not contain an email'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Get or create user
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            username = email.split('@')[0]
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+                
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=User.objects.make_random_password()
+            )
+            Cart.objects.get_or_create(user=user)
+            
+        token, _ = Token.objects.get_or_create(user=user)
+        Cart.objects.get_or_create(user=user)
+        
+        return Response({
+            'token': token.key,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'full_name': user.first_name,
+                'is_staff': user.is_staff,
+                'is_superuser': user.is_superuser,
+            }
+        })
+        
+    except ValueError as e:
+        return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT'])

@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
-import { register } from "../api/auth";
+import { register, googleLogin } from "../api/auth";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
@@ -44,6 +45,17 @@ const Signup: React.FC = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      if (credentialResponse.credential) {
+        await googleLogin(credentialResponse.credential);
+        navigate("/home");
+      }
+    } catch (err: any) {
+      setError("Google signup failed. Please try again.");
     }
   };
 
@@ -142,6 +154,19 @@ const Signup: React.FC = () => {
               <span className="material-symbols-rounded">person_add</span>
               {loading ? "Creating Account..." : "Create Account"}
             </button>
+            <div className="auth-divider">
+              <span>OR</span>
+            </div>
+            <div className="google-login-container" style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Google signup failed")}
+                theme="outline"
+                size="large"
+                shape="rectangular"
+                text="signup_with"
+              />
+            </div>
           </form>
         </div>
       </div>

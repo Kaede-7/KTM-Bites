@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
-import { login } from "../api/auth";
+import { login, googleLogin } from "../api/auth";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +25,17 @@ const Login: React.FC = () => {
       setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      if (credentialResponse.credential) {
+        await googleLogin(credentialResponse.credential);
+        navigate("/home");
+      }
+    } catch (err: any) {
+      setError("Google login failed. Please try again.");
     }
   };
 
@@ -184,6 +196,18 @@ const Login: React.FC = () => {
               <span className="material-symbols-rounded">login</span>
               {loading ? "Signing In..." : "Sign In"}
             </button>
+            <div className="auth-divider">
+              <span>OR</span>
+            </div>
+            <div className="google-login-container" style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Google login failed")}
+                theme="outline"
+                size="large"
+                shape="rectangular"
+              />
+            </div>
           </form>
         </div>
       </div>
