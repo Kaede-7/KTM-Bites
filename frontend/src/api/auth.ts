@@ -72,6 +72,12 @@ export async function login(
   return data;
 }
 
+export async function googleLogin(credential: string): Promise<AuthResponse> {
+  const { data } = await API.post("/auth/google/", { credential });
+  saveAuth(data);
+  return data;
+}
+
 export async function register(payload: {
   full_name: string;
   email: string;
