@@ -139,11 +139,12 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'id', 'order_id', 'status', 'status_display',
-            'payment_method', 'full_name', 'phone', 'address',
+            'payment_method', 'payment_status', 'pidx', 'transaction_id',
+            'full_name', 'phone', 'address',
             'city', 'landmark', 'notes', 'subtotal', 'delivery_fee',
             'total', 'items', 'created_at',
         ]
-        read_only_fields = ['subtotal', 'delivery_fee', 'total', 'status']
+        read_only_fields = ['subtotal', 'delivery_fee', 'total', 'status', 'payment_status', 'pidx', 'transaction_id']
 
 
 class PlaceOrderSerializer(serializers.Serializer):
