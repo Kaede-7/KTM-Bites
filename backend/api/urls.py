@@ -29,4 +29,9 @@ urlpatterns = [
     path('admin/users/', views.admin_users_list, name='admin-users-list'),
     path('admin/menu/', views.admin_menu_items, name='admin-menu-items'),
     path('admin/categories/', views.admin_categories, name='admin-categories'),
+
+    # Payments (Khalti)
+    path('payments/initiate/', views.initiate_payment, name='initiate-payment'),
+    path('payments/verify/', views.verify_payment, name='verify-payment'),
+    path('payments/status/<int:order_id>/', views.payment_status_view, name='payment-status'),
 ]
