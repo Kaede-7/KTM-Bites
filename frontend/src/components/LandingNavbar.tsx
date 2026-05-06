@@ -9,7 +9,7 @@ const LandingNavbar: React.FC = () => {
       <div className="landing-nav-content">
         <Link to="/" className="landing-nav-logo">
           <img src={mascotIcon} alt="" className="landing-nav-logo-icon" />
-          <span className="landing-nav-logo-wordmark">KTM <em>Bites</em></span>
+          <span className="landing-nav-logo-wordmark">KTM<em>Bites</em></span>
         </Link>
         <div className="landing-nav-actions">
           <Link to="/login"><button className="landing-nav-btn-login">Login</button></Link>

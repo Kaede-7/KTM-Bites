@@ -1,163 +1,183 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "../css/home.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import LoadingAnimation from "../components/LoadingAnimation";
-import { getMenuItems, getCategories, type MenuItemData, type CategoryData } from "../api/menu";
+import { getMenuItems, type MenuItemData } from "../api/menu";
+import { getOrders, type OrderData } from "../api/orders";
 import { getStoredUser } from "../api/auth";
 
 const Home: React.FC = () => {
-  const [popularItems, setPopularItems] = useState<MenuItemData[]>([]);
-  const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
+  const [favorites, setFavorites] = useState<MenuItemData[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const user = getStoredUser();
-
-
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/menu?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [items, cats] = await Promise.all([
+        const [items, userOrders] = await Promise.all([
           getMenuItems({ sort: "rating" }),
-          getCategories(),
+          getOrders().catch(() => []) // Catch if orders fail or empty
         ]);
-        setPopularItems(items.slice(0, 6));
-        setCategories(cats);
+        setFavorites(items.slice(0, 3));
+        setOrders(userOrders);
       } catch (err) {
-        console.error("Failed to fetch data:", err);
-      } finally {
-        setLoading(false);
+        console.error("Failed to fetch home data:", err);
       }
     };
     fetchData();
   }, []);
 
+  const activeOrder = orders.find(o => !["DELIVERED", "CANCELLED"].includes(o.status));
+  const recentOrders = orders.filter(o => o.status === "DELIVERED").slice(0, 3);
+
+  // Status mapping to calculate progress bar percentages
+  const statusMap = {
+    "PENDING": 0,
+    "PREPARING": 1,
+    "OUT_FOR_DELIVERY": 2,
+    "DELIVERED": 3
+  };
+  
+  const getProgressWidth = (status: string) => {
+    const s = statusMap[status as keyof typeof statusMap] || 0;
+    if (s === 0) return "0%";
+    if (s === 1) return "50%";
+    if (s >= 2) return "100%";
+    return "0%";
+  };
+
   return (
     <div className="home-page">
       <Navbar />
 
-      {/* Welcome Banner */}
-      <section className="home-banner">
-        <div className="home-banner-content">
-          <div className="home-banner-text">
-            <h1>Welcome back, <span>{user?.full_name || "Guest"}</span> 👋</h1>
-            <p>What would you like to eat today?</p>
+      <div className="home-container">
+        {/* Hero Section */}
+        <section className="home-hero">
+          <div className="home-hero-text">
+            <h1>Welcome back, <span>{user?.full_name?.split(" ")[0] || "Guest"}</span>.</h1>
+            <p>Your cravings are orbiting. What's on the menu today?</p>
+            <Link to="/menu" className="home-hero-btn">
+              Explore Menu <span className="material-symbols-rounded" style={{fontSize: '18px'}}>arrow_forward</span>
+            </Link>
           </div>
-          <div className="home-banner-search">
-            <span className="material-symbols-rounded" onClick={handleSearch} style={{ cursor: "pointer" }}>search</span>
-            <input 
-              type="text" 
-              placeholder="Search for food, restaurants..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSearch();
-              }}
+          <div className="home-hero-img-container">
+            {/* Food image matching the dark elegant aesthetic */}
+            <img 
+              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=800&fit=crop&crop=center" 
+              alt="Delicious food" 
             />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Categories */}
-      <section className="home-categories">
-        <div className="home-section-container">
-          <h2 className="home-section-heading">Categories</h2>
-          <div className="home-categories-grid">
-            {categories.map((cat) => (
-              <Link to={`/menu?category=${cat.name}`} key={cat.name} className="home-category-card">
-                <div className="home-category-icon">
-                  <span className="material-symbols-rounded">{cat.icon}</span>
+        {/* Main Layout */}
+        <div className="home-layout">
+          {/* Left Column */}
+          <div className="home-col-left">
+            
+            {/* In Progress Card */}
+            <div className="home-card home-in-progress">
+              <div className="hip-header">
+                <div>
+                  <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
+                  <p>{activeOrder ? `Arriving in ~25 mins` : "Your recent cravings are satisfied."}</p>
                 </div>
-                <span className="home-category-label">{cat.name}</span>
-                <span className="home-category-count">{cat.count} items</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+                {activeOrder && (
+                  <span className="hip-badge">#{activeOrder.order_id}</span>
+                )}
+              </div>
 
-      {/* Popular Items */}
-      <section className="home-popular">
-        <div className="home-section-container">
-          <div className="home-section-header">
-            <h2 className="home-section-heading">Popular Right Now</h2>
-            <Link to="/menu" className="home-view-all">
-              View All
-              <span className="material-symbols-rounded">arrow_forward</span>
-            </Link>
-          </div>
-          {loading ? (
-            <LoadingAnimation message="Loading popular items..." />
-          ) : (
-            <div className="home-popular-grid">
-              {popularItems.map((item) => (
-                <Link to={`/menu/${item.id}`} key={item.id} className="home-food-card">
-                  <div className="home-food-card-img-wrapper">
-                    <img src={item.image} alt={item.name} className="home-food-card-img" />
-                    {item.badge && <span className="home-food-card-badge">{item.badge}</span>}
-                  </div>
-                  <div className="home-food-card-body">
-                    <span className="home-food-card-category">{item.category}</span>
-                    <h3 className="home-food-card-name">{item.name}</h3>
-                    <div className="home-food-card-footer">
-                      <span className="home-food-card-price">Rs. {item.price}</span>
-                      <span className="home-food-card-rating">
-                        <span className="material-symbols-rounded">star</span>
-                        {item.rating}
-                      </span>
+              {activeOrder && (
+                <>
+                  <div className="hip-item">
+                    <img src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
+                    <div className="hip-item-info">
+                      <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
+                      <p>KTM Bites Kitchen</p>
                     </div>
                   </div>
-                </Link>
-              ))}
+
+                  <div className="hip-progress">
+                    <div className="hip-progress-bar" style={{ width: getProgressWidth(activeOrder.status) }}></div>
+                    <div className={`hip-step ${statusMap[activeOrder.status as keyof typeof statusMap] >= 0 ? "active" : ""}`}>
+                      <div className="hip-step-icon"><span className="material-symbols-rounded">receipt_long</span></div>
+                      <span className="hip-step-label">Received</span>
+                    </div>
+                    <div className={`hip-step ${statusMap[activeOrder.status as keyof typeof statusMap] >= 1 ? "active" : ""}`}>
+                      <div className="hip-step-icon"><span className="material-symbols-rounded">skillet</span></div>
+                      <span className="hip-step-label">Preparing</span>
+                    </div>
+                    <div className={`hip-step ${statusMap[activeOrder.status as keyof typeof statusMap] >= 2 ? "active" : ""}`}>
+                      <div className="hip-step-icon"><span className="material-symbols-rounded">two_wheeler</span></div>
+                      <span className="hip-step-label">On the way</span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-          )}
-        </div>
-      </section>
 
-      {/* Quick Actions */}
-      <section className="home-quick-actions">
-        <div className="home-section-container">
-          <div className="home-actions-grid">
-            <Link to="/menu" className="home-action-card">
-              <div className="home-action-icon menu-icon">
-                <span className="material-symbols-rounded">restaurant_menu</span>
+            {/* Recent Orders */}
+            <div className="home-card home-recent-orders">
+              <div className="hro-header">
+                <h2>Recent Orders</h2>
+                <Link to="/profile">View All</Link>
               </div>
-              <h3>Browse Menu</h3>
-              <p>Explore our full collection</p>
-            </Link>
-            <Link to="/cart" className="home-action-card">
-              <div className="home-action-icon cart-icon">
-                <span className="material-symbols-rounded">shopping_cart</span>
+              
+              <div className="hro-list">
+                {recentOrders.length > 0 ? (
+                  recentOrders.map((order) => (
+                    <div className="hro-item" key={order.id}>
+                      <div className="hro-item-left">
+                        <div className="hro-item-icon">
+                          <span className="material-symbols-rounded">receipt</span>
+                        </div>
+                        <div className="hro-item-info">
+                          <h4>{order.items[0]?.name || "Order"} {order.items.length > 1 ? `+${order.items.length - 1}` : ""}</h4>
+                          <p>KTM Bites • {new Date(order.created_at).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}</p>
+                        </div>
+                      </div>
+                      <div className="hro-item-right">
+                        <div className="hro-item-price">Rs. {order.total}</div>
+                        <div className="hro-item-status">@ {order.status_display}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{color: "#8b7d72", fontSize: "14px"}}>You haven't placed any orders yet. Time to explore!</p>
+                )}
               </div>
-              <h3>My Cart</h3>
-              <p>Review your selections</p>
-            </Link>
-            <Link to="/order-tracking/latest" className="home-action-card">
-              <div className="home-action-icon track-icon">
-                <span className="material-symbols-rounded">local_shipping</span>
-              </div>
-              <h3>Track Order</h3>
-              <p>Follow your delivery</p>
-            </Link>
-            <Link to="/profile" className="home-action-card">
-              <div className="home-action-icon profile-icon">
-                <span className="material-symbols-rounded">person</span>
-              </div>
-              <h3>My Profile</h3>
-              <p>Manage your account</p>
-            </Link>
+            </div>
+
           </div>
-        </div>
-      </section>
 
+          {/* Right Column */}
+          <div className="home-col-right">
+            <div className="home-card home-favorites">
+              <div className="hf-header">
+                <h2>Your Favorites</h2>
+              </div>
+              <div className="hf-list">
+                {favorites.map((item) => (
+                  <Link to={`/menu/${item.id}`} className="hf-item" key={item.id}>
+                    <img src={item.image} alt={item.name} />
+                    <div className="hf-item-overlay">
+                      <div className="hf-item-info">
+                        <h4>{item.name}</h4>
+                        <p>{item.category}</p>
+                      </div>
+                      <button className="hf-item-btn" onClick={(e) => { e.preventDefault(); }}>
+                        <span className="material-symbols-rounded" style={{fontSize: '20px'}}>add</span>
+                      </button>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      
       <Footer />
     </div>
   );
