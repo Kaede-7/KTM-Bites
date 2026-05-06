@@ -116,6 +116,10 @@ input, select, textarea {
 
 /* Selection color */
 ::selection {
-  background: var(--amber);
-  color: white;
+  background: rgba(242, 139, 70, 0.25);
+  color: inherit;
+}
+::-moz-selection {
+  background: rgba(242, 139, 70, 0.25);
+  color: inherit;
 }

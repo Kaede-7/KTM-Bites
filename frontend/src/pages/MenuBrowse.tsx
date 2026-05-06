@@ -10,16 +10,21 @@ import { isLoggedIn } from "../api/auth";
 
 const MenuBrowse: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const initialCat = searchParams.get("category") || "All";
-  const initialSearch = searchParams.get("search") || "";
 
-  const [activeCat, setActiveCat] = useState(initialCat);
-  const [search, setSearch] = useState(initialSearch);
+  const [activeCat, setActiveCat] = useState(searchParams.get("category") || "All");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [sort, setSort] = useState("popular");
   const [items, setItems] = useState<MenuItemData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Sync filter state when the URL query params change (e.g. navigating from dashboard chips)
+  useEffect(() => {
+    const cat = searchParams.get("category") || "All";
+    const q   = searchParams.get("search")   || "";
+    setActiveCat(cat);
+    setSearch(q);
+  }, [searchParams]);
 
   // Fetch categories on mount
   useEffect(() => {

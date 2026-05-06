@@ -1,18 +1,20 @@
-/* ===== Landing Page Navbar ===== */
+/* ===== Landing Page Navbar (unauthenticated) ===== */
 .landing-nav {
   position: sticky;
   top: 0;
-  z-index: 100;
-  background: rgba(245, 240, 235, 0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--line);
+  z-index: 200;
+  background: rgba(253, 246, 240, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(212, 196, 168, 0.35);
+  box-shadow: 0 2px 24px rgba(200, 132, 26, 0.06);
 }
 
 .landing-nav-content {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 24px;
-  height: 64px;
+  padding: 0 32px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -20,50 +22,86 @@
 
 .landing-nav-logo {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  gap: 0;
+  text-decoration: none;
 }
 
-.landing-nav-logo img {
-  height: 90px;
+.landing-nav-logo-icon {
+  height: 62px;
   width: auto;
   object-fit: contain;
+  margin: 0 -12px -20px 0; /* -20px bottom offsets the transparent padding in the larger PNG */
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.landing-nav-logo:hover .landing-nav-logo-icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+.landing-nav-logo-wordmark {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: #2a2420;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  transition: opacity 0.2s ease;
+  user-select: none;
+  padding-left: 2px;
+  margin-bottom: 3px; /* Lifts the text up slightly relative to the mascot */
+}
+
+.landing-nav-logo-wordmark em {
+  font-style: italic;
+  color: #f28b46;
+}
+
+.landing-nav-logo:hover .landing-nav-logo-wordmark {
+  opacity: 0.85;
 }
 
 .landing-nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .landing-nav-btn-login {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--mid);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b5d52;
   background: none;
   border: none;
   padding: 8px 16px;
-  border-radius: var(--radius-full);
-  transition: all var(--transition);
+  border-radius: 999px;
+  transition: color 0.2s ease, background 0.2s ease;
   cursor: pointer;
 }
 
 .landing-nav-btn-login:hover {
-  color: var(--amber);
+  color: #f28b46;
+  background: rgba(242, 139, 70, 0.08);
 }
 
 .landing-nav-btn-signup {
+  font-family: var(--font-body);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: white;
-  background: var(--dark);
+  background: #f28b46;
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: 999px;
   padding: 8px 22px;
-  transition: all var(--transition);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(242, 139, 70, 0.28);
 }
 
 .landing-nav-btn-signup:hover {
-  background: var(--dark-hover);
-  transform: scale(1.02);
+  background: #e06c22;
+  box-shadow: 0 6px 18px rgba(242, 139, 70, 0.38);
+  transform: translateY(-1px);
 }
