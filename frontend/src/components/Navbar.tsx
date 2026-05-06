@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "../css/navbar.css";
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
+import mascotIcon from "../assets/ktm-bites-transparent-notext.png";
 import { isLoggedIn, logout } from "../api/auth";
 import { getCart } from "../api/cart";
 
@@ -24,7 +24,8 @@ const Navbar: React.FC = () => {
     <nav className="navbar">
       <div className="navbar-content">
         <Link to="/home" className="navbar-logo">
-          <img src={transparentLogo} alt="KTM Bites" />
+          <img src={mascotIcon} alt="" className="navbar-logo-icon" />
+          <span className="navbar-logo-wordmark">KTM<em>Bites</em></span>
         </Link>
 
         <div className="navbar-links">
@@ -47,6 +48,7 @@ const Navbar: React.FC = () => {
             <span className="material-symbols-rounded">shopping_cart</span>
             {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
           </Link>
+          <span className="navbar-divider" />
           {loggedIn ? (
             <>
               <Link to="/profile" className="navbar-profile-btn" title="Profile">
