@@ -25,13 +25,14 @@
   align-items: flex-end;
   gap: 0;
   text-decoration: none;
+  transform: translateY(-5px); /* Centers the logo group vertically */
 }
 
 .landing-nav-logo-icon {
   height: 62px;
   width: auto;
   object-fit: contain;
-  margin: 0 -12px -20px 0; /* -20px bottom offsets the transparent padding in the larger PNG */
+  margin: 0 -12px -20px -24px; /* -24px left pulls mascot flush to container edge */
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
@@ -41,21 +42,24 @@
 }
 
 .landing-nav-logo-wordmark {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 19px;
-  font-weight: 700;
-  color: #2a2420;
-  letter-spacing: -0.01em;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 23px;
+  font-weight: 800;
+  color: #f28b46;
+  background: linear-gradient(135deg, #f28b46 0%, #d95e14 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.04em;
   line-height: 1;
   transition: opacity 0.2s ease;
   user-select: none;
-  padding-left: 2px;
+  padding-left: 4px;
+  padding-right: 6px; /* Prevents the italic 's' from being clipped by background-clip */
   margin-bottom: 3px; /* Lifts the text up slightly relative to the mascot */
 }
 
 .landing-nav-logo-wordmark em {
   font-style: italic;
-  color: #f28b46;
 }
 
 .landing-nav-logo:hover .landing-nav-logo-wordmark {

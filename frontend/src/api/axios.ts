@@ -25,8 +25,11 @@ API.interceptors.response.use(
       localStorage.removeItem('ktmbites_user');
       sessionStorage.removeItem('ktmbites_token');
       sessionStorage.removeItem('ktmbites_user');
-      // Only redirect if not already on auth pages
-      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup') && !window.location.pathname.includes('/admin') && !window.location.pathname.includes('/kitchen')) {
+      // Only force redirect to login on strictly protected pages
+      const currentPath = window.location.pathname;
+      const protectedPaths = ['/profile', '/checkout', '/order-tracking'];
+      
+      if (protectedPaths.some(path => currentPath.startsWith(path))) {
         window.location.href = '/login';
       }
     }
