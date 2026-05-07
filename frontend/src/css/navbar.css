@@ -27,13 +27,16 @@
   gap: 0;
   flex-shrink: 0;
   text-decoration: none;
+  transform: translateY(-5px);
+  /* Centers the logo group vertically */
 }
 
 .navbar-logo-icon {
   height: 62px;
   width: auto;
   object-fit: contain;
-  margin: 0 -12px -20px 0; /* -20px bottom offsets the transparent padding in the larger PNG */
+  margin: 0 -12px -20px -24px;
+  /* -24px left pulls mascot flush to container edge */
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
@@ -43,24 +46,29 @@
 }
 
 .navbar-logo-wordmark {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 19px;
-  font-weight: 700;
-  color: #2a2420;
-  letter-spacing: -0.01em;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 23px;
+  font-weight: 800;
+  color: #f28b46;
+  background: linear-gradient(135deg, #f28b46 0%, #d95e14 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.04em;
   line-height: 1;
   transition: opacity 0.2s ease;
   user-select: none;
-  padding-left: 2px;
-  margin-bottom: 3px; /* Lifts the text up slightly relative to the mascot */
+  padding-left: 4px;
+  padding-right: 6px;
+  /* Prevents the italic 's' from being clipped by background-clip */
+  margin-bottom: 3px;
+  /* Lifts the text up slightly relative to the mascot */
 }
 
 .navbar-logo-wordmark em {
   font-style: italic;
-  color: #f28b46;
 }
 
-.navbar-logo:hover .navbar-logo-wordmark {
+l .navbar-logo:hover .navbar-logo-wordmark {
   opacity: 0.85;
 }
 
@@ -172,8 +180,8 @@
   flex-shrink: 0;
 }
 
-.navbar-actions .navbar-cart-btn + .navbar-profile-btn::before,
-.navbar-actions .navbar-cart-btn + a::before {
+.navbar-actions .navbar-cart-btn+.navbar-profile-btn::before,
+.navbar-actions .navbar-cart-btn+a::before {
   content: "";
   display: block;
   width: 1px;
@@ -288,7 +296,8 @@
   padding: 8px;
   border-radius: 10px;
   transition: all 0.2s ease;
-  margin-left: auto; /* always pins hamburger to far right */
+  margin-left: auto;
+  /* always pins hamburger to far right */
   flex-shrink: 0;
 }
 
@@ -315,8 +324,15 @@
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .navbar-mobile-link {

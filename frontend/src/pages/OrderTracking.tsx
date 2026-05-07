@@ -90,8 +90,11 @@ const OrderTracking: React.FC = () => {
 
         <div className="tracking-card">
           <div className="tracking-status-header">
-            <span className="tracking-status-badge on-way">
-              <span className="material-symbols-rounded">local_shipping</span>{getStatusLabel()}
+            <span className={`tracking-status-badge ${order.status.replace('_', '-')}`}>
+              <span className="material-symbols-rounded">
+                {order.status === 'delivered' ? 'done_all' : order.status === 'preparing' ? 'restaurant' : order.status === 'placed' ? 'check_circle' : 'local_shipping'}
+              </span>
+              {getStatusLabel()}
             </span>
             <span className="tracking-eta">
               <span className="material-symbols-rounded">schedule</span>Est. arrival: 30 min
