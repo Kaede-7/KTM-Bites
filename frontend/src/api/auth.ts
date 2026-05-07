@@ -72,8 +72,9 @@ export async function login(
   return data;
 }
 
-export async function googleLogin(credential: string): Promise<AuthResponse> {
-  const { data } = await API.post("/auth/google/", { credential });
+export async function googleLogin(token: string, isAccessToken: boolean = false): Promise<AuthResponse> {
+  const payload = isAccessToken ? { access_token: token } : { credential: token };
+  const { data } = await API.post("/auth/google/", payload);
   saveAuth(data);
   return data;
 }

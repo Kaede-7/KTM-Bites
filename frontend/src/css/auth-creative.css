@@ -1,0 +1,74 @@
+/* ===== Minimalist Editorial Auth Creative ===== */
+.auth-creative-container {
+  width: 100%;
+  height: 100%;
+  background: #fdf6f0; /* Signature Cream */
+  border-radius: 40px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Optional subtle brand accent border */
+.auth-creative-container::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(242, 139, 70, 0.2);
+  border-radius: 30px;
+  pointer-events: none;
+}
+
+.ac-minimal-content {
+  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+.ac-huge-text {
+  font-size: 130px;
+  font-weight: 900;
+  color: #2a2420; /* Dark premium text */
+  letter-spacing: -0.06em;
+  margin: 0 0 -20px 0; /* Pull image up slightly, but keep text visible */
+  line-height: 1;
+  z-index: 1;
+}
+
+.ac-circle-image {
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 2;
+  box-shadow: 0 32px 64px rgba(42, 36, 32, 0.15);
+  border: 12px solid #fdf6f0; /* Matches background to create cut-out effect */
+}
+
+.ac-circle-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: ac-slow-spin 40s linear infinite;
+}
+
+@keyframes ac-slow-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.ac-minimal-sub {
+  margin-top: 48px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #8b7d72;
+  letter-spacing: -0.01em;
+}

@@ -5,12 +5,28 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { getMenuItems, type MenuItemData } from "../api/menu";
 import { getOrders, type OrderData } from "../api/orders";
-import { getStoredUser } from "../api/auth";
+import { getStoredUser, isLoggedIn } from "../api/auth";
+import { addToCart } from "../api/cart";
 
 const Home: React.FC = () => {
   const [favorites, setFavorites] = useState<MenuItemData[]>([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const user = getStoredUser();
+
+  const handleAddToCart = async (e: React.MouseEvent, itemId: number) => {
+    e.preventDefault();
+    if (!isLoggedIn()) {
+      window.location.href = "/login";
+      return;
+    }
+    try {
+      await addToCart(itemId, 1);
+      alert("Added to cart!");
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      alert("Failed to add to cart. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +78,6 @@ const Home: React.FC = () => {
             </Link>
           </div>
           <div className="home-hero-img-container">
-            {/* Food image matching the dark elegant aesthetic */}
             <img 
               src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=800&fit=crop&crop=center" 
               alt="Delicious food" 
@@ -165,7 +180,7 @@ const Home: React.FC = () => {
                         <h4>{item.name}</h4>
                         <p>{item.category}</p>
                       </div>
-                      <button className="hf-item-btn" onClick={(e) => { e.preventDefault(); }}>
+                      <button className="hf-item-btn" onClick={(e) => handleAddToCart(e, item.id)}>
                         <span className="material-symbols-rounded" style={{fontSize: '20px'}}>add</span>
                       </button>
                     </div>

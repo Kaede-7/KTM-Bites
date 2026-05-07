@@ -92,17 +92,25 @@ def login_view(request):
 @permission_classes([AllowAny])
 def google_login_view(request):
     credential = request.data.get('credential')
-    if not credential:
+    access_token = request.data.get('access_token')
+
+    if not credential and not access_token:
         return Response({'error': 'No credential provided'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        # Verify the token
-        # Note: In production, pass client_id to verify_oauth2_token for security
-        idinfo = id_token.verify_oauth2_token(credential, google_requests.Request())
-        
-        email = idinfo.get('email')
-        first_name = idinfo.get('given_name', '')
-        last_name = idinfo.get('family_name', '')
+        if credential:
+            # Verify the ID token
+            idinfo = id_token.verify_oauth2_token(credential, google_requests.Request())
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+        else:
+            # Verify via access token
+            res = requests.get('https://www.googleapis.com/oauth2/v3/userinfo', headers={'Authorization': f'Bearer {access_token}'})
+            idinfo = res.json()
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
         
         if not email:
             return Response({'error': 'Google token did not contain an email'}, status=status.HTTP_400_BAD_REQUEST)

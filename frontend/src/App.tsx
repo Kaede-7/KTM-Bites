@@ -11,14 +11,17 @@ import OrderTracking from "./pages/OrderTracking";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Kitchen from "./pages/Kitchen";
+import AuthLayout from "./components/AuthLayout";
 
 function App() {
   return (
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+      </Route>
       <Route path="/admin" element={<Admin />} />
       <Route path="/kitchen" element={<Kitchen />} />
 
