@@ -27,16 +27,14 @@
   gap: 0;
   flex-shrink: 0;
   text-decoration: none;
-  transform: translateY(-5px);
-  /* Centers the logo group vertically */
+  transform: translateY(-5px); /* Centers the logo group vertically */
 }
 
 .navbar-logo-icon {
   height: 62px;
   width: auto;
   object-fit: contain;
-  margin: 0 -12px -20px -24px;
-  /* -24px left pulls mascot flush to container edge */
+  margin: 0 -12px -20px -24px; /* -24px left pulls mascot flush to container edge */
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
@@ -58,17 +56,15 @@
   transition: opacity 0.2s ease;
   user-select: none;
   padding-left: 4px;
-  padding-right: 6px;
-  /* Prevents the italic 's' from being clipped by background-clip */
-  margin-bottom: 3px;
-  /* Lifts the text up slightly relative to the mascot */
+  padding-right: 6px; /* Prevents the italic 's' from being clipped by background-clip */
+  margin-bottom: 3px; /* Lifts the text up slightly relative to the mascot */
 }
 
 .navbar-logo-wordmark em {
   font-style: italic;
 }
 
-l .navbar-logo:hover .navbar-logo-wordmark {
+.navbar-logo:hover .navbar-logo-wordmark {
   opacity: 0.85;
 }
 
@@ -180,8 +176,8 @@ l .navbar-logo:hover .navbar-logo-wordmark {
   flex-shrink: 0;
 }
 
-.navbar-actions .navbar-cart-btn+.navbar-profile-btn::before,
-.navbar-actions .navbar-cart-btn+a::before {
+.navbar-actions .navbar-cart-btn + .navbar-profile-btn::before,
+.navbar-actions .navbar-cart-btn + a::before {
   content: "";
   display: block;
   width: 1px;
@@ -296,8 +292,7 @@ l .navbar-logo:hover .navbar-logo-wordmark {
   padding: 8px;
   border-radius: 10px;
   transition: all 0.2s ease;
-  margin-left: auto;
-  /* always pins hamburger to far right */
+  margin-left: auto; /* always pins hamburger to far right */
   flex-shrink: 0;
 }
 
@@ -324,15 +319,8 @@ l .navbar-logo:hover .navbar-logo-wordmark {
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .navbar-mobile-link {

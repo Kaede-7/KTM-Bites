@@ -78,7 +78,6 @@ const Home: React.FC = () => {
             </Link>
           </div>
           <div className="home-hero-img-container">
-            {/* Food image matching the dark elegant aesthetic */}
             <img 
               src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=800&fit=crop&crop=center" 
               alt="Delicious food" 
