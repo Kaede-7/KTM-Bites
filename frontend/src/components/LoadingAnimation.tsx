@@ -1,5 +1,4 @@
 import React from 'react';
-import logoAnimation from '../assets/logo_animation.mp4';
 import '../css/loading.css';
 
 interface LoadingAnimationProps {
@@ -8,16 +7,14 @@ interface LoadingAnimationProps {
 
 const LoadingAnimation: React.FC<LoadingAnimationProps> = ({ message = "Loading..." }) => {
   return (
-    <div className="loading-animation-container">
-      <video
-        src={logoAnimation}
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="loading-video"
-      />
-      <p className="loading-message">{message}</p>
+    <div className="loading-container">
+      <div className="loading-utensil">🍴</div>
+      <div className="loading-dots">
+        <span className="loading-dot" />
+        <span className="loading-dot" />
+        <span className="loading-dot" />
+      </div>
+      {message && <p className="loading-message">{message}</p>}
     </div>
   );
 };
