@@ -8,7 +8,7 @@ import { getCart, updateCartItem, removeFromCart, type CartData } from "../api/c
 
 const Cart: React.FC = () => {
   const [cart, setCart] = useState<CartData | null>(null);
-  const [promo, setPromo] = useState("");
+  const [cartAdded, setCartAdded] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -118,10 +118,7 @@ const Cart: React.FC = () => {
             <h3>Order Summary</h3>
             <div className="cart-summary-row"><span>Subtotal</span><span>Rs. {cart.total}</span></div>
             <div className="cart-summary-row"><span>Delivery Fee</span><span>Rs. {deliveryFee}</span></div>
-            <div className="cart-promo-input">
-              <input type="text" placeholder="Promo code" value={promo} onChange={(e) => setPromo(e.target.value)} />
-              <button>Apply</button>
-            </div>
+
             <div className="cart-summary-divider" />
             <div className="cart-summary-total"><span>Total</span><span>Rs. {total}</span></div>
             <Link to="/checkout">

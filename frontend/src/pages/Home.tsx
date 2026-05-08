@@ -7,6 +7,7 @@ import { getMenuItems, type MenuItemData } from "../api/menu";
 import { getOrders, type OrderData } from "../api/orders";
 import { getStoredUser, isLoggedIn } from "../api/auth";
 import { addToCart } from "../api/cart";
+import AIRecommendations from "../components/AIRecommendations";
 
 const Home: React.FC = () => {
   const [favorites, setFavorites] = useState<MenuItemData[]>([]);
@@ -44,8 +45,8 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
-  const activeOrder = orders.find(o => !["DELIVERED", "CANCELLED"].includes(o.status));
-  const recentOrders = orders.filter(o => o.status === "DELIVERED").slice(0, 3);
+  const activeOrder = orders.find(o => !["delivered", "cancelled"].includes(o.status?.toLowerCase()));
+  const recentOrders = orders.filter(o => o.status?.toLowerCase() === "delivered").slice(0, 3);
 
   // Status mapping to calculate progress bar percentages
   const statusMap = {
@@ -84,6 +85,9 @@ const Home: React.FC = () => {
             />
           </div>
         </section>
+
+        {/* AI Recommendations */}
+        <AIRecommendations />
 
         {/* Main Layout */}
         <div className="home-layout">

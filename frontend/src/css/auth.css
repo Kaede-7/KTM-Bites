@@ -2,7 +2,7 @@
 .auth-page {
   min-height: 100vh;
   display: flex;
-  background: #fdf6f0; /* Cream background */
+  background: #fdf6f0;
   font-family: 'Inter', -apple-system, sans-serif;
 }
 
@@ -13,8 +13,9 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 40px;
+  padding: 48px 40px;
   max-width: 600px;
+  min-height: 100vh;
 }
 
 
@@ -267,6 +268,10 @@
   flex: 1.2;
   padding: 24px 24px 24px 0;
   display: flex;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
 }
 
 .auth-image-container {

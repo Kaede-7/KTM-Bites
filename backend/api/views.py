@@ -561,7 +561,7 @@ def admin_orders_list(request):
     return Response(OrderSerializer(orders, many=True).data)
 
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'PUT', 'PATCH'])
 @permission_classes([IsAdmin])
 def admin_order_detail(request, pk):
     """View or update a single order (admin can change status)."""
@@ -573,7 +573,7 @@ def admin_order_detail(request, pk):
     if request.method == 'GET':
         return Response(OrderSerializer(order).data)
 
-    # PUT — update order status
+    # PUT or PATCH — update order status
     new_status = request.data.get('status')
     if new_status and new_status in dict(Order.STATUS_CHOICES):
         order.status = new_status
@@ -674,3 +674,223 @@ def admin_categories(request):
     if request.method == 'DELETE':
         category.delete()
         return Response({"message": "Deleted"}, status=204)
+
+
+# ========================
+# AI — CHAT CONCIERGE
+# ========================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def chat_view(request):
+    """
+    Accepts a user message + chat history.
+    Returns an AI reply and a list of recommended menu items (with IDs).
+    Uses Groq (llama-3.3-70b-versatile) — free, no extra frameworks.
+    """
+    import json
+
+    user_message = request.data.get('message', '').strip()
+    history = request.data.get('history', [])
+
+    if not user_message:
+        return Response({"error": "No message provided"}, status=400)
+
+    # Build menu context (all available items)
+    menu_items = MenuItem.objects.filter(is_available=True).select_related('category')
+    menu_context = [
+        {
+            "id": item.id,
+            "name": item.name,
+            "category": item.category.name,
+            "price": str(item.price),
+            "description": item.description,
+            "rating": str(item.rating),
+        }
+        for item in menu_items
+    ]
+
+    system_prompt = f"""You are a friendly food concierge for KTM Bites, a food delivery service in Kathmandu, Nepal.
+
+Here is the full menu (JSON):
+{json.dumps(menu_context, ensure_ascii=False)}
+
+Your job:
+1. Answer questions about the menu warmly and helpfully.
+2. Make recommendations based on user preferences (dietary needs, budget, mood, etc.).
+3. When you recommend specific items, always end your response with a JSON block like this (after your text):
+   [ITEMS]: [{{"id": 1}}, {{"id": 5}}]
+   Only include item IDs that actually exist in the menu above.
+4. If no specific items to recommend, omit the [ITEMS] block.
+5. Keep responses concise (2-4 sentences) and conversational.
+6. Prices are in Nepalese Rupees (Rs.)."""
+
+    messages = [{"role": "system", "content": system_prompt}]
+    for h in history[-10:]:
+        if h.get('role') in ('user', 'assistant'):
+            messages.append({"role": h['role'], "content": h['content']})
+    messages.append({"role": "user", "content": user_message})
+
+    try:
+        from groq import Groq
+        client = Groq(api_key=settings.GROQ_API_KEY)
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=512,
+        )
+        raw_reply = completion.choices[0].message.content or ""
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return Response({"error": str(e), "reply": f"⚠️ Debug: {str(e)}", "items": []}, status=200)
+
+    # Parse optional [ITEMS] block from reply
+    reply_text = raw_reply
+    recommended_items = []
+
+    if "[ITEMS]:" in raw_reply:
+        parts = raw_reply.split("[ITEMS]:", 1)
+        reply_text = parts[0].strip()
+        try:
+            item_ids_raw = parts[1].strip()
+            item_ids = [obj['id'] for obj in json.loads(item_ids_raw)]
+            items_qs = MenuItem.objects.filter(id__in=item_ids, is_available=True)
+            item_map = {i.id: i for i in items_qs}
+            for iid in item_ids:
+                if iid in item_map:
+                    m = item_map[iid]
+                    recommended_items.append({
+                        "id": m.id,
+                        "name": m.name,
+                        "price": str(m.price),
+                        "image": m.image,
+                    })
+        except Exception:
+            pass  # Malformed JSON from AI — just skip items
+
+    return Response({"reply": reply_text, "items": recommended_items})
+
+
+# ========================
+# AI — RECOMMENDATIONS
+# ========================
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def recommendations_view(request):
+    """
+    Returns 3 AI-recommended menu items based on:
+    - User's past order history
+    - Current time of day
+    - Live Kathmandu weather (OpenWeatherMap free tier)
+    """
+    import json
+    from datetime import datetime
+    from groq import Groq
+
+    # 1. User's recent order history
+    recent_items = (
+        OrderItem.objects
+        .filter(order__user=request.user)
+        .select_related('menu_item')
+        .order_by('-order__created_at')[:15]
+    )
+    order_history = list({oi.menu_item.name for oi in recent_items})  # unique names
+
+    # 2. Time context
+    hour = datetime.now().hour
+    if hour < 11:
+        time_context = "morning (breakfast time)"
+    elif hour < 15:
+        time_context = "midday (lunch time)"
+    elif hour < 18:
+        time_context = "afternoon (snack time)"
+    else:
+        time_context = "evening (dinner time)"
+
+    # 3. Weather (Kathmandu) — graceful fallback if API key missing
+    weather_context = "weather unknown"
+    if settings.OPENWEATHER_API_KEY:
+        try:
+            weather_resp = requests.get(
+                "https://api.openweathermap.org/data/2.5/weather",
+                params={"q": "Kathmandu", "appid": settings.OPENWEATHER_API_KEY, "units": "metric"},
+                timeout=5,
+            )
+            if weather_resp.status_code == 200:
+                wd = weather_resp.json()
+                temp = wd['main']['temp']
+                desc = wd['weather'][0]['description']
+                weather_context = f"{desc}, {temp:.0f}°C"
+        except Exception:
+            pass
+
+    # 4. Full menu for AI context
+    menu_items = MenuItem.objects.filter(is_available=True).select_related('category')
+    menu_context = [
+        {
+            "id": item.id,
+            "name": item.name,
+            "category": item.category.name,
+            "price": str(item.price),
+            "description": item.description,
+        }
+        for item in menu_items
+    ]
+
+    prompt = f"""You are a smart food recommendation engine for KTM Bites (Kathmandu food delivery).
+
+Context:
+- Time of day: {time_context}
+- Weather in Kathmandu: {weather_context}
+- User's recent orders: {', '.join(order_history) if order_history else 'No order history yet'}
+
+Full menu (JSON):
+{json.dumps(menu_context, ensure_ascii=False)}
+
+Task: Recommend exactly 3 menu items that best match this context.
+- Consider the time of day (e.g. lighter meals at morning, heavier at dinner)
+- Consider the weather (e.g. hot soup/noodles when cold/rainy, cold drinks when hot)
+- Slightly favour items the user has ordered before, but also suggest variety
+- For each item, write a SHORT reason (max 8 words) explaining why
+
+Respond with ONLY valid JSON, no extra text:
+[
+  {{"id": <number>, "reason": "<short reason>"}},
+  {{"id": <number>, "reason": "<short reason>"}},
+  {{"id": <number>, "reason": "<short reason>"}}
+]"""
+
+    try:
+        client = Groq(api_key=settings.GROQ_API_KEY)
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5,
+            max_tokens=256,
+        )
+        raw = completion.choices[0].message.content or "[]"
+        recs_raw = json.loads(raw)
+    except Exception:
+        # Fallback: return top-rated items
+        recs_raw = [{"id": m.id, "reason": "Highly rated"} for m in menu_items[:3]]
+
+    # Build response with full item data
+    item_ids = [r['id'] for r in recs_raw if isinstance(r.get('id'), int)]
+    reason_map = {r['id']: r.get('reason', '') for r in recs_raw if isinstance(r.get('id'), int)}
+    items_qs = MenuItem.objects.filter(id__in=item_ids, is_available=True)
+    item_map = {i.id: i for i in items_qs}
+
+    recommendations = []
+    for iid in item_ids:
+        if iid in item_map:
+            m = item_map[iid]
+            recommendations.append({
+                "id": m.id,
+                "name": m.name,
+                "price": str(m.price),
+                "image": m.image,
+                "reason": reason_map.get(iid, ''),
+            })
+
+    return Response({"recommendations": recommendations})
+

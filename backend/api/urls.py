@@ -35,4 +35,8 @@ urlpatterns = [
     path('payments/initiate/', views.initiate_payment, name='initiate-payment'),
     path('payments/verify/', views.verify_payment, name='verify-payment'),
     path('payments/status/<int:order_id>/', views.payment_status_view, name='payment-status'),
+
+    # AI
+    path('ai/chat/', views.chat_view, name='ai-chat'),
+    path('ai/recommendations/', views.recommendations_view, name='ai-recommendations'),
 ]

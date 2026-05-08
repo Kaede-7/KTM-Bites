@@ -121,3 +121,7 @@ CORS_PREFLIGHT_MAX_AGE = 600
 KHALTI_SECRET_KEY = os.environ.get('KHALTI_SECRET_KEY', '')
 KHALTI_PUBLIC_KEY = os.environ.get('KHALTI_PUBLIC_KEY', '')
 KHALTI_BASE_URL = 'https://dev.khalti.com/api/v2'  # TEST/sandbox endpoint
+
+# --- AI Integration ---
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+OPENWEATHER_API_KEY = os.environ.get('OPENWEATHER_API_KEY', '')
