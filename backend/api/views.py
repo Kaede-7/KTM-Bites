@@ -12,6 +12,9 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, update_session_auth_hash
 from django.contrib.auth.models import User
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import os
 
 from .models import (
     Category, MenuItem, Cart, CartItem,
@@ -168,6 +171,71 @@ def login_view(request):
         return Response({"error": "Invalid credentials"}, status=401)
 
     return Response(serializer.errors, status=400)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_login_view(request):
+    credential = request.data.get('credential')
+    access_token = request.data.get('access_token')
+
+    if not credential and not access_token:
+        return Response({'error': 'No credential provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        if credential:
+            # Verify the ID token
+            idinfo = id_token.verify_oauth2_token(credential, google_requests.Request())
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+        else:
+            # Verify via access token
+            res = requests.get('https://www.googleapis.com/oauth2/v3/userinfo', headers={'Authorization': f'Bearer {access_token}'})
+            idinfo = res.json()
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+        
+        if not email:
+            return Response({'error': 'Google token did not contain an email'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Get or create user
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            username = email.split('@')[0]
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+                
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=User.objects.make_random_password()
+            )
+            Cart.objects.get_or_create(user=user)
+            
+        token, _ = Token.objects.get_or_create(user=user)
+        Cart.objects.get_or_create(user=user)
+        
+        return Response({
+            'token': token.key,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'full_name': user.first_name,
+                'is_staff': user.is_staff,
+                'is_superuser': user.is_superuser,
+            }
+        })
+        
+    except ValueError as e:
+        return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ========================

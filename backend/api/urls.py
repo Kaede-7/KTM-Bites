@@ -7,6 +7,7 @@ urlpatterns = [
     path('auth/login/', views.login_view, name='login'),
     path('auth/profile/', views.profile_view, name='profile'),
     path('auth/change-password/', views.change_password_view, name='change-password'),
+    path('auth/google/', views.google_login_view, name='google-login'),
     path('auth/forgot-password/', views.ForgotPasswordView.as_view(), name='forgot-password'),
     path('auth/reset-password/', views.ResetPasswordView.as_view(), name='reset-password'),
 

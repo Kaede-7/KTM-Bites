@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import "../css/menu.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -10,20 +10,29 @@ import { isLoggedIn } from "../api/auth";
 
 const MenuBrowse: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const initialCat = searchParams.get("category") || "All";
-  const initialSearch = searchParams.get("search") || "";
+  const navigate = useNavigate();
 
-  const [activeCat, setActiveCat] = useState(initialCat);
-  const [search, setSearch] = useState(initialSearch);
-  const [sort, setSort] = useState("popular");
+  const [activeCat, setActiveCat] = useState(searchParams.get("category") || "All");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [items, setItems] = useState<MenuItemData[]>([]);
+  const [trendingItems, setTrendingItems] = useState<MenuItemData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Sync filter state when the URL query params change
+  useEffect(() => {
+    const cat = searchParams.get("category") || "All";
+    const q   = searchParams.get("search")   || "";
+    setActiveCat(cat);
+    setSearch(q);
+  }, [searchParams]);
 
-  // Fetch categories on mount
+  // Fetch categories and trending items on mount
   useEffect(() => {
     getCategories().then(setCategories).catch(console.error);
+    getMenuItems({ sort: "rating" }).then(data => {
+      setTrendingItems(data.slice(0, 2)); // Top 2 for trending
+    }).catch(console.error);
   }, []);
 
   // Fetch items when filters change
@@ -34,7 +43,7 @@ const MenuBrowse: React.FC = () => {
         const data = await getMenuItems({
           category: activeCat !== "All" ? activeCat : undefined,
           search: search || undefined,
-          sort,
+          sort: "popular", // Default sort for browsing
         });
         setItems(data);
       } catch (err) {
@@ -46,9 +55,10 @@ const MenuBrowse: React.FC = () => {
 
     const debounce = setTimeout(fetchItems, 300);
     return () => clearTimeout(debounce);
-  }, [activeCat, search, sort]);
+  }, [activeCat, search]);
 
   const handleAddToCart = async (e: React.MouseEvent, itemId: number) => {
+    e.stopPropagation();
     e.preventDefault();
     if (!isLoggedIn()) {
       window.location.href = "/login";
@@ -59,79 +69,115 @@ const MenuBrowse: React.FC = () => {
       alert("Added to cart!");
     } catch (err) {
       console.error("Failed to add to cart:", err);
+      alert("Please login to add to cart.");
     }
   };
 
-  const allCategories = [{ id: 0, name: "All", icon: "apps", count: 0 }, ...categories];
+  const allCategories = [{ id: 0, name: "All", icon: "restaurant_menu", count: 0 }, ...categories];
   const displayedItems = items;
 
   return (
     <div className="menu-page">
       <Navbar />
       <div className="menu-container">
-        <div className="menu-hero">
-          <h1>Our Menu</h1>
-          <p>Discover delicious food from Kathmandu's finest kitchens</p>
-        </div>
 
-        <div className="menu-toolbar">
-          <div className="menu-search-wrapper">
-            <span className="material-symbols-rounded">search</span>
-            <input className="menu-search-input" type="text" placeholder="Search for food..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        {/* Trending Now Section */}
+        {trendingItems.length > 0 && activeCat === "All" && !search && (
+          <>
+            <h2 className="menu-section-title">Trending Now</h2>
+            <div className="trending-grid">
+              {trendingItems.map((item, index) => (
+                <div 
+                  className="trending-card" 
+                  key={`trending-${item.id}`} 
+                  onClick={() => navigate(`/menu/${item.id}`)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <img src={item.image} alt={item.name} />
+                  <div className="trending-overlay">
+                    <span className="trending-badge">{index === 0 ? "CHEF'S SPECIAL" : "NEW ARRIVAL"}</span>
+                    <div className="trending-info">
+                      <h3>{item.name}</h3>
+                      <p>{item.description || "Fresh and hot, highly recommended."}</p>
+                    </div>
+                  </div>
+                  <button className="trending-add-btn" onClick={(e) => handleAddToCart(e, item.id)}>
+                    <span className="material-symbols-rounded">add</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Category Navigation & Search */}
+        <div className="menu-category-nav">
+          <div className="menu-category-pills">
+            {allCategories.map((cat) => (
+              <button 
+                key={cat.name} 
+                className={`menu-pill ${activeCat === cat.name ? "active" : ""}`} 
+                onClick={() => setActiveCat(cat.name)}
+              >
+                {cat.name}
+              </button>
+            ))}
           </div>
-          <select className="menu-sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="popular">Most Popular</option>
-            <option value="rating">Highest Rated</option>
-            <option value="price-low">Price: Low → High</option>
-            <option value="price-high">Price: High → Low</option>
-
-          </select>
+          <div className="menu-toolbar-right">
+            <div className="menu-search-wrapper">
+              <span className="material-symbols-rounded">search</span>
+              <input 
+                className="menu-search-input" 
+                type="text" 
+                placeholder="Search menu..." 
+                value={search} 
+                onChange={(e) => setSearch(e.target.value)} 
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="menu-categories">
-          {allCategories.map((cat) => (
-            <button key={cat.name} className={`category-chip ${activeCat === cat.name ? "active" : ""}`} onClick={() => setActiveCat(cat.name)}>
-              <span className="material-symbols-rounded">{cat.icon}</span>{cat.name}
-            </button>
-          ))}
+        {/* Category Header */}
+        <div className="category-header-wrap">
+          <div className="category-header-info">
+            <h2>{activeCat === "All" ? (search ? "Search Results" : "All Items") : activeCat}</h2>
+            <p>Hand-crafted and prepared fresh to order.</p>
+          </div>
+          <div className="category-count-badge">
+            {displayedItems.length} items
+          </div>
         </div>
 
+        {/* Menu Grid */}
         {loading ? (
           <LoadingAnimation message="Loading menu..." />
         ) : displayedItems.length > 0 ? (
-          <div className="menu-grid">
+          <div className="menu-grid-modern">
             {displayedItems.map((item) => (
-              <Link to={`/menu/${item.id}`} key={item.id} className="food-card">
-                <div className="food-card-image-wrapper">
-                  <img src={item.image} alt={item.name} className="food-card-image" />
-                  {item.badge && <span className="food-card-badge">{item.badge}</span>}
+              <div className="menu-card-modern" key={item.id}>
+                <div className="mcm-img-wrapper" onClick={() => navigate(`/menu/${item.id}`)}>
+                  <img src={item.image} alt={item.name} />
+                  <div className="mcm-price-pill" style={{color: "#2e7d32", background: "#e8f5e9"}}>Rs. {item.price}</div>
                 </div>
-                <div className="food-card-body">
-                  <p className="food-card-category">{item.category}</p>
-                  <h3 className="food-card-name">{item.name}</h3>
-                  <p className="food-card-desc">{item.description}</p>
-                  <div className="food-card-footer">
-                    <div>
-                      <span className="food-card-price">Rs. {item.price}</span>
-                      <span className="food-card-rating">
-                        <span className="material-symbols-rounded">star</span>{item.rating}
-                      </span>
-                    </div>
-                    <button className="food-card-add-btn" onClick={(e) => handleAddToCart(e, item.id)}>
-                      <span className="material-symbols-rounded">add</span>
-                    </button>
-                  </div>
+                <div className="mcm-body">
+                  <h3 className="mcm-title">{item.name}</h3>
+                  <p className="mcm-desc">{item.description}</p>
+                  <button className="mcm-add-btn" onClick={(e) => handleAddToCart(e, item.id)}>
+                    <span className="material-symbols-rounded">shopping_cart</span>
+                    Add to Order
+                  </button>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         ) : (
-          <div className="menu-empty">
-            <span className="material-symbols-rounded">search_off</span>
-            <h3>No items found</h3>
-            <p>Try a different search or category</p>
+          <div className="menu-empty" style={{ textAlign: 'center', padding: '64px', color: '#8b7d72' }}>
+            <span className="material-symbols-rounded" style={{ fontSize: '48px', opacity: 0.5 }}>search_off</span>
+            <h3 style={{ marginTop: '16px', color: '#2a2420' }}>No items found</h3>
+            <p>Try a different search or category.</p>
           </div>
         )}
+
       </div>
       <Footer />
     </div>
