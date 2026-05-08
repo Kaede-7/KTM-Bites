@@ -143,6 +143,28 @@ class UserProfile(models.Model):
         return f"Profile of {self.user.username}"
 
 
+class PasswordResetToken(models.Model):
+    """
+    Model to store password reset tokens with expiration.
+    Tokens are single-use and expire after 15 minutes.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Reset token for {self.user.email} (expires: {self.expires_at})"
+
+    def is_valid(self):
+        """Check if token exists and has not expired."""
+        from django.utils import timezone
+        return timezone.now() <= self.expires_at
+
+
 # Auto-create UserProfile when a User is created
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
