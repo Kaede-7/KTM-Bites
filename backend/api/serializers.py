@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem
+from django.core.exceptions import ValidationError
+from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem, PasswordResetToken
 
 
 # ───── Auth Serializers ─────
@@ -43,6 +44,29 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'full_name', 'phone', 'address', 'city', 'bio']
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    """Serializer for forgot password endpoint."""
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        """Validate that email format is correct (but do NOT check if user exists - prevent enumeration)."""
+        return value
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """Serializer for password reset endpoint."""
+    token = serializers.CharField(max_length=255)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_new_password(self, value):
+        """Validate new password strength (basic validation)."""
+        if not any(char.isalpha() for char in value):
+            raise ValidationError("Password must contain at least one letter.")
+        if not any(char.isdigit() for char in value):
+            raise ValidationError("Password must contain at least one digit.")
+        return value
 
 
 # ───── Menu Serializers ─────
