@@ -1,10 +1,15 @@
 import requests
+import secrets
 from django.conf import settings
+from django.utils import timezone
+from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from rest_framework.throttling import UserRateThrottle
+from rest_framework.views import APIView
 from django.contrib.auth import authenticate, update_session_auth_hash
 from django.contrib.auth.models import User
 from google.oauth2 import id_token
@@ -13,11 +18,12 @@ import os
 
 from .models import (
     Category, MenuItem, Cart, CartItem,
-    Order, OrderItem, UserProfile
+    Order, OrderItem, UserProfile, PasswordResetToken
 )
 
 from .serializers import (
     RegisterSerializer, LoginSerializer, ProfileSerializer,
+    ForgotPasswordSerializer, ResetPasswordSerializer,
     CategorySerializer, MenuItemSerializer, MenuItemDetailSerializer,
     CartSerializer, AddToCartSerializer, UpdateCartItemSerializer,
     OrderSerializer, PlaceOrderSerializer,
@@ -31,6 +37,85 @@ class IsAdmin(BasePermission):
         return request.user and request.user.is_authenticated and (
             request.user.is_staff or request.user.is_superuser
         )
+
+
+# ========================
+# THROTTLING
+# ========================
+class ForgotPasswordThrottle(UserRateThrottle):
+    """Rate limit for forgot password endpoint: 5 requests per minute."""
+    scope = 'forgot_password'
+
+
+# ========================
+# EMAIL UTILITIES
+# ========================
+def send_password_reset_email(user, token):
+    """
+    Send password reset email to user.
+    Email includes reset link with 15-minute expiry notice.
+    """
+    reset_url = f"http://localhost:3000/reset-password?token={token}"
+    subject = "Password Reset Request - KTM Bites"
+    message = f"""
+Hello {user.first_name or user.email},
+
+We received a request to reset your password for your KTM Bites account.
+
+To reset your password, click the link below:
+{reset_url}
+
+This link will expire in 15 minutes.
+
+If you did not request a password reset, please ignore this email or contact our support team.
+
+Best regards,
+KTM Bites Team
+support@ktmbites.com
+    """.strip()
+
+    html_message = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
+                <h2 style="color: #d32f2f;">Password Reset Request</h2>
+                <p>Hello {user.first_name or user.email},</p>
+                <p>We received a request to reset your password for your KTM Bites account.</p>
+                <p style="margin: 30px 0;">
+                    <a href="{reset_url}" style="background-color: #d32f2f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                        Reset Password
+                    </a>
+                </p>
+                <p style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; border-radius: 4px;">
+                    <strong>⏱️ This link expires in 15 minutes.</strong>
+                </p>
+                <p>If you did not request a password reset, please ignore this email or <a href="mailto:support@ktmbites.com">contact support</a>.</p>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                <p style="color: #666; font-size: 12px; text-align: center;">
+                    KTM Bites Team<br>
+                    <a href="mailto:support@ktmbites.com">support@ktmbites.com</a>
+                </p>
+            </div>
+        </body>
+    </html>
+    """.strip()
+
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        # Log the error but do not raise (fail gracefully)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send password reset email to {user.email}: {str(e)}")
+        return False
 
 
 # ========================
@@ -207,6 +292,104 @@ def change_password_view(request):
     token = Token.objects.create(user=user)
 
     return Response({"message": "Password changed", "token": token.key})
+
+
+# ========================
+# PASSWORD RESET
+# ========================
+class ForgotPasswordView(APIView):
+    """
+    POST /api/auth/forgot-password/
+    Accepts email and sends password reset link.
+    Returns generic success message to prevent user enumeration.
+    """
+    permission_classes = [AllowAny]
+    throttle_classes = [ForgotPasswordThrottle]
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            
+            # Try to find user by email, but do not reveal if found or not
+            try:
+                user = User.objects.get(email=email)
+                
+                # Generate secure token
+                token = secrets.token_urlsafe(32)
+                
+                # Calculate expiry: 15 minutes from now
+                expires_at = timezone.now() + timezone.timedelta(minutes=15)
+                
+                # Save token to database
+                PasswordResetToken.objects.create(
+                    user=user,
+                    token=token,
+                    expires_at=expires_at
+                )
+                
+                # Send email
+                send_password_reset_email(user, token)
+                
+            except User.DoesNotExist:
+                # User not found, but we still return generic success message
+                pass
+            
+            # Always return generic success response (prevents user enumeration)
+            return Response({
+                "message": "If an account with that email exists, a password reset link has been sent."
+            }, status=200)
+        
+        return Response(serializer.errors, status=400)
+
+
+class ResetPasswordView(APIView):
+    """
+    POST /api/auth/reset-password/
+    Accepts token and new_password, resets password if token is valid and not expired.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            token = serializer.validated_data['token']
+            new_password = serializer.validated_data['new_password']
+            
+            try:
+                # Find token in database
+                reset_token = PasswordResetToken.objects.get(token=token)
+                
+                # Check if token has expired
+                if not reset_token.is_valid():
+                    return Response({
+                        "detail": "Invalid or expired link."
+                    }, status=400)
+                
+                # Token is valid, update user password
+                user = reset_token.user
+                user.set_password(new_password)
+                user.save()
+                
+                # Invalidate all existing tokens for this user to force re-login
+                Token.objects.filter(user=user).delete()
+                
+                # Delete the used reset token to prevent reuse
+                reset_token.delete()
+                
+                return Response({
+                    "message": "Password reset successfully. You can now log in."
+                }, status=200)
+                
+            except PasswordResetToken.DoesNotExist:
+                # Token not found
+                return Response({
+                    "detail": "Invalid or expired link."
+                }, status=400)
+        
+        return Response(serializer.errors, status=400)
 
 
 # ========================
