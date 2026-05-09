@@ -1,5 +1,33 @@
+# ============================================================
+# views.py - The "brain" of the backend
+# ============================================================
+# This file contains ALL the API logic. When the frontend
+# sends a request (e.g. "give me the menu"), it arrives here.
+#
+# Each function handles one specific task:
+#   - register_view()     -> Creates a new user account
+#   - menu_list()         -> Returns all food items
+#   - cart_add()          -> Adds an item to the user's cart
+#   - order_list_create() -> Places a new order
+#   - chat_view()         -> Talks to the AI chatbot
+#
+# The file is organized into sections:
+#   AUTH -> MENU -> CART -> ORDERS -> ADMIN -> PAYMENTS -> AI
+#
+# Key decorators explained:
+#   @api_view(['GET'])         -> This function only accepts GET requests
+#   @api_view(['POST'])        -> This function only accepts POST requests
+#   @permission_classes([...]) -> Who can access this:
+#     - AllowAny               -> Anyone (even without login)
+#     - IsAuthenticated        -> Only logged-in users
+#     - IsAdminUser            -> Only admin/staff users
+# ============================================================
+
+import json
+import os
 import requests
 import secrets
+from datetime import datetime
 from django.conf import settings
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -14,7 +42,7 @@ from django.contrib.auth import authenticate, update_session_auth_hash
 from django.contrib.auth.models import User
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
-import os
+from groq import Groq
 
 from .models import (
     Category, MenuItem, Cart, CartItem,
@@ -895,7 +923,6 @@ def chat_view(request):
     Returns an AI reply and a list of recommended menu items (with IDs).
     Uses Groq (llama-3.3-70b-versatile) — free, no extra frameworks.
     """
-    import json
 
     user_message = request.data.get('message', '').strip()
     history = request.data.get('history', [])
@@ -930,7 +957,9 @@ Your job:
    Only include item IDs that actually exist in the menu above.
 4. If no specific items to recommend, omit the [ITEMS] block.
 5. Keep responses concise (2-4 sentences) and conversational.
-6. Prices are in Nepalese Rupees (Rs.)."""
+6. Prices are in Nepalese Rupees (Rs.).
+7. IMPORTANT: You must ONLY answer questions related to KTM Bites — the menu, food items, ingredients, dietary info, delivery, ordering, and recommendations. If a user asks about anything unrelated (e.g. coding, math, general knowledge, politics, etc.), politely decline and redirect them back to the menu. Example: "I'm here to help you find the perfect meal! 🍜 What kind of food are you in the mood for?"
+8. Never answer questions that are not about KTM Bites or its food service."""
 
     messages = [{"role": "system", "content": system_prompt}]
     for h in history[-10:]:
@@ -939,7 +968,6 @@ Your job:
     messages.append({"role": "user", "content": user_message})
 
     try:
-        from groq import Groq
         client = Groq(api_key=settings.GROQ_API_KEY)
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -991,9 +1019,7 @@ def recommendations_view(request):
     - Current time of day
     - Live Kathmandu weather (OpenWeatherMap free tier)
     """
-    import json
-    from datetime import datetime
-    from groq import Groq
+    # Uses json, datetime, and Groq imported at the top of the file
 
     # 1. User's recent order history
     recent_items = (

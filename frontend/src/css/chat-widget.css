@@ -50,7 +50,7 @@
   right: 28px;
   z-index: 899;
   width: 380px;
-  max-height: 560px;
+  height: 560px;
   display: flex;
   flex-direction: column;
   background: rgba(253, 246, 240, 0.92);
@@ -220,6 +220,6 @@
 .chat-send-btn .material-symbols-rounded { font-size: 18px; }
 
 @media (max-width: 480px) {
-  .chat-panel { right: 12px; left: 12px; width: auto; bottom: 88px; max-height: 70vh; }
+  .chat-panel { right: 12px; left: 12px; width: auto; bottom: 88px; height: 70vh; }
   .chat-trigger { bottom: 20px; right: 20px; }
 }
