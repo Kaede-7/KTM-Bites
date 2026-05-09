@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/admin.css";
+import "../css/auth.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 import * as adminAPI from "../api/admin";
 import * as authAPI from "../api/auth";
 import LoadingAnimation from "../components/LoadingAnimation";
+import AuthCreative from "../components/AuthCreative";
+import { Link } from "react-router-dom";
 
 interface MenuItem {
   id?: number;
@@ -56,6 +59,7 @@ const Admin: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
@@ -142,7 +146,7 @@ const Admin: React.FC = () => {
 
     try {
       // Authenticate with backend using the provided credentials
-      const response = await authAPI.login(email, password);
+      const response = await authAPI.login(email, password, rememberMe);
 
       // Check if user is admin (superuser or staff)
       if (!response.user.is_superuser && !response.user.is_staff) {
@@ -251,168 +255,94 @@ const Admin: React.FC = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="admin-login-page">
-        {/* Left branding panel */}
-        <div className="admin-login-left">
-          <svg
-            className="admin-login-geo"
-            viewBox="0 0 400 600"
-            preserveAspectRatio="none"
-          >
-            <line
-              x1="0"
-              y1="0"
-              x2="400"
-              y2="600"
-              stroke="#c8841a"
-              strokeWidth="0.5"
-              opacity="0.4"
-            />
-            <line
-              x1="400"
-              y1="0"
-              x2="0"
-              y2="600"
-              stroke="#c8841a"
-              strokeWidth="0.5"
-              opacity="0.4"
-            />
-            <circle
-              cx="200"
-              cy="300"
-              r="150"
-              fill="none"
-              stroke="#c8841a"
-              strokeWidth="0.5"
-              opacity="0.3"
-            />
-            <circle
-              cx="200"
-              cy="300"
-              r="220"
-              fill="none"
-              stroke="#3b82f6"
-              strokeWidth="0.3"
-              opacity="0.2"
-            />
-          </svg>
-          <div className="admin-login-left-content">
-            <img
-              src={transparentLogo}
-              alt="KTM Bites"
-              className="admin-login-logo"
-            />
-            <h2>Admin Panel</h2>
-            <p>Manage your restaurant operations</p>
-            <div className="admin-icon-feature">
-              <span className="material-symbols-rounded ai-1">
-                dashboard
-              </span>
-              <span className="material-symbols-rounded ai-2">
-                restaurant_menu
-              </span>
-              <span className="material-symbols-rounded ai-3">
-                analytics
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right form panel */}
-        <div className="admin-login-right">
-          <div className="admin-login-card">
-            <button className="admin-back-link" onClick={() => navigate("/")}>
-              <span className="material-symbols-rounded">arrow_back</span>
-              Back to Home
-            </button>
-
-            <img
-              src={transparentLogo}
-              alt="KTM Bites"
-              className="admin-login-card-logo"
-            />
+      <div className="auth-page">
+        {/* Left Panel - Dynamic Form (Login/Signup) */}
+        <div className="auth-left">
+          <div className="auth-form-container auth-fade-in">
             <h1>Admin Login</h1>
-            <p className="admin-login-subtitle">Access the admin panel</p>
+            <p className="auth-subtitle">Access the admin panel.</p>
 
-            <div className="admin-login-badge">
+            <div className="auth-promise-badge">
               <span className="material-symbols-rounded">admin_panel_settings</span>
               Admin Staff Only
             </div>
 
             {error && (
-              <div className="admin-login-alert admin-login-alert-error">
+              <div className="auth-error">
                 <span className="material-symbols-rounded">error</span>
                 {error}
               </div>
             )}
 
             {successMessage && (
-              <div className="admin-login-alert admin-login-alert-success">
+              <div className="auth-error" style={{ background: 'rgba(52, 211, 153, 0.1)', color: '#10b981', borderColor: '#10b981' }}>
                 <span className="material-symbols-rounded">check_circle</span>
                 {successMessage}
               </div>
             )}
 
-            <form className="admin-login-form" onSubmit={handleLogin}>
-              <div className="admin-login-field">
-                <label htmlFor="admin-email">Email</label>
-                <div className="admin-login-input-wrapper">
-                  <span className="material-symbols-rounded">mail</span>
-                  <input
-                    id="admin-email"
-                    type="email"
-                    placeholder="admin@ktmbites.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+            <form className="auth-form" onSubmit={handleLogin}>
+              <div className="auth-input-wrapper">
+                <span className="material-symbols-rounded">mail</span>
+                <input
+                  type="email"
+                  placeholder="admin@ktmbites.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
 
-              <div className="admin-login-field">
-                <label htmlFor="admin-password">Password</label>
-                <div className="admin-login-input-wrapper">
-                  <span className="material-symbols-rounded">lock</span>
-                  <input
-                    id="admin-password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="admin-toggle-password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    <span className="material-symbols-rounded">
-                      {showPassword ? "visibility_off" : "visibility"}
-                    </span>
-                  </button>
-                </div>
+              <div className="auth-input-wrapper">
+                <span className="material-symbols-rounded">lock</span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="auth-toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  <span className="material-symbols-rounded">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
               </div>
 
-              <button
-                type="submit"
-                className="admin-login-btn"
-                disabled={actionLoading}
-              >
-                <span className="material-symbols-rounded">login</span>
+              <div className="auth-options-row">
+                <label className="auth-remember-label">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  Remember me
+                </label>
+              </div>
+
+              <button type="submit" className="auth-submit-btn" disabled={actionLoading}>
                 {actionLoading ? "Signing In..." : "Enter Admin"}
               </button>
-            </form>
 
-            <div className="admin-demo-credentials">
-              <p className="admin-demo-title">Admin Credentials:</p>
-              <p className="admin-demo-text">
-                Email: <strong>admin@ktmbites.com</strong>
-              </p>
-              <p className="admin-demo-text">
-                Password: <strong>admin123</strong>
-              </p>
+              <div className="auth-footer" style={{ marginTop: '2rem' }}>
+                <Link to="/">Back to Home</Link>
+              </div>
+            </form>
+            
+            <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              <p>Demo Credentials:</p>
+              <p>admin@ktmbites.com / admin123</p>
             </div>
           </div>
+        </div>
+
+        {/* Right Panel - Persistent Static Creative */}
+        <div className="auth-right">
+          <AuthCreative />
         </div>
       </div>
     );
@@ -784,6 +714,7 @@ const Admin: React.FC = () => {
                             >
                               <option value="placed">Order Placed</option>
                               <option value="preparing">Preparing</option>
+                              <option value="ready_for_pickup">Ready for Pickup</option>
                               <option value="on_way">On the Way</option>
                               <option value="delivered">Delivered</option>
                               <option value="cancelled">Cancelled</option>

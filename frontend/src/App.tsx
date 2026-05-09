@@ -22,6 +22,7 @@ import OrderTracking from "./pages/OrderTracking";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import Kitchen from "./pages/Kitchen";
+import Rider from "./pages/Rider";
 import AuthLayout from "./components/AuthLayout";
 
 function App() {
@@ -37,9 +38,10 @@ function App() {
           <Route path="/signup" element={<Signup />} />
         </Route>
 
-        {/* Admin and Kitchen have their own login systems */}
+        {/* Admin, Kitchen, and Rider have their own login systems */}
         <Route path="/admin" element={<Admin />} />
         <Route path="/kitchen" element={<Kitchen />} />
+        <Route path="/rider" element={<Rider />} />
 
         {/* === Routes that require login === */}
         <Route path="/home" element={<Home />} />

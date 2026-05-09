@@ -74,6 +74,7 @@ class Order(models.Model):
     STATUS_CHOICES = [
         ('placed', 'Order Placed'),
         ('preparing', 'Preparing'),
+        ('ready_for_pickup', 'Ready for Pickup'),
         ('on_way', 'On the Way'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
