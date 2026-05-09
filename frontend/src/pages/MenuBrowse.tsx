@@ -7,10 +7,12 @@ import LoadingAnimation from "../components/LoadingAnimation";
 import { getMenuItems, getCategories, type MenuItemData, type CategoryData } from "../api/menu";
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
+import { useToast } from "../components/Toast";
 
 const MenuBrowse: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [activeCat, setActiveCat] = useState(searchParams.get("category") || "All");
   const [search, setSearch] = useState(searchParams.get("search") || "");
@@ -66,10 +68,10 @@ const MenuBrowse: React.FC = () => {
     }
     try {
       await addToCart(itemId, 1);
-      alert("Added to cart!");
+      showToast("Added to cart!", "success");
     } catch (err) {
       console.error("Failed to add to cart:", err);
-      alert("Please login to add to cart.");
+      showToast("Please login to add to cart.", "error");
     }
   };
 

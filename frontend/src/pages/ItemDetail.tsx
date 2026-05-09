@@ -8,10 +8,12 @@ import LoadingAnimation from "../components/LoadingAnimation";
 import { getMenuItem, type MenuItemDetailData } from "../api/menu";
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
+import { useToast } from "../components/Toast";
 
 const ItemDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [qty, setQty] = useState(1);
   const [item, setItem] = useState<MenuItemDetailData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,9 +43,9 @@ const ItemDetail: React.FC = () => {
     setAdding(true);
     try {
       await addToCart(item.id, qty);
-      alert(`${qty}x ${item.name} added to cart!`);
+      showToast(`${qty}× ${item.name} added to cart!`, "success");
     } catch (err) {
-      console.error("Failed to add to cart:", err);
+      showToast("Failed to add to cart. Please try again.", "error");
     } finally {
       setAdding(false);
     }

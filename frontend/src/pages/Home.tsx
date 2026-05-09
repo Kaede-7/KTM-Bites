@@ -5,14 +5,22 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { getMenuItems, type MenuItemData } from "../api/menu";
 import { getOrders, type OrderData } from "../api/orders";
-import { getStoredUser, isLoggedIn } from "../api/auth";
+import { getStoredUser, isLoggedIn, getProfile, updateProfile } from "../api/auth";
 import { addToCart } from "../api/cart";
 import AIRecommendations from "../components/AIRecommendations";
+import { useToast } from "../components/Toast";
 
 const Home: React.FC = () => {
   const [favorites, setFavorites] = useState<MenuItemData[]>([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const user = getStoredUser();
+  const { showToast } = useToast();
+
+  // Address modal state
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressInput, setAddressInput] = useState("");
+  const [phoneInput, setPhoneInput] = useState("");
+  const [savingAddress, setSavingAddress] = useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent, itemId: number) => {
     e.preventDefault();
@@ -22,10 +30,10 @@ const Home: React.FC = () => {
     }
     try {
       await addToCart(itemId, 1);
-      alert("Added to cart!");
+      showToast("Added to cart!", "success");
     } catch (err) {
       console.error("Failed to add to cart:", err);
-      alert("Failed to add to cart. Please try again.");
+      showToast("Failed to add to cart. Please try again.", "error");
     }
   };
 
@@ -34,7 +42,7 @@ const Home: React.FC = () => {
       try {
         const [items, userOrders] = await Promise.all([
           getMenuItems({ sort: "rating" }),
-          getOrders().catch(() => []) // Catch if orders fail or empty
+          getOrders().catch(() => [])
         ]);
         setFavorites(items.slice(0, 3));
         setOrders(userOrders);
@@ -43,7 +51,32 @@ const Home: React.FC = () => {
       }
     };
     fetchData();
+
+    // Check if user has address and phone saved in DB — if yes, never show again
+    if (isLoggedIn()) {
+      getProfile().then((profile) => {
+        const hasAddress = profile.address && profile.address.trim() !== "" && profile.address !== "Thamel, Kathmandu";
+        const hasPhone = profile.phone && profile.phone.trim() !== "";
+        if (!hasAddress || !hasPhone) {
+          setShowAddressModal(true);
+        }
+      }).catch(() => {});
+    }
   }, []);
+
+  const handleSaveAddress = async () => {
+    if (!addressInput.trim() || !phoneInput.trim()) return;
+    setSavingAddress(true);
+    try {
+      await updateProfile({ address: addressInput.trim(), phone: phoneInput.trim() });
+      showToast("Delivery details saved!", "success");
+      setShowAddressModal(false);
+    } catch {
+      showToast("Failed to save details.", "error");
+    } finally {
+      setSavingAddress(false);
+    }
+  };
 
   const activeOrder = orders.find(o => !["delivered", "cancelled"].includes(o.status?.toLowerCase()));
   const recentOrders = orders.filter(o => o.status?.toLowerCase() === "delivered").slice(0, 3);
@@ -67,6 +100,50 @@ const Home: React.FC = () => {
   return (
     <div className="home-page">
       <Navbar />
+
+      {/* Address Modal */}
+      {showAddressModal && (
+        <div className="address-modal-overlay">
+          <div className="address-modal">
+            <div className="address-modal-icon">
+              <span className="material-symbols-rounded">location_on</span>
+            </div>
+            <h2>Where should we deliver?</h2>
+            <p>Add your delivery address and phone number to get started with your first order.</p>
+            
+            <div className="address-modal-input-wrap">
+              <span className="material-symbols-rounded">call</span>
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className="address-modal-input-wrap">
+              <span className="material-symbols-rounded">location_on</span>
+              <input
+                type="text"
+                placeholder="Delivery Address (e.g. Thamel, Kathmandu)"
+                value={addressInput}
+                onChange={(e) => setAddressInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveAddress()}
+              />
+            </div>
+            <div className="address-modal-actions">
+              <button className="address-modal-skip" onClick={() => setShowAddressModal(false)}>
+                Skip for now
+              </button>
+              <button className="address-modal-save" onClick={handleSaveAddress} disabled={savingAddress || !addressInput.trim() || !phoneInput.trim()}>
+                <span className="material-symbols-rounded">{savingAddress ? "autorenew" : "check"}</span>
+                {savingAddress ? "Saving..." : "Save Details"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="home-container">
         {/* Hero Section */}

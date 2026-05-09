@@ -167,3 +167,29 @@ export const fetchAllUsers = async () => {
     handleError(error as AxiosError<ErrorResponse>);
   }
 };
+
+export const createUser = async (data: any) => {
+  try {
+    const response = await API.post("/admin/users/", data);
+    return response.data;
+  } catch (error) {
+    handleError(error as AxiosError<ErrorResponse>);
+  }
+};
+
+export const updateUser = async (id: number, data: any) => {
+  try {
+    const response = await API.put("/admin/users/", { ...data, id });
+    return response.data;
+  } catch (error) {
+    handleError(error as AxiosError<ErrorResponse>);
+  }
+};
+
+export const deleteUser = async (id: number) => {
+  try {
+    await API.delete("/admin/users/", { data: { id } });
+  } catch (error) {
+    handleError(error as AxiosError<ErrorResponse>);
+  }
+};

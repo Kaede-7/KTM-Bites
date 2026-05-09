@@ -82,6 +82,14 @@ const Admin: React.FC = () => {
 
   // Users State
   const [users, setUsers] = useState<User[]>([]);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [userForm, setUserForm] = useState({
+    email: "",
+    full_name: "",
+    phone: "",
+    password: "",
+  });
 
   // Loading States
   const [loading, setLoading] = useState(false);
@@ -250,6 +258,66 @@ const Admin: React.FC = () => {
       console.log("Order details:", order);
     } catch (err: any) {
       setError(err.message || "Failed to load order details");
+    }
+  };
+
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setUserForm({
+      email: "",
+      full_name: "",
+      phone: "",
+      password: "",
+    });
+    setShowUserModal(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setUserForm({
+      email: user.email,
+      full_name: user.full_name,
+      phone: user.phone || "",
+      password: "", // Don't populate password on edit
+    });
+    setShowUserModal(true);
+  };
+
+  const handleSaveUser = async () => {
+    try {
+      setActionLoading(true);
+      if (editingUser && editingUser.id) {
+        // Prevent sending empty password if it hasn't changed
+        const updateData = { ...userForm };
+        if (!updateData.password) {
+          delete updateData.password;
+        }
+        await adminAPI.updateUser(editingUser.id, updateData);
+        setSuccessMessage("User updated successfully!");
+      } else {
+        await adminAPI.createUser(userForm);
+        setSuccessMessage("User created successfully!");
+      }
+      setShowUserModal(false);
+      loadData();
+    } catch (err: any) {
+      setError(err.message || "Failed to save user");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this user? This cannot be undone.")) return;
+    try {
+      setActionLoading(true);
+      await adminAPI.deleteUser(id);
+      setSuccessMessage("User deleted successfully!");
+      loadData();
+    } catch (err: any) {
+      setError(err.message || "Failed to delete user");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -746,7 +814,98 @@ const Admin: React.FC = () => {
 
           {currentSection === "users" && (
             <div className="admin-section">
-              <h2 className="admin-section-title">Users Management</h2>
+              <div className="admin-section-header">
+                <h2 className="admin-section-title">Users Management</h2>
+                <button
+                  className="admin-btn-primary"
+                  onClick={handleAddUser}
+                  disabled={actionLoading}
+                >
+                  <span className="material-symbols-rounded">add</span>
+                  Add New User
+                </button>
+              </div>
+
+              {showUserModal && (
+                <div className="admin-modal-overlay">
+                  <div className="admin-modal">
+                    <div className="admin-modal-header">
+                      <h3>
+                        {editingUser ? "Edit User" : "Add New User"}
+                      </h3>
+                      <button
+                        className="admin-modal-close"
+                        onClick={() => setShowUserModal(false)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="admin-modal-body">
+                      <div className="admin-form-group">
+                        <label>Email *</label>
+                        <input
+                          type="email"
+                          value={userForm.email}
+                          onChange={(e) =>
+                            setUserForm({ ...userForm, email: e.target.value })
+                          }
+                          placeholder="Enter user email"
+                          required
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>Full Name</label>
+                        <input
+                          type="text"
+                          value={userForm.full_name}
+                          onChange={(e) =>
+                            setUserForm({ ...userForm, full_name: e.target.value })
+                          }
+                          placeholder="Enter full name"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>Phone</label>
+                        <input
+                          type="text"
+                          value={userForm.phone}
+                          onChange={(e) =>
+                            setUserForm({ ...userForm, phone: e.target.value })
+                          }
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>Password {editingUser ? "(leave blank to keep current)" : "*"}</label>
+                        <input
+                          type="password"
+                          value={userForm.password}
+                          onChange={(e) =>
+                            setUserForm({ ...userForm, password: e.target.value })
+                          }
+                          placeholder={editingUser ? "Enter new password if changing" : "Enter new password"}
+                          required={!editingUser}
+                        />
+                      </div>
+                    </div>
+                    <div className="admin-modal-footer">
+                      <button
+                        className="admin-btn-secondary"
+                        onClick={() => setShowUserModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="admin-btn-primary"
+                        onClick={handleSaveUser}
+                        disabled={actionLoading}
+                      >
+                        {actionLoading ? "Saving..." : "Save User"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="admin-table-card">
                 {loading ? (
                   <LoadingAnimation message="Loading users..." />
@@ -763,6 +922,7 @@ const Admin: React.FC = () => {
                         <th>Email</th>
                         <th>Full Name</th>
                         <th>Phone</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -772,6 +932,26 @@ const Admin: React.FC = () => {
                           <td className="admin-table-email">{user.email}</td>
                           <td>{user.full_name}</td>
                           <td>{user.phone || "N/A"}</td>
+                          <td className="admin-actions">
+                            <button
+                              className="admin-btn-icon admin-btn-edit"
+                              onClick={() => handleEditUser(user)}
+                              title="Edit user"
+                            >
+                              <span className="material-symbols-rounded">
+                                edit
+                              </span>
+                            </button>
+                            <button
+                              className="admin-btn-icon admin-btn-delete"
+                              onClick={() => handleDeleteUser(user.id)}
+                              title="Delete user"
+                            >
+                              <span className="material-symbols-rounded">
+                                delete
+                              </span>
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>

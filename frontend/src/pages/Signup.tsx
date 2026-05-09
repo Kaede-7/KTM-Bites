@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 import { register, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
 import AuthCreative from "../components/AuthCreative";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ fullName: "", email: "", phone: "", password: "", confirmPassword: "" });
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +36,6 @@ const Signup: React.FC = () => {
       await register({
         full_name: formData.fullName,
         email: formData.email,
-        phone: formData.phone,
         password: formData.password,
       });
       navigate("/home");
@@ -40,7 +43,7 @@ const Signup: React.FC = () => {
       const errData = err.response?.data;
       if (errData) {
         const firstError = Object.values(errData).flat()[0];
-        setError(typeof firstError === 'string' ? firstError : "Registration failed. Please try again.");
+        setError(typeof firstError === "string" ? firstError : "Registration failed. Please try again.");
       } else {
         setError("Registration failed. Please try again.");
       }
@@ -86,35 +89,12 @@ const Signup: React.FC = () => {
       <form className="auth-form" onSubmit={handleSubmit}>
         <div className="auth-input-wrapper">
           <span className="material-symbols-rounded">person</span>
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={formData.fullName}
-            onChange={handleChange("fullName")}
-            required
-          />
+          <input type="text" placeholder="Full Name" value={formData.fullName} onChange={handleChange("fullName")} required />
         </div>
 
         <div className="auth-input-wrapper">
           <span className="material-symbols-rounded">mail</span>
-          <input
-            type="email"
-            placeholder="Email Address"
-            value={formData.email}
-            onChange={handleChange("email")}
-            required
-          />
-        </div>
-
-        <div className="auth-input-wrapper">
-          <span className="material-symbols-rounded">call</span>
-          <input
-            type="tel"
-            placeholder="Phone Number"
-            value={formData.phone}
-            onChange={handleChange("phone")}
-            required
-          />
+          <input type="email" placeholder="Email Address" value={formData.email} onChange={handleChange("email")} required />
         </div>
 
         <div className="auth-input-wrapper">
@@ -126,18 +106,12 @@ const Signup: React.FC = () => {
             onChange={handleChange("password")}
             required
           />
-          <button
-            type="button"
-            className="auth-toggle-password"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            <span className="material-symbols-rounded">
-              {showPassword ? "visibility_off" : "visibility"}
-            </span>
+          <button type="button" className="auth-toggle-password" onClick={() => setShowPassword(!showPassword)}>
+            <span className="material-symbols-rounded">{showPassword ? "visibility_off" : "visibility"}</span>
           </button>
         </div>
 
-        <div className="auth-input-wrapper" style={{ marginBottom: '8px' }}>
+        <div className="auth-input-wrapper" style={{ marginBottom: "8px" }}>
           <span className="material-symbols-rounded">lock</span>
           <input
             type={showConfirmPassword ? "text" : "password"}
@@ -146,14 +120,8 @@ const Signup: React.FC = () => {
             onChange={handleChange("confirmPassword")}
             required
           />
-          <button
-            type="button"
-            className="auth-toggle-password"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            <span className="material-symbols-rounded">
-              {showConfirmPassword ? "visibility_off" : "visibility"}
-            </span>
+          <button type="button" className="auth-toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+            <span className="material-symbols-rounded">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
           </button>
         </div>
 

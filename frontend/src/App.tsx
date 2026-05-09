@@ -1,16 +1,7 @@
-// ============================================================
-// App.tsx — The main router of the application
-// ============================================================
-// This file defines which PAGE component to show for each URL.
-// Think of it as a map: URL → Page
-//
-// Example: When user visits "/menu", React renders <MenuBrowse />
-// The <ChatWidget /> is placed outside <Routes> so it appears on ALL pages.
-// ============================================================
-
 import { Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/dashboard";
 import ChatWidget from "./components/ChatWidget";
+import { ToastProvider } from "./components/Toast";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -27,7 +18,7 @@ import AuthLayout from "./components/AuthLayout";
 
 function App() {
   return (
-    <>
+    <ToastProvider>
       <Routes>
         {/* === Public routes (anyone can see) === */}
         <Route path="/" element={<LandingPage />} />
@@ -55,8 +46,9 @@ function App() {
 
       {/* AI Chat Widget — floating button on every page */}
       <ChatWidget />
-    </>
+    </ToastProvider>
   );
 }
 
 export default App;
+
