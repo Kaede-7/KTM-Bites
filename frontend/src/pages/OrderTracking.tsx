@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/order-tracking.css";
 import Navbar from "../components/Navbar";
@@ -59,7 +59,7 @@ const OrderTracking: React.FC = () => {
     return () => clearInterval(interval);
   }, [order]);
 
-  const handleCancel = async () => {
+  const handleCancel = useCallback(async () => {
     if (!order) return;
     setCancelling(true);
     setCancelError("");
@@ -71,7 +71,7 @@ const OrderTracking: React.FC = () => {
     } finally {
       setCancelling(false);
     }
-  };
+  }, [order]);
 
   const formatCountdown = (secs: number) => {
     const m = Math.floor(secs / 60);

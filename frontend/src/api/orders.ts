@@ -75,3 +75,4 @@ export async function cancelOrder(id: number): Promise<{ message: string; order:
   const { data } = await API.post(`/orders/${id}/cancel/`);
   return data;
 }
+
