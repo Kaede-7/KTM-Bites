@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/kitchen.css";
 import LoadingAnimation from "../components/LoadingAnimation";
@@ -70,13 +70,10 @@ const Kitchen: React.FC = () => {
   } | null>(null);
 
   // ── Toast helper ──
-  const showToast = useCallback(
-    (type: "success" | "error", msg: string) => {
-      setToast({ type, msg });
-      setTimeout(() => setToast(null), 4000);
-    },
-    []
-  );
+  const showToast = (type: "success" | "error", msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // ── Clock ──
   useEffect(() => {
@@ -85,22 +82,19 @@ const Kitchen: React.FC = () => {
   }, []);
 
   // ── Load orders ──
-  const loadOrders = useCallback(
-    async (showRefresh = false) => {
-      if (showRefresh) setRefreshing(true);
-      else setLoading(true);
-      try {
-        const data = await fetchKitchenOrders();
-        setOrders(data);
-      } catch (err: any) {
-        showToast("error", err.message || "Failed to load orders");
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    },
-    [showToast]
-  );
+  const loadOrders = async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true);
+    else setLoading(true);
+    try {
+      const data = await fetchKitchenOrders();
+      setOrders(data);
+    } catch (err: any) {
+      showToast("error", err.message || "Failed to load orders");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   // ── Auto-refresh every 30s ──
   useEffect(() => {
