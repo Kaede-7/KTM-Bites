@@ -330,3 +330,97 @@
   }
 }
 
+/* ── Cancel banner ───────────────────────────────────────────── */
+.tracking-cancel-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  background: rgba(242, 139, 70, 0.08);
+  border: 1px solid rgba(242, 139, 70, 0.22);
+  color: #c05a0e;
+  font-size: 14px;
+  font-weight: 500;
+  flex-wrap: wrap;
+}
+
+.tracking-cancel-banner.expired {
+  background: rgba(139, 125, 114, 0.07);
+  border-color: rgba(139, 125, 114, 0.18);
+  color: #8b7d72;
+}
+
+.tracking-cancel-banner .material-symbols-rounded {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.tracking-cancel-banner strong {
+  font-weight: 800;
+  color: #e06c22;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracking-cancel-btn {
+  margin-left: auto;
+  padding: 8px 18px;
+  background: #2a2420;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.tracking-cancel-btn:hover:not(:disabled) {
+  background: #d84f14;
+  transform: translateY(-1px);
+}
+
+.tracking-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Cancelled notice ────────────────────────────────────────── */
+.tracking-cancelled-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tracking-cancelled-notice .material-symbols-rounded {
+  font-size: 20px;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* Cancelled status badge */
+.tracking-status-badge.cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* ── Error message ───────────────────────────────────────────── */
+.tracking-error {
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/order-tracking.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { getOrder, getOrders, type OrderData } from "../api/orders";
+import { getOrder, getOrders, cancelOrder, type OrderData } from "../api/orders";
 
 const statusSteps = [
   { key: "placed",    title: "Order Placed",  desc: "Your order has been confirmed",          icon: "check_circle" },
@@ -13,12 +13,20 @@ const statusSteps = [
   { key: "delivered",title: "Delivered",      desc: "Enjoy your meal!",                       icon: "done_all" },
 ];
 
+/** Returns seconds remaining in the 5-min cancel window, or 0 if expired */
+function getCancelSecondsLeft(createdAt: string): number {
+  const elapsed = (Date.now() - new Date(createdAt).getTime()) / 1000;
+  return Math.max(0, 300 - elapsed);
+}
 
 const OrderTracking: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [order, setOrder]         = useState<OrderData | null>(null);
   const [loading, setLoading]     = useState(true);
+  const [cancelSecs, setCancelSecs] = useState(0);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -39,6 +47,31 @@ const OrderTracking: React.FC = () => {
     fetchOrder();
   }, [id]);
 
+  // Countdown timer — updates every second
+  useEffect(() => {
+    if (!order || order.status !== "placed") return;
+    setCancelSecs(getCancelSecondsLeft(order.created_at));
+    const interval = setInterval(() => {
+      const secs = getCancelSecondsLeft(order.created_at);
+      setCancelSecs(secs);
+      if (secs <= 0) clearInterval(interval);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [order]);
+
+  const handleCancel = useCallback(async () => {
+    if (!order) return;
+    setCancelling(true);
+    setCancelError("");
+    try {
+      const result = await cancelOrder(order.id);
+      setOrder(result.order);
+    } catch (err: any) {
+      setCancelError(err.response?.data?.error || "Failed to cancel order.");
+    } finally {
+      setCancelling(false);
+    }
+  }, [order]);
 
   const formatCountdown = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -76,6 +109,8 @@ const OrderTracking: React.FC = () => {
   };
   const getStatusLabel = () => statusSteps.find(s => s.key === order.status)?.title || order.status_display;
 
+  const canCancel = order.status === "placed" && cancelSecs > 0;
+
   return (
     <div className="tracking-page">
       <Navbar />
@@ -83,6 +118,42 @@ const OrderTracking: React.FC = () => {
         <h1 className="tracking-title">Order Tracking</h1>
         <p className="tracking-order-id">Order #{order.order_id}</p>
 
+        {/* ── 5-min Cancel Banner ─────────────────────────── */}
+        {order.status === "placed" && (
+          <div className={`tracking-cancel-banner ${canCancel ? "" : "expired"}`}>
+            {canCancel ? (
+              <>
+                <span className="material-symbols-rounded">timer</span>
+                <span>
+                  You can cancel this order within <strong>{formatCountdown(cancelSecs)}</strong>
+                </span>
+                <button
+                  className="tracking-cancel-btn"
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                >
+                  {cancelling ? "Cancelling…" : "Cancel Order"}
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-rounded">lock_clock</span>
+                <span>Cancellation window has closed.</span>
+              </>
+            )}
+          </div>
+        )}
+
+        {order.status === "cancelled" && (
+          <div className="tracking-cancelled-notice">
+            <span className="material-symbols-rounded">cancel</span>
+            This order has been cancelled.
+          </div>
+        )}
+
+        {cancelError && (
+          <div className="tracking-error">{cancelError}</div>
+        )}
 
         <div className="tracking-card">
           <div className="tracking-status-header">
@@ -90,12 +161,13 @@ const OrderTracking: React.FC = () => {
               <span className="material-symbols-rounded">
                 {order.status === "delivered" ? "done_all"
                   : order.status === "preparing" ? "restaurant"
+                  : order.status === "cancelled" ? "cancel"
                   : order.status === "placed"    ? "check_circle"
                   : "local_shipping"}
               </span>
               {getStatusLabel()}
             </span>
-            {order.status !== "delivered" && (
+            {order.status !== "cancelled" && order.status !== "delivered" && (
               <span className="tracking-eta">
                 <span className="material-symbols-rounded">schedule</span>Est. arrival: 30 min
               </span>
