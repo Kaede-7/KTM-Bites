@@ -559,6 +559,31 @@ def order_detail(request, pk):
 
 
 # ========================
+# ORDER CANCEL (5-min window)
+# ========================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def cancel_order(request, pk):
+    """Allow user to cancel an order within 5 minutes of placing it."""
+    from django.utils import timezone
+    try:
+        order = Order.objects.get(pk=pk, user=request.user)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=404)
+
+    if order.status != 'placed':
+        return Response({"error": "Order cannot be cancelled at this stage."}, status=400)
+
+    elapsed = (timezone.now() - order.created_at).total_seconds()
+    if elapsed > 300:  # 5 minutes = 300 seconds
+        return Response({"error": "Cancellation window has expired (5 minutes)."}, status=400)
+
+    order.status = 'cancelled'
+    order.save(update_fields=['status'])
+    return Response({"message": "Order cancelled successfully.", "order": OrderSerializer(order).data})
+
+
+# ========================
 # KHALTI PAYMENT (TEST)
 # ========================
 @api_view(['POST'])

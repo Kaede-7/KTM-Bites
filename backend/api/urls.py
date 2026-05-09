@@ -25,6 +25,7 @@ urlpatterns = [
     # Orders
     path('orders/', views.order_list_create, name='order-list-create'),
     path('orders/<int:pk>/', views.order_detail, name='order-detail'),
+    path('orders/<int:pk>/cancel/', views.cancel_order, name='order-cancel'),
 
     # Admin
     path('admin/orders/', views.admin_orders_list, name='admin-orders-list'),
