@@ -4,31 +4,35 @@ import "../css/profile.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { getProfile, updateProfile, changePassword, logout, type ProfileData } from "../api/auth";
+import { getProfile, updateProfile, logout, type ProfileData } from "../api/auth";
 import { getOrders, type OrderData } from "../api/orders";
+
+// ── Toast component ──
+const Toast: React.FC<{ msg: string; type: "success" | "error"; onClose: () => void }> = ({ msg, type, onClose }) => (
+  <div className={`profile-toast profile-toast-${type}`}>
+    <span className="material-symbols-rounded">{type === "success" ? "check_circle" : "error"}</span>
+    <span>{msg}</span>
+    <button onClick={onClose} className="profile-toast-close">
+      <span className="material-symbols-rounded">close</span>
+    </button>
+  </div>
+);
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState<ProfileData>({
-    id: 0,
-    fullName: "",
-    email: "",
-    phone: "",
-    address: "Thamel, Kathmandu",
-    city: "Kathmandu",
-    bio: "Food lover based in Kathmandu 🍕",
+    id: 0, fullName: "", email: "", phone: "", address: "", city: "", bio: "",
   } as any);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [passwordData, setPasswordData] = useState({ current: '', newPass: '', confirm: '' });
-  const [passwordMsg, setPasswordMsg] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [changingPassword, setChangingPassword] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error" = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -58,68 +62,44 @@ const Profile: React.FC = () => {
     setSaving(true);
     try {
       await updateProfile(formData);
-      alert("Profile updated successfully!");
+      showToast("Profile updated successfully!");
     } catch (err) {
-      console.error("Failed to update profile:", err);
+      showToast("Failed to update profile.", "error");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = () => { logout(); };
+
+
+
+  const getStatusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      delivered: "Delivered", placed: "Placed", preparing: "Preparing",
+      ready_for_pickup: "Ready", on_way: "On the Way", cancelled: "Cancelled",
+    };
+    return map[status] || "Pending";
   };
 
-  const handlePasswordChange = async () => {
-    setPasswordMsg('');
-    setPasswordError('');
-    if (!passwordData.current || !passwordData.newPass) {
-      setPasswordError('Please fill in all fields');
-      return;
-    }
-    if (passwordData.newPass !== passwordData.confirm) {
-      setPasswordError('New passwords do not match');
-      return;
-    }
-    if (passwordData.newPass.length < 6) {
-      setPasswordError('New password must be at least 6 characters');
-      return;
-    }
-    setChangingPassword(true);
-    try {
-      const result = await changePassword(passwordData.current, passwordData.newPass);
-      setPasswordMsg(result.message);
-      setPasswordData({ current: '', newPass: '', confirm: '' });
-    } catch (err: any) {
-      setPasswordError(err.response?.data?.error || 'Failed to change password');
-    } finally {
-      setChangingPassword(false);
-    }
+  const getStatusClass = (status: string) => {
+    if (status === "delivered") return "delivered";
+    if (status === "cancelled") return "cancelled";
+    return "pending";
   };
+
+  const initials = (formData.full_name || "U").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   const sideLinks = [
     { key: "profile", icon: "person", label: "My Profile" },
     { key: "orders", icon: "receipt_long", label: "Order History" },
-    { key: "addresses", icon: "location_on", label: "Saved Addresses" },
-    { key: "settings", icon: "settings", label: "Account Settings" },
   ];
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'delivered': return 'Delivered';
-      case 'placed': return 'Placed';
-      case 'preparing': return 'Preparing';
-      case 'on_way': return 'On the Way';
-      case 'cancelled': return 'Cancelled';
-      default: return 'Pending';
-    }
-  };
 
   if (loading) {
     return (
       <div className="profile-page">
         <Navbar />
-        <div className="profile-container" style={{ padding: '80px 0' }}>
+        <div className="profile-container" style={{ padding: "80px 0" }}>
           <LoadingAnimation message="Loading profile..." />
         </div>
         <Footer />
@@ -130,25 +110,36 @@ const Profile: React.FC = () => {
   return (
     <div className="profile-page">
       <Navbar />
+
+      {/* Toast */}
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
       <div className="profile-container">
-        {/* Profile Header */}
-        <div className="profile-header">
-          <div className="profile-avatar-section">
-            <div className="profile-avatar">
-              <span className="material-symbols-rounded">person</span>
+
+        {/* Hero Header */}
+        <div className="profile-hero">
+          <div className="profile-hero-bg" />
+          <div className="profile-hero-content">
+            <div className="profile-initials-avatar">{initials}</div>
+            <div className="profile-hero-info">
+              <h1 className="profile-hero-name">{formData.full_name || "Your Name"}</h1>
+              <p className="profile-hero-email">
+                <span className="material-symbols-rounded">mail</span>
+                {formData.email}
+              </p>
+              {formData.phone && (
+                <p className="profile-hero-phone">
+                  <span className="material-symbols-rounded">call</span>
+                  {formData.phone}
+                </p>
+              )}
             </div>
-            <button className="profile-avatar-edit">
-              <span className="material-symbols-rounded">photo_camera</span>
-            </button>
-          </div>
-          <div className="profile-header-info">
-            <h2 className="profile-name">{formData.full_name || "Loading..."}</h2>
-            <p className="profile-email">{formData.email}</p>
           </div>
         </div>
 
         {/* Tab Layout */}
         <div className="profile-layout">
+          {/* Sidebar */}
           <aside className="profile-sidebar">
             {sideLinks.map((link) => (
               <button
@@ -170,7 +161,7 @@ const Profile: React.FC = () => {
           <div className="profile-main">
             {/* Mobile Tabs */}
             <div className="profile-tabs-mobile">
-              {sideLinks.slice(0, 3).map((link) => (
+              {sideLinks.map((link) => (
                 <button
                   key={link.key}
                   className={`profile-tab ${activeTab === link.key ? "active" : ""}`}
@@ -182,64 +173,99 @@ const Profile: React.FC = () => {
               ))}
             </div>
 
+            {/* ── My Profile ── */}
             {activeTab === "profile" && (
               <div className="profile-section">
                 <h3 className="profile-section-title">
-                  <span className="material-symbols-rounded">edit</span>Edit Profile
+                  <span className="material-symbols-rounded">edit</span>
+                  Edit Profile
                 </h3>
                 <div className="profile-form-grid">
                   <div className="profile-field">
                     <label>Full Name</label>
-                    <input type="text" value={formData.full_name || ""} onChange={handleChange("full_name")} />
+                    <div className="profile-input-wrapper">
+                      <span className="material-symbols-rounded">person</span>
+                      <input type="text" value={formData.full_name || ""} onChange={handleChange("full_name")} placeholder="Your full name" />
+                    </div>
                   </div>
                   <div className="profile-field">
                     <label>Email</label>
-                    <input type="email" value={formData.email || ""} onChange={handleChange("email")} />
+                    <div className="profile-input-wrapper">
+                      <span className="material-symbols-rounded">mail</span>
+                      <input type="email" value={formData.email || ""} onChange={handleChange("email")} placeholder="your@email.com" />
+                    </div>
                   </div>
                   <div className="profile-field">
                     <label>Phone</label>
-                    <input type="tel" value={formData.phone || ""} onChange={handleChange("phone")} />
+                    <div className="profile-input-wrapper">
+                      <span className="material-symbols-rounded">call</span>
+                      <input type="tel" value={formData.phone || ""} onChange={handleChange("phone")} placeholder="+977 98XXXXXXXX" />
+                    </div>
                   </div>
                   <div className="profile-field">
                     <label>City</label>
-                    <input type="text" value={formData.city || ""} onChange={handleChange("city")} />
+                    <div className="profile-input-wrapper">
+                      <span className="material-symbols-rounded">location_city</span>
+                      <input type="text" value={formData.city || ""} onChange={handleChange("city")} placeholder="Kathmandu" />
+                    </div>
                   </div>
                   <div className="profile-field full-width">
-                    <label>Address</label>
-                    <input type="text" value={formData.address || ""} onChange={handleChange("address")} />
+                    <label>Delivery Address</label>
+                    <div className="profile-input-wrapper">
+                      <span className="material-symbols-rounded">location_on</span>
+                      <input type="text" value={formData.address || ""} onChange={handleChange("address")} placeholder="e.g. Thamel, Kathmandu near Garden of Dreams" />
+                    </div>
                   </div>
                   <div className="profile-field full-width">
                     <label>Bio</label>
-                    <textarea value={formData.bio || ""} onChange={handleChange("bio")} />
+                    <textarea value={formData.bio || ""} onChange={handleChange("bio")} placeholder="Food lover based in Kathmandu 🍕" />
                   </div>
                 </div>
                 <button className="profile-save-btn" onClick={handleSave} disabled={saving}>
-                  <span className="material-symbols-rounded">save</span>{saving ? "Saving..." : "Save Changes"}
+                  <span className="material-symbols-rounded">{saving ? "autorenew" : "save"}</span>
+                  {saving ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             )}
 
+            {/* ── Order History ── */}
             {activeTab === "orders" && (
               <div className="profile-section">
                 <h3 className="profile-section-title">
-                  <span className="material-symbols-rounded">receipt_long</span>Order History
+                  <span className="material-symbols-rounded">receipt_long</span>
+                  Order History
                 </h3>
                 <div className="profile-orders-list">
                   {orders.length === 0 ? (
-                    <p style={{ color: "var(--muted)", padding: "20px 0" }}>No orders yet</p>
+                    <div className="profile-empty">
+                      <span className="material-symbols-rounded">receipt_long</span>
+                      <p>No orders yet. Go explore the menu!</p>
+                      <button className="profile-save-btn" onClick={() => navigate("/menu")}>
+                        <span className="material-symbols-rounded">restaurant_menu</span>
+                        Browse Menu
+                      </button>
+                    </div>
                   ) : (
                     orders.map((order) => (
-                      <div key={order.id} className="profile-order-card" onClick={() => navigate(`/order-tracking/${order.id}`)} style={{ cursor: "pointer" }}>
+                      <div
+                        key={order.id}
+                        className="profile-order-card"
+                        onClick={() => navigate(`/order-tracking/${order.id}`)}
+                      >
                         <div className="profile-order-header">
-                          <span className="profile-order-id">#{order.order_id}</span>
-                          <span className={`profile-order-status ${order.status === "delivered" ? "delivered" : "pending"}`}>
+                          <span className="profile-order-id">{order.order_id}</span>
+                          <span className={`profile-order-status ${getStatusClass(order.status)}`}>
                             {getStatusLabel(order.status)}
                           </span>
                         </div>
-                        <p className="profile-order-items">{order.items.map(i => `${i.name} x${i.quantity}`).join(", ")}</p>
+                        <p className="profile-order-items">
+                          {order.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}
+                        </p>
                         <div className="profile-order-footer">
                           <span className="profile-order-total">Rs. {order.total}</span>
-                          <span className="profile-order-date">{new Date(order.created_at).toLocaleDateString()}</span>
+                          <span className="profile-order-date">
+                            {new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </span>
                         </div>
                       </div>
                     ))
@@ -248,67 +274,7 @@ const Profile: React.FC = () => {
               </div>
             )}
 
-            {activeTab === "addresses" && (
-              <div className="profile-section">
-                <h3 className="profile-section-title">
-                  <span className="material-symbols-rounded">location_on</span>Saved Addresses
-                </h3>
-                <div className="profile-addresses-list">
-                  <div className="profile-address-card active-address">
-                    <div className="profile-address-header">
-                      <span className="profile-address-label">
-                        <span className="material-symbols-rounded">home</span>Home
-                      </span>
-                      <span className="profile-address-default">Default</span>
-                    </div>
-                    <p className="profile-address-text">{formData.address || "Thamel, Kathmandu"}</p>
-                    <p className="profile-address-sub">Near Garden of Dreams</p>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {activeTab === "settings" && (
-              <div className="profile-section">
-                <h3 className="profile-section-title">
-                  <span className="material-symbols-rounded">settings</span>Account Settings
-                </h3>
-                {passwordMsg && <div style={{ color: '#4caf50', marginBottom: 12, padding: '10px 14px', background: '#4caf5015', borderRadius: 8, fontSize: '0.9rem' }}>{passwordMsg}</div>}
-                {passwordError && <div style={{ color: '#f44336', marginBottom: 12, padding: '10px 14px', background: '#f4433615', borderRadius: 8, fontSize: '0.9rem' }}>{passwordError}</div>}
-                <div className="profile-form-grid">
-                  <div className="profile-field full-width">
-                    <label>Current Password</label>
-                    <div className="profile-password-wrapper">
-                      <input type={showCurrentPassword ? "text" : "password"} placeholder="Enter current password" value={passwordData.current} onChange={(e) => setPasswordData(p => ({ ...p, current: e.target.value }))} />
-                      <button type="button" className="profile-toggle-password" onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
-                        <span className="material-symbols-rounded">{showCurrentPassword ? "visibility_off" : "visibility"}</span>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="profile-field">
-                    <label>New Password</label>
-                    <div className="profile-password-wrapper">
-                      <input type={showNewPassword ? "text" : "password"} placeholder="Enter new password" value={passwordData.newPass} onChange={(e) => setPasswordData(p => ({ ...p, newPass: e.target.value }))} />
-                      <button type="button" className="profile-toggle-password" onClick={() => setShowNewPassword(!showNewPassword)}>
-                        <span className="material-symbols-rounded">{showNewPassword ? "visibility_off" : "visibility"}</span>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="profile-field">
-                    <label>Confirm New Password</label>
-                    <div className="profile-password-wrapper">
-                      <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm new password" value={passwordData.confirm} onChange={(e) => setPasswordData(p => ({ ...p, confirm: e.target.value }))} />
-                      <button type="button" className="profile-toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        <span className="material-symbols-rounded">{showConfirmPassword ? "visibility_off" : "visibility"}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <button className="profile-save-btn" onClick={handlePasswordChange} disabled={changingPassword}>
-                  <span className="material-symbols-rounded">lock_reset</span>{changingPassword ? "Updating..." : "Update Password"}
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>

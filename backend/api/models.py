@@ -74,6 +74,7 @@ class Order(models.Model):
     STATUS_CHOICES = [
         ('placed', 'Order Placed'),
         ('preparing', 'Preparing'),
+        ('ready_for_pickup', 'Ready for Pickup'),
         ('on_way', 'On the Way'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
@@ -135,7 +136,8 @@ class OrderItem(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    address = models.CharField(max_length=255, blank=True, default='Thamel, Kathmandu')
+    address = models.CharField(max_length=255, blank=True, default='')
+    phone = models.CharField(max_length=20, blank=True, default='')
     city = models.CharField(max_length=100, blank=True, default='Kathmandu')
     bio = models.TextField(blank=True, default='')
 

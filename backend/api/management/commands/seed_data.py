@@ -200,5 +200,24 @@ class Command(BaseCommand):
             kitchen_user.save()
             self.stdout.write('  Kitchen user updated to staff')
 
-        self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))
+        # ── Rider staff user ──
+        rider_email = os.environ.get('RIDER_USER_EMAIL', 'rider@ktmbites.com')
+        rider_password = os.environ.get('RIDER_USER_PASSWORD', 'rider123')
+        rider_user, created = User.objects.get_or_create(
+            username=rider_email,
+            defaults={
+                'email': rider_email,
+                'first_name': 'Rider Staff',
+                'is_staff': True,
+            }
+        )
+        if created:
+            rider_user.set_password(rider_password)
+            rider_user.save()
+            self.stdout.write(f'  Rider staff created: {rider_email}')
+        elif not rider_user.is_staff:
+            rider_user.is_staff = True
+            rider_user.save()
+            self.stdout.write('  Rider user updated to staff')
 
+        self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))

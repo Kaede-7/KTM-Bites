@@ -9,6 +9,7 @@ import { getOrder, getOrders, cancelOrder, type OrderData } from "../api/orders"
 const statusSteps = [
   { key: "placed",    title: "Order Placed",  desc: "Your order has been confirmed",          icon: "check_circle" },
   { key: "preparing", title: "Preparing",     desc: "The restaurant is preparing your food",  icon: "restaurant" },
+  { key: "ready_for_pickup", title: "Ready for Pickup", desc: "Your food is ready, waiting for rider", icon: "inventory" },
   { key: "on_way",   title: "On the Way",     desc: "Your rider is heading to you",           icon: "local_shipping" },
   { key: "delivered",title: "Delivered",      desc: "Enjoy your meal!",                       icon: "done_all" },
 ];

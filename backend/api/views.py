@@ -229,9 +229,8 @@ def google_login_view(request):
             return Response({'error': 'Google token did not contain an email'}, status=status.HTTP_400_BAD_REQUEST)
             
         # Get or create user
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+        user = User.objects.filter(email=email).first()
+        if not user:
             username = email.split('@')[0]
             base_username = username
             counter = 1
@@ -246,6 +245,9 @@ def google_login_view(request):
                 last_name=last_name,
                 password=User.objects.make_random_password()
             )
+            # Create profile and specifically ensure phone is empty for Google users initially
+            # (unless we want to map something else, but definitely not last_name)
+            UserProfile.objects.get_or_create(user=user)
             Cart.objects.get_or_create(user=user)
             
         token, _ = Token.objects.get_or_create(user=user)
@@ -263,7 +265,11 @@ def google_login_view(request):
         })
         
     except ValueError as e:
-        return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        print(f"[Google Login] ValueError: {e}")
+        return Response({'error': f'Invalid token: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"[Google Login] Exception: {type(e).__name__}: {e}")
+        return Response({'error': f'Google login error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ========================
@@ -280,14 +286,17 @@ def profile_view(request):
             "id": user.id,
             "email": user.email,
             "full_name": user.first_name,
-            "phone": user.last_name,
+            "phone": profile.phone,
             "address": profile.address,
             "city": profile.city,
             "bio": profile.bio,
         })
 
     user.first_name = request.data.get('full_name', user.first_name)
-    user.last_name = request.data.get('phone', user.last_name)
+    # Don't update last_name here as it's handled by profile.phone now, 
+    # but we keep user.last_name for actual last name if needed.
+    if 'phone' in request.data:
+        profile.phone = request.data.get('phone', profile.phone)
 
     if 'email' in request.data:
         user.email = request.data['email']
@@ -819,24 +828,87 @@ def admin_order_detail(request, pk):
     return Response({"error": "Invalid status"}, status=400)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes([IsAdmin])
 def admin_users_list(request):
-    """List all users for admin dashboard."""
-    users = User.objects.all().order_by('-date_joined')
-    data = []
-    for u in users:
-        data.append({
-            "id": u.id,
-            "email": u.email,
-            "full_name": u.first_name,
-            "phone": u.last_name,
-            "is_staff": u.is_staff,
-            "is_superuser": u.is_superuser,
-            "date_joined": u.date_joined,
-            "order_count": u.orders.count(),
-        })
-    return Response(data)
+    """CRUD for users (admin)."""
+    if request.method == 'GET':
+        users = User.objects.all().order_by('-date_joined')
+        data = []
+        for u in users:
+            profile = getattr(u, 'profile', None)
+            data.append({
+                "id": u.id,
+                "email": u.email,
+                "full_name": u.first_name,
+                "phone": profile.phone if profile else "",
+                "is_staff": u.is_staff,
+                "is_superuser": u.is_superuser,
+                "date_joined": u.date_joined,
+                "order_count": u.orders.count(),
+            })
+        return Response(data)
+
+    if request.method == 'POST':
+        # Create a new user
+        email = request.data.get('email')
+        password = request.data.get('password')
+        if not email or not password:
+            return Response({"error": "Email and password are required"}, status=400)
+        if User.objects.filter(email=email).exists():
+            return Response({"error": "Email already in use"}, status=400)
+            
+        username = email.split('@')[0]
+        base_username = username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+            
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=request.data.get('full_name', ''),
+        )
+        UserProfile.objects.get_or_create(user=user, defaults={'phone': request.data.get('phone', '')})
+        Cart.objects.get_or_create(user=user)
+        return Response({"message": "User created successfully", "id": user.id}, status=201)
+
+    # For PUT and DELETE, id is required
+    user_id = request.data.get('id')
+    if not user_id:
+        return Response({"error": "id is required"}, status=400)
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+
+    if request.method == 'PUT':
+        # Update user
+        if 'full_name' in request.data:
+            user.first_name = request.data['full_name']
+        if 'email' in request.data:
+            new_email = request.data['email']
+            if new_email != user.email and User.objects.filter(email=new_email).exists():
+                return Response({"error": "Email already in use"}, status=400)
+            user.email = new_email
+        if 'password' in request.data and request.data['password']:
+            user.set_password(request.data['password'])
+        
+        user.save()
+
+        if 'phone' in request.data:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.phone = request.data['phone']
+            profile.save()
+            
+        return Response({"message": "User updated successfully"})
+
+    if request.method == 'DELETE':
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=204)
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])

@@ -15,6 +15,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'full_name', 'phone', 'password']
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists() or User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("This email is already registered.")
+        return value
+
     def create(self, validated_data):
         phone = validated_data.pop('phone', '')
         user = User.objects.create_user(
@@ -23,8 +28,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             first_name=validated_data.get('first_name', ''),
         )
-        # Store phone in last_name field for simplicity
-        user.last_name = phone
+        # Store phone in UserProfile
+        user.profile.phone = phone
+        user.profile.save()
         user.save()
         return user
 
@@ -36,7 +42,7 @@ class LoginSerializer(serializers.Serializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source='first_name')
-    phone = serializers.CharField(source='last_name')
+    phone = serializers.CharField(source='profile.phone', default='')
     address = serializers.CharField(source='profile.address', default='')
     city = serializers.CharField(source='profile.city', default='')
     bio = serializers.CharField(source='profile.bio', default='')
