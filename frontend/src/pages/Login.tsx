@@ -11,6 +11,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +20,7 @@ const Login: React.FC = () => {
     setError("");
     setLoading(true);
     try {
-      await login(email, password, false); // rememberMe false by default
+      await login(email, password, rememberMe);
       navigate("/home");
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed. Please try again.");
@@ -94,7 +95,17 @@ const Login: React.FC = () => {
           </button>
         </div>
 
-        <Link to="#" className="auth-forgot-link">Forgot Password?</Link>
+        <div className="auth-options-row">
+          <label className="auth-remember-label">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            Remember me
+          </label>
+          <Link to="#" className="auth-forgot-link">Forgot Password?</Link>
+        </div>
 
         <button type="submit" className="auth-submit-btn" disabled={loading}>
           {loading ? "Logging In..." : "Log In"}
