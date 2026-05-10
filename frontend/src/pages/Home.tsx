@@ -96,20 +96,16 @@ const Home: React.FC = () => {
   const activeOrder = orders.find(o => !["delivered", "cancelled"].includes(o.status?.toLowerCase()));
   const recentOrders = orders.filter(o => o.status?.toLowerCase() === "delivered").slice(0, 3);
 
-  // Status mapping to calculate progress bar percentages
-  const statusMap = {
-    "PENDING": 0,
-    "PREPARING": 1,
-    "OUT_FOR_DELIVERY": 2,
-    "DELIVERED": 3
-  };
-  
-  const getProgressWidth = (status: string) => {
-    const s = statusMap[status as keyof typeof statusMap] || 0;
-    if (s === 0) return "0%";
-    if (s === 1) return "50%";
-    if (s >= 2) return "100%";
-    return "0%";
+  const currentStepIndex = !activeOrder ? -1
+    : activeOrder.status === "placed" ? 0 
+    : (activeOrder.status === "preparing" || activeOrder.status === "ready_for_pickup") ? 1
+    : (activeOrder.status === "on_way" || activeOrder.status === "delivered") ? 2
+    : -1;
+
+  const getStepStatus = (index: number) => {
+    if (index < currentStepIndex) return "completed";
+    if (index === currentStepIndex) return "active";
+    return "pending";
   };
 
   return (
@@ -189,7 +185,7 @@ const Home: React.FC = () => {
             {/* In Progress Card */}
             <div className="home-card home-in-progress">
               <div className="hip-header">
-                <div>
+                <div className="hip-header-left">
                   <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
                   <p>{activeOrder ? `Arriving in ~25 mins` : "Your recent cravings are satisfied."}</p>
                 </div>
@@ -200,27 +196,39 @@ const Home: React.FC = () => {
 
               {activeOrder && (
                 <>
-                  <div className="hip-item">
-                    <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
+                  <div className="hip-item-preview">
+                    <div className="hip-img-container">
+                      <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
+                    </div>
                     <div className="hip-item-info">
                       <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
                       <p>KTM Bites Kitchen</p>
                     </div>
                   </div>
 
-                  <div className="hip-progress">
-                    <div className="hip-progress-bar" style={{ width: getProgressWidth(activeOrder.status) }}></div>
-                    <div className={`hip-step ${statusMap[activeOrder.status as keyof typeof statusMap] >= 0 ? "active" : ""}`}>
-                      <div className="hip-step-icon"><span className="material-symbols-rounded">receipt_long</span></div>
-                      <span className="hip-step-label">Received</span>
+                  <div className="hip-horizontal-tracker">
+                    <div className="tracker-line">
+                      <div className="tracker-line-fill" style={{ width: `${(currentStepIndex / 2) * 100}%` }}></div>
                     </div>
-                    <div className={`hip-step ${statusMap[activeOrder.status as keyof typeof statusMap] >= 1 ? "active" : ""}`}>
-                      <div className="hip-step-icon"><span className="material-symbols-rounded">skillet</span></div>
-                      <span className="hip-step-label">Preparing</span>
-                    </div>
-                    <div className={`hip-step ${statusMap[activeOrder.status as keyof typeof statusMap] >= 2 ? "active" : ""}`}>
-                      <div className="hip-step-icon"><span className="material-symbols-rounded">two_wheeler</span></div>
-                      <span className="hip-step-label">On the way</span>
+                    <div className="tracker-steps">
+                      <div className={`tracker-step-item ${getStepStatus(0)}`}>
+                        <div className="step-icon-circle">
+                          <span className="material-symbols-rounded">receipt_long</span>
+                        </div>
+                        <span>Received</span>
+                      </div>
+                      <div className={`tracker-step-item ${getStepStatus(1)}`}>
+                        <div className="step-icon-circle">
+                          <span className="material-symbols-rounded">restaurant</span>
+                        </div>
+                        <span>Preparing</span>
+                      </div>
+                      <div className={`tracker-step-item ${getStepStatus(2)}`}>
+                        <div className="step-icon-circle">
+                          <span className="material-symbols-rounded">directions_bike</span>
+                        </div>
+                        <span>On the way</span>
+                      </div>
                     </div>
                   </div>
                 </>

@@ -16,6 +16,8 @@ const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const OrderTracking = lazy(() => import("./pages/OrderTracking"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Contact = lazy(() => import("./pages/Contact"));
+const About = lazy(() => import("./pages/About"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Kitchen = lazy(() => import("./pages/Kitchen"));
 const Rider = lazy(() => import("./pages/Rider"));
@@ -29,6 +31,8 @@ function App() {
         <Routes>
           {/* === Public routes (anyone can see) === */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
 
           {/* Login & Signup share a common layout (AuthLayout wraps them) */}
           <Route element={<AuthLayout />}>
