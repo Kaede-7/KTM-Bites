@@ -48,17 +48,20 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(AdminProfile)
 class AdminProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'employee_id', 'department']
+    list_display = ['username', 'email', 'employee_id', 'department']
+    search_fields = ['username', 'email', 'employee_id']
 
 
 @admin.register(KitchenProfile)
 class KitchenProfileAdmin(admin.ModelAdmin):
-    list_display = ['restaurant_name', 'user', 'is_open']
+    list_display = ['restaurant_name', 'username', 'email', 'is_open']
     list_filter = ['is_open']
+    search_fields = ['restaurant_name', 'username', 'email']
 
 
 @admin.register(RiderProfile)
 class RiderProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'vehicle_type', 'is_available']
+    list_display = ['username', 'email', 'vehicle_type', 'is_available']
     list_filter = ['is_available', 'vehicle_type']
+    search_fields = ['username', 'email', 'license_number']
 

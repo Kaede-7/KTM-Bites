@@ -19,6 +19,8 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Kitchen = lazy(() => import("./pages/Kitchen"));
 const Rider = lazy(() => import("./pages/Rider"));
+const RiderSignup = lazy(() => import("./pages/RiderSignup"));
+const RiderLogin = lazy(() => import("./pages/RiderLogin"));
 
 function App() {
   return (
@@ -32,6 +34,8 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/rider-login" element={<RiderLogin />} />
+            <Route path="/rider-signup" element={<RiderSignup />} />
           </Route>
 
           {/* Admin, Kitchen, and Rider have their own login systems */}
@@ -57,5 +61,3 @@ function App() {
 }
 
 export default App;
-
-

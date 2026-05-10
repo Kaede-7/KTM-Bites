@@ -11,9 +11,11 @@ class RegisterSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source='first_name')
     phone = serializers.CharField(write_only=True, required=False, default='')
 
+    role = serializers.CharField(write_only=True, required=False, default='USER')
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'full_name', 'phone', 'password']
+        fields = ['id', 'email', 'full_name', 'phone', 'password', 'role']
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists() or User.objects.filter(username=value).exists():
@@ -22,14 +24,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         phone = validated_data.pop('phone', '')
+        role = validated_data.pop('role', 'USER')
         user = User.objects.create_user(
             username=validated_data['email'],
             email=validated_data['email'],
             password=validated_data['password'],
             first_name=validated_data.get('first_name', ''),
         )
-        # Store phone in UserProfile
+        # Store phone and role in UserProfile
         user.profile.phone = phone
+        user.profile.role = role
         user.profile.save()
         user.save()
         return user
@@ -169,13 +173,13 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 'order_id', 'status', 'status_display',
+            'id', 'order_id', 'rider', 'status', 'status_display',
             'payment_method', 'payment_status', 'pidx', 'transaction_id',
             'full_name', 'phone', 'address',
             'city', 'landmark', 'notes', 'subtotal', 'delivery_fee',
             'total', 'items', 'created_at',
         ]
-        read_only_fields = ['subtotal', 'delivery_fee', 'total', 'status', 'payment_status', 'pidx', 'transaction_id']
+        read_only_fields = ['subtotal', 'delivery_fee', 'total', 'status', 'payment_status', 'pidx', 'transaction_id', 'rider']
 
 
 class PlaceOrderSerializer(serializers.Serializer):

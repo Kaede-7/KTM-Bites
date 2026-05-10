@@ -66,6 +66,17 @@ class IsAdmin(BasePermission):
             request.user.is_staff or request.user.is_superuser
         )
 
+class IsStaffOrAuthorizedRole(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+        try:
+            return request.user.profile.role in ['ADMIN', 'KITCHEN', 'RIDER']
+        except Exception:
+            return False
+
 
 # ========================
 # THROTTLING
@@ -184,7 +195,13 @@ def login_view(request):
         if user:
             token, _ = Token.objects.get_or_create(user=user)
             Cart.objects.get_or_create(user=user)
-
+            role = "USER"
+            if hasattr(user, 'profile'):
+                try:
+                    role = user.profile.role
+                except Exception:
+                    pass
+            
             return Response({
                 "token": token.key,
                 "user": {
@@ -193,6 +210,7 @@ def login_view(request):
                     "full_name": user.first_name,
                     "is_staff": user.is_staff,
                     "is_superuser": user.is_superuser,
+                    "role": role,
                 }
             })
 
@@ -206,6 +224,7 @@ def login_view(request):
 def google_login_view(request):
     credential = request.data.get('credential')
     access_token = request.data.get('access_token')
+    role = request.data.get('role', 'USER')
 
     if not credential and not access_token:
         return Response({'error': 'No credential provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -245,22 +264,37 @@ def google_login_view(request):
                 last_name=last_name,
                 password=User.objects.make_random_password()
             )
-            # Create profile and specifically ensure phone is empty for Google users initially
-            # (unless we want to map something else, but definitely not last_name)
-            UserProfile.objects.get_or_create(user=user)
+            # Create profile and set the role
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.role = role
+            profile.save()
             Cart.objects.get_or_create(user=user)
+        else:
+            # Upgrade existing user role if requested (e.g. USER -> RIDER)
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            if profile.role == 'USER' and role in ['RIDER', 'KITCHEN']:
+                profile.role = role
+                profile.save()
             
         token, _ = Token.objects.get_or_create(user=user)
         Cart.objects.get_or_create(user=user)
         
+        role = "USER"
+        if hasattr(user, 'profile'):
+            try:
+                role = user.profile.role
+            except Exception:
+                pass
+
         return Response({
-            'token': token.key,
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'full_name': user.first_name,
-                'is_staff': user.is_staff,
-                'is_superuser': user.is_superuser,
+            "token": token.key,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.first_name,
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser,
+                "role": role,
             }
         })
         
@@ -791,7 +825,7 @@ def payment_status_view(request, order_id):
 # ADMIN VIEWS
 # ========================
 @api_view(['GET'])
-@permission_classes([IsAdmin])
+@permission_classes([IsStaffOrAuthorizedRole])
 def admin_orders_list(request):
     """List all orders for admin dashboard."""
     orders = Order.objects.all()
@@ -809,7 +843,7 @@ def admin_orders_list(request):
 
 
 @api_view(['GET', 'PUT', 'PATCH'])
-@permission_classes([IsAdmin])
+@permission_classes([IsStaffOrAuthorizedRole])
 def admin_order_detail(request, pk):
     """View or update a single order (admin can change status)."""
     try:
@@ -824,7 +858,16 @@ def admin_order_detail(request, pk):
     new_status = request.data.get('status')
     if new_status and new_status in dict(Order.STATUS_CHOICES):
         order.status = new_status
-        order.save(update_fields=['status'])
+        
+        # If a rider picks up the order, assign it to them
+        if new_status == 'on_way' and order.rider is None:
+            try:
+                if hasattr(request.user, 'profile') and request.user.profile.role == 'RIDER':
+                    order.rider = request.user
+            except Exception:
+                pass
+                
+        order.save(update_fields=['status', 'rider'] if order.rider else ['status'])
         return Response(OrderSerializer(order).data)
 
     return Response({"error": "Invalid status"}, status=400)

@@ -263,6 +263,18 @@
   margin-bottom: 24px;
 }
 
+.auth-badge-rider {
+  display: inline-block;
+  padding: 6px 14px;
+  background: #2a2420;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+
 /* Right Panel - Image */
 .auth-right {
   flex: 1.2;
@@ -333,6 +345,7 @@
   color: #6b5d52;
   cursor: pointer;
   user-select: none;
+  margin-left: 4px;
 }
 
 .auth-remember-label input[type="checkbox"] {

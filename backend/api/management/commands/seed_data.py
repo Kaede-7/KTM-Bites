@@ -1,12 +1,15 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from api.models import Category, MenuItem, Cart, UserProfile
+from api.models import (
+    Category, MenuItem, Cart, UserProfile, Role,
+    AdminProfile, KitchenProfile, RiderProfile
+)
 import os
 
 
 class Command(BaseCommand):
-    help = 'Seed the database with sample menu data'
+    help = 'Seed the database with sample menu and user data'
 
     def handle(self, *args, **options):
         self.stdout.write('Seeding database...')
@@ -142,7 +145,7 @@ class Command(BaseCommand):
             )
             self.stdout.write(f'  Menu Item: {item_data["name"]}')
 
-        # ── Demo user ──
+        # ── Demo Customer ──
         demo_email = os.environ.get('DEMO_USER_EMAIL', 'saksham@email.com')
         demo_password = os.environ.get('DEMO_USER_PASSWORD', 'password123')
         demo_user, created = User.objects.get_or_create(
@@ -156,68 +159,105 @@ class Command(BaseCommand):
         if created:
             demo_user.set_password(demo_password)
             demo_user.save()
-            self.stdout.write(f'  Demo user created: {demo_email}')
+            self.stdout.write(f'  Demo customer created: {demo_email}')
         Token.objects.get_or_create(user=demo_user)
         Cart.objects.get_or_create(user=demo_user)
 
-        # Create/update UserProfile for demo user
+        # Update UserProfile for demo customer
         profile, _ = UserProfile.objects.get_or_create(user=demo_user)
+        profile.role = Role.USER
         profile.address = 'Thamel, Kathmandu'
         profile.city = 'Kathmandu'
         profile.bio = 'Food lover based in Kathmandu 🍕'
         profile.save()
-        self.stdout.write('  Demo user profile updated')
+        self.stdout.write('  Demo customer profile updated')
 
-        # ── Superuser ──
+        # ── Admin User ──
         admin_email = os.environ.get('ADMIN_USER_EMAIL', 'admin@ktmbites.com')
         admin_password = os.environ.get('ADMIN_USER_PASSWORD', 'admin123')
-        if not User.objects.filter(is_superuser=True).exists():
-            admin_user = User.objects.create_superuser(
-                username=admin_email,
-                email=admin_email,
-                password=admin_password,
-                first_name='Admin',
-            )
-            self.stdout.write(f'  Superuser created: {admin_email}')
+        admin_user, created = User.objects.get_or_create(
+            username=admin_email,
+            defaults={
+                'email': admin_email,
+                'first_name': 'System Admin',
+                'is_staff': True,
+                'is_superuser': True,
+            }
+        )
+        if created:
+            admin_user.set_password(admin_password)
+            admin_user.save()
+            self.stdout.write(f'  Admin user created: {admin_email}')
 
-        # ── Kitchen staff user ──
+        # Update Admin Profile
+        profile, _ = UserProfile.objects.get_or_create(user=admin_user)
+        profile.role = Role.ADMIN
+        profile.save()
+        AdminProfile.objects.get_or_create(
+            user=admin_user,
+            defaults={'employee_id': 'KTM-ADMIN-001', 'department': 'Management'}
+        )
+        self.stdout.write('  Admin profile details added')
+
+        # ── Kitchen Staff ──
         kitchen_email = os.environ.get('KITCHEN_USER_EMAIL', 'kitchen@ktmbites.com')
         kitchen_password = os.environ.get('KITCHEN_USER_PASSWORD', 'kitchen123')
         kitchen_user, created = User.objects.get_or_create(
             username=kitchen_email,
             defaults={
                 'email': kitchen_email,
-                'first_name': 'Kitchen Staff',
+                'first_name': 'Main Kitchen',
                 'is_staff': True,
             }
         )
         if created:
             kitchen_user.set_password(kitchen_password)
             kitchen_user.save()
-            self.stdout.write(f'  Kitchen staff created: {kitchen_email}')
-        elif not kitchen_user.is_staff:
-            kitchen_user.is_staff = True
-            kitchen_user.save()
-            self.stdout.write('  Kitchen user updated to staff')
+            self.stdout.write(f'  Kitchen user created: {kitchen_email}')
 
-        # ── Rider staff user ──
+        # Update Kitchen Profile
+        profile, _ = UserProfile.objects.get_or_create(user=kitchen_user)
+        profile.role = Role.KITCHEN
+        profile.save()
+        KitchenProfile.objects.get_or_create(
+            user=kitchen_user,
+            defaults={
+                'restaurant_name': 'KTM Bites Central Kitchen',
+                'description': 'Main branch providing high-quality food across Kathmandu.',
+                'location_lat': 27.7172,
+                'location_lng': 85.3240
+            }
+        )
+        self.stdout.write('  Kitchen profile details added')
+
+        # ── Rider Staff ──
         rider_email = os.environ.get('RIDER_USER_EMAIL', 'rider@ktmbites.com')
         rider_password = os.environ.get('RIDER_USER_PASSWORD', 'rider123')
         rider_user, created = User.objects.get_or_create(
             username=rider_email,
             defaults={
                 'email': rider_email,
-                'first_name': 'Rider Staff',
+                'first_name': 'Express Rider',
                 'is_staff': True,
             }
         )
         if created:
             rider_user.set_password(rider_password)
             rider_user.save()
-            self.stdout.write(f'  Rider staff created: {rider_email}')
-        elif not rider_user.is_staff:
-            rider_user.is_staff = True
-            rider_user.save()
-            self.stdout.write('  Rider user updated to staff')
+            self.stdout.write(f'  Rider user created: {rider_email}')
 
-        self.stdout.write(self.style.SUCCESS('Database seeded successfully!'))
+        # Update Rider Profile
+        profile, _ = UserProfile.objects.get_or_create(user=rider_user)
+        profile.role = Role.RIDER
+        profile.save()
+        RiderProfile.objects.get_or_create(
+            user=rider_user,
+            defaults={
+                'vehicle_type': 'Motorcycle',
+                'license_number': 'BA-PA-1234',
+                'is_available': True
+            }
+        )
+        self.stdout.write('  Rider profile details added')
+
+        self.stdout.write(self.style.SUCCESS('Database seeded successfully with roles and profile info!'))

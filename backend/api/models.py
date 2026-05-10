@@ -92,6 +92,7 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    rider = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='placed')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='esewa')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
@@ -155,15 +156,19 @@ class UserProfile(models.Model):
 
 class AdminProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
+    email = models.EmailField(max_length=255, blank=True)
+    username = models.CharField(max_length=150, blank=True)
     employee_id = models.CharField(max_length=50, blank=True)
     department = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return f"Admin: {self.user.username}"
+        return f"Admin: {self.username or self.user.username}"
 
 
 class KitchenProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='kitchen_profile')
+    email = models.EmailField(max_length=255, blank=True)
+    username = models.CharField(max_length=150, blank=True)
     restaurant_name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     is_open = models.BooleanField(default=True)
@@ -176,6 +181,8 @@ class KitchenProfile(models.Model):
 
 class RiderProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='rider_profile')
+    email = models.EmailField(max_length=255, blank=True)
+    username = models.CharField(max_length=150, blank=True)
     vehicle_type = models.CharField(max_length=50, blank=True)
     license_number = models.CharField(max_length=50, blank=True)
     is_available = models.BooleanField(default=True)
@@ -223,10 +230,16 @@ def manage_user_profiles(sender, instance, created, **kwargs):
     if hasattr(instance, 'profile'):
         instance.profile.save()
     
-    # Save specific profiles if they exist
+    # Save specific profiles and sync info if they exist
     if hasattr(instance, 'admin_profile'):
+        instance.admin_profile.email = instance.email
+        instance.admin_profile.username = instance.username
         instance.admin_profile.save()
     if hasattr(instance, 'kitchen_profile'):
+        instance.kitchen_profile.email = instance.email
+        instance.kitchen_profile.username = instance.username
         instance.kitchen_profile.save()
     if hasattr(instance, 'rider_profile'):
+        instance.rider_profile.email = instance.email
+        instance.rider_profile.username = instance.username
         instance.rider_profile.save()

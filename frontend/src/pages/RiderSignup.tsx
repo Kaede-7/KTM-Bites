@@ -3,9 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
 import { register, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
-import AuthCreative from "../components/AuthCreative";
 
-const Signup: React.FC = () => {
+const RiderSignup: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
@@ -37,8 +36,9 @@ const Signup: React.FC = () => {
         full_name: formData.fullName,
         email: formData.email,
         password: formData.password,
+        role: 'RIDER'
       });
-      navigate("/home");
+      navigate("/rider");
     } catch (err: any) {
       const errData = err.response?.data;
       if (errData) {
@@ -55,8 +55,8 @@ const Signup: React.FC = () => {
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        await googleLogin(tokenResponse.access_token, true);
-        navigate("/home");
+        await googleLogin(tokenResponse.access_token, true, 'RIDER');
+        navigate("/rider");
       } catch (err: any) {
         setError("Google signup failed. Please try again.");
       }
@@ -66,17 +66,13 @@ const Signup: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
-      <h1>Create Account</h1>
-      <p className="auth-subtitle">Join us and start ordering your favorites.</p>
-
-      <div className="auth-promise-badge">
-        <span className="material-symbols-rounded">bolt</span>
-        Swift Delivery Promise
-      </div>
+      <div className="auth-badge-rider">RIDER PORTAL</div>
+      <h1>Partner with KTM Bites</h1>
+      <p className="auth-subtitle">Deliver joy across Kathmandu and earn on your own schedule.</p>
 
       <div className="auth-tabs-modern">
-        <Link to="/login" className="auth-tab-modern">Sign In</Link>
-        <Link to="/signup" className="auth-tab-modern active">Signup</Link>
+        <Link to="/rider-login" className="auth-tab-modern">Sign In</Link>
+        <Link to="/rider-signup" className="auth-tab-modern active">Signup</Link>
       </div>
 
       {error && (
@@ -126,7 +122,7 @@ const Signup: React.FC = () => {
         </div>
 
         <button type="submit" className="auth-submit-btn" disabled={loading}>
-          {loading ? "Creating Account..." : "Sign Up"}
+          {loading ? "Registering..." : "Become a Rider"}
         </button>
 
         <div className="auth-divider">
@@ -141,11 +137,11 @@ const Signup: React.FC = () => {
         </div>
 
         <div className="auth-footer">
-          Already have an account? <Link to="/login">Log In</Link>
+          Already a rider? <Link to="/rider-login">Log In here</Link>
         </div>
       </form>
     </div>
   );
 };
 
-export default Signup;
+export default RiderSignup;

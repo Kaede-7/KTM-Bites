@@ -182,7 +182,7 @@ const Admin: React.FC = () => {
     setPassword("");
     setError("");
     setSuccessMessage("");
-    authAPI.logout(); // Also clear the backend auth
+    authAPI.logout(null); // Also clear the backend auth, but don't redirect away from /admin
   };
 
   const handleAddMenuItem = () => {
@@ -376,7 +376,7 @@ const Admin: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   <span className="material-symbols-rounded">
-                    {showPassword ? "visibility_off" : "visibility"}
+                    {showPassword ? "visibility" : "visibility_off"}
                   </span>
                 </button>
               </div>
