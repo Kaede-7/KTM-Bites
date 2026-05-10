@@ -1,60 +1,61 @@
-// ============================================================
-// App.tsx — The main router of the application
-// ============================================================
-// This file defines which PAGE component to show for each URL.
-// Think of it as a map: URL → Page
-//
-// Example: When user visits "/menu", React renders <MenuBrowse />
-// The <ChatWidget /> is placed outside <Routes> so it appears on ALL pages.
-// ============================================================
-
+import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
-import LandingPage from "./pages/dashboard";
 import ChatWidget from "./components/ChatWidget";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import MenuBrowse from "./pages/MenuBrowse";
-import ItemDetail from "./pages/ItemDetail";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import OrderTracking from "./pages/OrderTracking";
-import Profile from "./pages/Profile";
-import Admin from "./pages/Admin";
-import Kitchen from "./pages/Kitchen";
+import { ToastProvider } from "./components/Toast";
 import AuthLayout from "./components/AuthLayout";
+import LoadingAnimation from "./components/LoadingAnimation";
+
+// Lazy load pages
+const LandingPage = lazy(() => import("./pages/dashboard"));
+const Home = lazy(() => import("./pages/Home"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const MenuBrowse = lazy(() => import("./pages/MenuBrowse"));
+const ItemDetail = lazy(() => import("./pages/ItemDetail"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const OrderTracking = lazy(() => import("./pages/OrderTracking"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Kitchen = lazy(() => import("./pages/Kitchen"));
+const Rider = lazy(() => import("./pages/Rider"));
 
 function App() {
   return (
-    <>
-      <Routes>
-        {/* === Public routes (anyone can see) === */}
-        <Route path="/" element={<LandingPage />} />
+    <ToastProvider>
+      <Suspense fallback={<LoadingAnimation message="Entering the kitchen..." />}>
+        <Routes>
+          {/* === Public routes (anyone can see) === */}
+          <Route path="/" element={<LandingPage />} />
 
-        {/* Login & Signup share a common layout (AuthLayout wraps them) */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-        </Route>
+          {/* Login & Signup share a common layout (AuthLayout wraps them) */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Route>
 
-        {/* Admin and Kitchen have their own login systems */}
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/kitchen" element={<Kitchen />} />
+          {/* Admin, Kitchen, and Rider have their own login systems */}
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/kitchen" element={<Kitchen />} />
+          <Route path="/rider" element={<Rider />} />
 
-        {/* === Routes that require login === */}
-        <Route path="/home" element={<Home />} />
-        <Route path="/menu" element={<MenuBrowse />} />
-        <Route path="/menu/:id" element={<ItemDetail />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order-tracking/:id" element={<OrderTracking />} />
-        <Route path="/profile" element={<Profile />} />
-      </Routes>
+          {/* === Routes that require login === */}
+          <Route path="/home" element={<Home />} />
+          <Route path="/menu" element={<MenuBrowse />} />
+          <Route path="/menu/:id" element={<ItemDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-tracking/:id" element={<OrderTracking />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </Suspense>
 
       {/* AI Chat Widget — floating button on every page */}
       <ChatWidget />
-    </>
+    </ToastProvider>
   );
 }
 
 export default App;
+
+

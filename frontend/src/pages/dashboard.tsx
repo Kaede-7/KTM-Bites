@@ -167,7 +167,7 @@ const LandingPage: React.FC = () => {
                       aria-label={`Browse ${f.name}`}
                       title={f.name}
                     >
-                      <img src={f.src} alt={f.name} />
+                      <img src={f.src} alt={f.name} loading="lazy" />
                       <div className="lp-plate-overlay" />
                       <span className="lp-plate-label">
                         <span className="material-symbols-rounded">{f.icon}</span>
@@ -256,7 +256,7 @@ const LandingPage: React.FC = () => {
                   onClick={() => handleCategoryClick(i, item.name)}
                   aria-label={`Browse ${item.name}`}
                 >
-                  <img src={item.src} alt={item.name} />
+                  <img src={item.src} alt={item.name} loading="lazy" />
                   <div className="lp-mobile-card-overlay" />
                   <div className="lp-mobile-card-label">
                     <span className="material-symbols-rounded">{item.icon}</span>

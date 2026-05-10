@@ -229,9 +229,8 @@ def google_login_view(request):
             return Response({'error': 'Google token did not contain an email'}, status=status.HTTP_400_BAD_REQUEST)
             
         # Get or create user
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+        user = User.objects.filter(email=email).first()
+        if not user:
             username = email.split('@')[0]
             base_username = username
             counter = 1
@@ -246,6 +245,9 @@ def google_login_view(request):
                 last_name=last_name,
                 password=User.objects.make_random_password()
             )
+            # Create profile and specifically ensure phone is empty for Google users initially
+            # (unless we want to map something else, but definitely not last_name)
+            UserProfile.objects.get_or_create(user=user)
             Cart.objects.get_or_create(user=user)
             
         token, _ = Token.objects.get_or_create(user=user)
@@ -263,7 +265,11 @@ def google_login_view(request):
         })
         
     except ValueError as e:
-        return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        print(f"[Google Login] ValueError: {e}")
+        return Response({'error': f'Invalid token: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print(f"[Google Login] Exception: {type(e).__name__}: {e}")
+        return Response({'error': f'Google login error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ========================
@@ -280,14 +286,17 @@ def profile_view(request):
             "id": user.id,
             "email": user.email,
             "full_name": user.first_name,
-            "phone": user.last_name,
+            "phone": profile.phone,
             "address": profile.address,
             "city": profile.city,
             "bio": profile.bio,
         })
 
     user.first_name = request.data.get('full_name', user.first_name)
-    user.last_name = request.data.get('phone', user.last_name)
+    # Don't update last_name here as it's handled by profile.phone now, 
+    # but we keep user.last_name for actual last name if needed.
+    if 'phone' in request.data:
+        profile.phone = request.data.get('phone', profile.phone)
 
     if 'email' in request.data:
         user.email = request.data['email']
@@ -433,7 +442,8 @@ def category_list(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def menu_list(request):
-    items = MenuItem.objects.filter(is_available=True)
+    # Optimize: select_related('category') joins the tables in one query
+    items = MenuItem.objects.select_related('category').filter(is_available=True)
 
     category = request.query_params.get('category')
     if category and category != "All":
@@ -531,7 +541,8 @@ def cart_remove(request, pk):
 def order_list_create(request):
 
     if request.method == "GET":
-        orders = Order.objects.filter(user=request.user)
+        # Optimize: prefetch_related('items') fetches all order items in one batch
+        orders = Order.objects.prefetch_related('items', 'items__menu_item').filter(user=request.user)
         return Response(OrderSerializer(orders, many=True).data)
 
     cart = Cart.objects.get(user=request.user)
@@ -819,24 +830,87 @@ def admin_order_detail(request, pk):
     return Response({"error": "Invalid status"}, status=400)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @permission_classes([IsAdmin])
 def admin_users_list(request):
-    """List all users for admin dashboard."""
-    users = User.objects.all().order_by('-date_joined')
-    data = []
-    for u in users:
-        data.append({
-            "id": u.id,
-            "email": u.email,
-            "full_name": u.first_name,
-            "phone": u.last_name,
-            "is_staff": u.is_staff,
-            "is_superuser": u.is_superuser,
-            "date_joined": u.date_joined,
-            "order_count": u.orders.count(),
-        })
-    return Response(data)
+    """CRUD for users (admin)."""
+    if request.method == 'GET':
+        users = User.objects.all().order_by('-date_joined')
+        data = []
+        for u in users:
+            profile = getattr(u, 'profile', None)
+            data.append({
+                "id": u.id,
+                "email": u.email,
+                "full_name": u.first_name,
+                "phone": profile.phone if profile else "",
+                "is_staff": u.is_staff,
+                "is_superuser": u.is_superuser,
+                "date_joined": u.date_joined,
+                "order_count": u.orders.count(),
+            })
+        return Response(data)
+
+    if request.method == 'POST':
+        # Create a new user
+        email = request.data.get('email')
+        password = request.data.get('password')
+        if not email or not password:
+            return Response({"error": "Email and password are required"}, status=400)
+        if User.objects.filter(email=email).exists():
+            return Response({"error": "Email already in use"}, status=400)
+            
+        username = email.split('@')[0]
+        base_username = username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+            
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=request.data.get('full_name', ''),
+        )
+        UserProfile.objects.get_or_create(user=user, defaults={'phone': request.data.get('phone', '')})
+        Cart.objects.get_or_create(user=user)
+        return Response({"message": "User created successfully", "id": user.id}, status=201)
+
+    # For PUT and DELETE, id is required
+    user_id = request.data.get('id')
+    if not user_id:
+        return Response({"error": "id is required"}, status=400)
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+
+    if request.method == 'PUT':
+        # Update user
+        if 'full_name' in request.data:
+            user.first_name = request.data['full_name']
+        if 'email' in request.data:
+            new_email = request.data['email']
+            if new_email != user.email and User.objects.filter(email=new_email).exists():
+                return Response({"error": "Email already in use"}, status=400)
+            user.email = new_email
+        if 'password' in request.data and request.data['password']:
+            user.set_password(request.data['password'])
+        
+        user.save()
+
+        if 'phone' in request.data:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.phone = request.data['phone']
+            profile.save()
+            
+        return Response({"message": "User updated successfully"})
+
+    if request.method == 'DELETE':
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=204)
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
@@ -1010,16 +1084,19 @@ Your job:
 # ========================
 # AI — RECOMMENDATIONS
 # ========================
+from django.core.cache import cache
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def recommendations_view(request):
     """
-    Returns 3 AI-recommended menu items based on:
-    - User's past order history
-    - Current time of day
-    - Live Kathmandu weather (OpenWeatherMap free tier)
+    Returns 3 AI-recommended menu items based on past history, time, and weather.
+    Cached for performance (Weather: 30m, User Recs: 10m).
     """
-    # Uses json, datetime, and Groq imported at the top of the file
+    user_cache_key = f"user_recs_{request.user.id}"
+    cached_recs = cache.get(user_cache_key)
+    if cached_recs:
+        return Response({"recommendations": cached_recs})
 
     # 1. User's recent order history
     recent_items = (
@@ -1028,71 +1105,46 @@ def recommendations_view(request):
         .select_related('menu_item')
         .order_by('-order__created_at')[:15]
     )
-    order_history = list({oi.menu_item.name for oi in recent_items})  # unique names
+    order_history = list({oi.menu_item.name for oi in recent_items})
 
     # 2. Time context
     hour = datetime.now().hour
-    if hour < 11:
-        time_context = "morning (breakfast time)"
-    elif hour < 15:
-        time_context = "midday (lunch time)"
-    elif hour < 18:
-        time_context = "afternoon (snack time)"
-    else:
-        time_context = "evening (dinner time)"
+    if hour < 11: time_context = "morning"
+    elif hour < 15: time_context = "lunch"
+    elif hour < 18: time_context = "afternoon snack"
+    else: time_context = "dinner"
 
-    # 3. Weather (Kathmandu) — graceful fallback if API key missing
-    weather_context = "weather unknown"
-    if settings.OPENWEATHER_API_KEY:
+    # 3. Weather (Kathmandu) — Cache for 30 mins
+    weather_cache_key = "ktm_weather_context"
+    weather_context = cache.get(weather_cache_key)
+    
+    if not weather_context and settings.OPENWEATHER_API_KEY:
         try:
             weather_resp = requests.get(
                 "https://api.openweathermap.org/data/2.5/weather",
                 params={"q": "Kathmandu", "appid": settings.OPENWEATHER_API_KEY, "units": "metric"},
-                timeout=5,
+                timeout=2, # Reduced timeout
             )
             if weather_resp.status_code == 200:
                 wd = weather_resp.json()
                 temp = wd['main']['temp']
                 desc = wd['weather'][0]['description']
                 weather_context = f"{desc}, {temp:.0f}°C"
+                cache.set(weather_cache_key, weather_context, 1800)
         except Exception:
-            pass
+            weather_context = "pleasant"
 
     # 4. Full menu for AI context
     menu_items = MenuItem.objects.filter(is_available=True).select_related('category')
     menu_context = [
-        {
-            "id": item.id,
-            "name": item.name,
-            "category": item.category.name,
-            "price": str(item.price),
-            "description": item.description,
-        }
+        {"id": item.id, "name": item.name, "category": item.category.name, "price": str(item.price)}
         for item in menu_items
     ]
 
-    prompt = f"""You are a smart food recommendation engine for KTM Bites (Kathmandu food delivery).
-
-Context:
-- Time of day: {time_context}
-- Weather in Kathmandu: {weather_context}
-- User's recent orders: {', '.join(order_history) if order_history else 'No order history yet'}
-
-Full menu (JSON):
-{json.dumps(menu_context, ensure_ascii=False)}
-
-Task: Recommend exactly 3 menu items that best match this context.
-- Consider the time of day (e.g. lighter meals at morning, heavier at dinner)
-- Consider the weather (e.g. hot soup/noodles when cold/rainy, cold drinks when hot)
-- Slightly favour items the user has ordered before, but also suggest variety
-- For each item, write a SHORT reason (max 8 words) explaining why
-
-Respond with ONLY valid JSON, no extra text:
-[
-  {{"id": <number>, "reason": "<short reason>"}},
-  {{"id": <number>, "reason": "<short reason>"}},
-  {{"id": <number>, "reason": "<short reason>"}}
-]"""
+    prompt = f"""Generate 3 food recommendations for KTM Bites.
+Context: {time_context}, Weather: {weather_context}, History: {', '.join(order_history)}.
+Menu: {json.dumps(menu_context[:40])}
+Return ONLY JSON: [{{"id": 1, "reason": "reason"}}]"""
 
     try:
         client = Groq(api_key=settings.GROQ_API_KEY)
@@ -1102,13 +1154,11 @@ Respond with ONLY valid JSON, no extra text:
             temperature=0.5,
             max_tokens=256,
         )
-        raw = completion.choices[0].message.content or "[]"
-        recs_raw = json.loads(raw)
+        recs_raw = json.loads(completion.choices[0].message.content)
     except Exception:
-        # Fallback: return top-rated items
-        recs_raw = [{"id": m.id, "reason": "Highly rated"} for m in menu_items[:3]]
+        recs_raw = [{"id": m.id, "reason": "Chef's choice"} for m in menu_items[:3]]
 
-    # Build response with full item data
+    # Build response
     item_ids = [r['id'] for r in recs_raw if isinstance(r.get('id'), int)]
     reason_map = {r['id']: r.get('reason', '') for r in recs_raw if isinstance(r.get('id'), int)}
     items_qs = MenuItem.objects.filter(id__in=item_ids, is_available=True)
@@ -1119,12 +1169,12 @@ Respond with ONLY valid JSON, no extra text:
         if iid in item_map:
             m = item_map[iid]
             recommendations.append({
-                "id": m.id,
-                "name": m.name,
-                "price": str(m.price),
-                "image": m.image,
-                "reason": reason_map.get(iid, ''),
+                "id": m.id, "name": m.name, "price": str(m.price),
+                "image": m.image, "reason": reason_map.get(iid, ''),
             })
 
+    # Cache user recommendations for 10 minutes
+    cache.set(user_cache_key, recommendations, 600)
     return Response({"recommendations": recommendations})
+
 

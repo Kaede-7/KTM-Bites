@@ -623,9 +623,11 @@
 
 .kitchen-column-header h3 {
   font-family: var(--font-heading);
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 800;
   color: var(--dark);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
 .kitchen-column-count {
@@ -726,14 +728,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px 8px;
+  padding: 16px 16px 4px;
 }
 
 .kitchen-card-order-id {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   color: var(--dark);
-  font-family: "DM Sans", monospace;
+  letter-spacing: -0.02em;
 }
 
 .kitchen-card-time {
@@ -758,46 +760,53 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 16px 12px;
-  font-size: 13px;
-  color: var(--mid);
+  padding: 4px 16px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
 }
 
 .kitchen-card-customer .material-symbols-rounded {
-  font-size: 16px;
+  font-size: 15px;
   color: var(--muted);
 }
 
 /* Card items */
 .kitchen-card-items {
-  border-top: 1px solid var(--line);
   padding: 12px 16px;
 }
 
 .kitchen-card-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
+  gap: 8px;
+  padding: 5px 0;
 }
 
 .kitchen-card-item-info {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
 }
 
 .kitchen-card-item-qty {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: var(--amber-bg);
-  color: var(--amber);
   font-size: 12px;
   font-weight: 700;
+  color: var(--muted);
+  min-width: 24px;
+}
+
+.kitchen-card-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.kitchen-card-item-price {
+  font-size: 12px;
+  color: var(--muted);
+}
 }
 
 .kitchen-card-item-name {
@@ -832,37 +841,38 @@
 /* Card footer */
 .kitchen-card-footer {
   border-top: 1px solid var(--line);
-  padding: 12px 16px;
+  padding: 12px 16px 14px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .kitchen-card-total {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--dark);
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .kitchen-card-total span {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--muted);
-  font-weight: 400;
-  margin-right: 4px;
+  font-weight: 600;
 }
 
 .kitchen-action-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.2s;
   font-family: inherit;
+  width: 100%;
+  letter-spacing: 0.3px;
 }
 
 .kitchen-action-btn:disabled {
@@ -871,29 +881,29 @@
 }
 
 .kitchen-action-btn .material-symbols-rounded {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .kitchen-action-btn.btn-start {
-  background: var(--amber);
+  background: #f28b46;
   color: white;
+  box-shadow: 0 4px 12px rgba(242,139,70,0.25);
 }
 
 .kitchen-action-btn.btn-start:hover:not(:disabled) {
-  background: var(--amber-hover);
-  transform: scale(1.03);
-  box-shadow: var(--shadow-sm);
+  background: #e07a35;
+  transform: translateY(-1px);
 }
 
 .kitchen-action-btn.btn-ready {
-  background: var(--green);
+  background: #8b5cf6;
   color: white;
+  box-shadow: 0 4px 12px rgba(139,92,246,0.25);
 }
 
 .kitchen-action-btn.btn-ready:hover:not(:disabled) {
-  background: #2d8a4a;
-  transform: scale(1.03);
-  box-shadow: var(--shadow-sm);
+  background: #7c3aed;
+  transform: translateY(-1px);
 }
 
 /* Empty column state */
@@ -939,54 +949,56 @@
 /* Alert toasts */
 .kitchen-toast {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 24px;
+  right: 24px;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 14px 20px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   font-size: 13px;
   font-weight: 500;
   z-index: 100;
-  animation: toastSlide 0.3s ease;
-  box-shadow: var(--shadow-lg);
+  animation: toastSlide 0.3s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  background: #fff;
+  color: #2a2420;
+  max-width: 360px;
 }
 
 @keyframes toastSlide {
-  from { transform: translateX(120%); opacity: 0; }
+  from { transform: translateX(40px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
 
-.kitchen-toast .material-symbols-rounded {
-  font-size: 20px;
-}
+.kitchen-toast .material-symbols-rounded { font-size: 20px; }
 
 .kitchen-toast.toast-success {
-  background: var(--green);
-  color: white;
+  border: 1px solid rgba(16,185,129,0.2);
+  border-left: 4px solid #10b981;
 }
 
+.kitchen-toast.toast-success .material-symbols-rounded { color: #10b981; }
+
 .kitchen-toast.toast-error {
-  background: var(--red);
-  color: white;
+  border: 1px solid rgba(239,68,68,0.2);
+  border-left: 4px solid #ef4444;
 }
+
+.kitchen-toast.toast-error .material-symbols-rounded { color: #ef4444; }
 
 .kitchen-toast-close {
   background: none;
   border: none;
-  color: white;
+  color: #8b7d72;
   cursor: pointer;
   font-size: 18px;
   padding: 0;
   margin-left: 8px;
-  opacity: 0.7;
-  transition: opacity var(--transition);
+  transition: color 0.2s;
 }
 
-.kitchen-toast-close:hover {
-  opacity: 1;
-}
+.kitchen-toast-close:hover { color: #2a2420; }
 
 /* ──────────────────────────────────────────
    RESPONSIVE

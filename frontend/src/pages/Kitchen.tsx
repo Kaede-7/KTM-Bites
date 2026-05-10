@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/kitchen.css";
+import "../css/auth.css";
 import LoadingAnimation from "../components/LoadingAnimation";
+import AuthCreative from "../components/AuthCreative";
+import { Link } from "react-router-dom";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 import { login as authLogin, logout as authLogout } from "../api/auth";
 import {
@@ -54,6 +57,7 @@ const Kitchen: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
 
   // Dashboard state
@@ -102,14 +106,15 @@ const Kitchen: React.FC = () => {
     loadOrders();
     const interval = setInterval(() => loadOrders(true), 30000);
     return () => clearInterval(interval);
-  }, [isLoggedIn, loadOrders]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
 
   // ── Login ──
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
     try {
-      const response = await authLogin(email, password);
+      const response = await authLogin(email, password, rememberMe);
       if (!response.user.is_staff && !response.user.is_superuser) {
         authLogout();
         throw new Error("Access denied. Kitchen staff credentials required.");
@@ -153,19 +158,17 @@ const Kitchen: React.FC = () => {
   // ── Categorize orders ──
   const newOrders = orders.filter((o) => o.status === "placed");
   const preparingOrders = orders.filter((o) => o.status === "preparing");
-  const doneOrders = orders.filter(
-    (o) => o.status === "on_way" || o.status === "delivered"
-  );
+  const readyOrders = orders.filter((o) => o.status === "ready_for_pickup");
 
   // ═══════════════════════════════════════════
   // LOGIN VIEW
   // ═══════════════════════════════════════════
   if (!isLoggedIn) {
     return (
-      <div className="kitchen-login-page">
-        {/* Toast */}
+      <div className="auth-page">
+        {/* Toast for global messages, though AuthLayout theme uses inline errors usually */}
         {toast && (
-          <div className={`kitchen-toast toast-${toast.type}`}>
+          <div className={`kitchen-toast toast-${toast.type}`} style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1000 }}>
             <span className="material-symbols-rounded">
               {toast.type === "success" ? "check_circle" : "error"}
             </span>
@@ -179,158 +182,77 @@ const Kitchen: React.FC = () => {
           </div>
         )}
 
-        {/* Left branding panel */}
-        <div className="kitchen-login-left">
-          <svg
-            className="kitchen-login-geo"
-            viewBox="0 0 400 600"
-            preserveAspectRatio="none"
-          >
-            <line
-              x1="0"
-              y1="0"
-              x2="400"
-              y2="600"
-              stroke="#c8841a"
-              strokeWidth="0.5"
-              opacity="0.4"
-            />
-            <line
-              x1="400"
-              y1="0"
-              x2="0"
-              y2="600"
-              stroke="#c8841a"
-              strokeWidth="0.5"
-              opacity="0.4"
-            />
-            <circle
-              cx="200"
-              cy="300"
-              r="150"
-              fill="none"
-              stroke="#c8841a"
-              strokeWidth="0.5"
-              opacity="0.3"
-            />
-            <circle
-              cx="200"
-              cy="300"
-              r="220"
-              fill="none"
-              stroke="#3b82f6"
-              strokeWidth="0.3"
-              opacity="0.2"
-            />
-          </svg>
-          <div className="kitchen-login-left-content">
-            <img
-              src={transparentLogo}
-              alt="KTM Bites"
-              className="kitchen-login-logo"
-            />
-            <h2>Kitchen Display</h2>
-            <p>Real-time order management system</p>
-            <div className="kitchen-icon-feature">
-              <span className="material-symbols-rounded ki-1">
-                notifications_active
-              </span>
-              <span className="material-symbols-rounded ki-2">
-                restaurant
-              </span>
-              <span className="material-symbols-rounded ki-3">
-                local_shipping
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right form panel */}
-        <div className="kitchen-login-right">
-          <div className="kitchen-login-card">
-            <button
-              className="kitchen-back-link"
-              onClick={() => navigate("/")}
-            >
-              <span className="material-symbols-rounded">arrow_back</span>
-              Back to Home
-            </button>
-
-            <img
-              src={transparentLogo}
-              alt="KTM Bites"
-              className="kitchen-login-card-logo"
-            />
+        <div className="auth-left">
+          <div className="auth-form-container auth-fade-in">
             <h1>Kitchen Login</h1>
-            <p className="kitchen-login-subtitle">
-              Access the kitchen display system
-            </p>
+            <p className="auth-subtitle">Access the kitchen display system.</p>
 
-            <div className="kitchen-login-badge">
+            <div className="auth-promise-badge">
               <span className="material-symbols-rounded">skillet</span>
               Kitchen Staff Only
             </div>
 
-            <form className="kitchen-login-form" onSubmit={handleLogin}>
-              <div className="kitchen-login-field">
-                <label htmlFor="kitchen-email">Email</label>
-                <div className="kitchen-login-input-wrapper">
-                  <span className="material-symbols-rounded">mail</span>
-                  <input
-                    id="kitchen-email"
-                    type="email"
-                    placeholder="kitchen@ktmbites.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+            <form className="auth-form" onSubmit={handleLogin}>
+              <div className="auth-input-wrapper">
+                <span className="material-symbols-rounded">mail</span>
+                <input
+                  type="email"
+                  placeholder="kitchen@ktmbites.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
 
-              <div className="kitchen-login-field">
-                <label htmlFor="kitchen-password">Password</label>
-                <div className="kitchen-login-input-wrapper">
-                  <span className="material-symbols-rounded">lock</span>
-                  <input
-                    id="kitchen-password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="kitchen-toggle-password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    <span className="material-symbols-rounded">
-                      {showPassword ? "visibility_off" : "visibility"}
-                    </span>
-                  </button>
-                </div>
+              <div className="auth-input-wrapper">
+                <span className="material-symbols-rounded">lock</span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="auth-toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  <span className="material-symbols-rounded">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
               </div>
 
-              <button
-                type="submit"
-                className="kitchen-login-btn"
-                disabled={loginLoading}
-              >
-                <span className="material-symbols-rounded">login</span>
+              <div className="auth-options-row">
+                <label className="auth-remember-label">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  Remember me
+                </label>
+              </div>
+
+              <button type="submit" className="auth-submit-btn" disabled={loginLoading}>
                 {loginLoading ? "Signing In..." : "Enter Kitchen"}
               </button>
+
+              <div className="auth-footer" style={{ marginTop: '2rem' }}>
+                <Link to="/">Back to Home</Link>
+              </div>
             </form>
 
-            <div className="kitchen-demo-credentials">
-              <p className="kitchen-demo-title">Kitchen Credentials:</p>
-              <p className="kitchen-demo-text">
-                Email: <strong>kitchen@ktmbites.com</strong>
-              </p>
-              <p className="kitchen-demo-text">
-                Password: <strong>kitchen123</strong>
-              </p>
+            <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              <p>Demo Credentials:</p>
+              <p>kitchen@ktmbites.com / kitchen123</p>
             </div>
           </div>
+        </div>
+
+        <div className="auth-right">
+          <AuthCreative />
         </div>
       </div>
     );
@@ -418,13 +340,13 @@ const Kitchen: React.FC = () => {
             <span className="kitchen-stat-pill-label">Preparing</span>
           </div>
         </div>
-        <div className="kitchen-stat-pill stat-done">
-          <span className="material-symbols-rounded">check_circle</span>
+        <div className="kitchen-stat-pill" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+          <span className="material-symbols-rounded" style={{ color: '#8b5cf6' }}>inventory</span>
           <div className="kitchen-stat-pill-info">
             <span className="kitchen-stat-pill-value">
-              {doneOrders.length}
+              {readyOrders.length}
             </span>
-            <span className="kitchen-stat-pill-label">Completed</span>
+            <span className="kitchen-stat-pill-label">Ready</span>
           </div>
         </div>
       </div>
@@ -497,11 +419,11 @@ const Kitchen: React.FC = () => {
                     key={order.id}
                     order={order}
                     variant="preparing"
-                    actionLabel="Ready for Delivery"
-                    actionIcon="local_shipping"
+                    actionLabel="Ready for Pickup"
+                    actionIcon="inventory"
                     actionClass="btn-ready"
                     onAction={() =>
-                      handleStatusChange(order.id, "on_way")
+                      handleStatusChange(order.id, "ready_for_pickup")
                     }
                     isLoading={actionLoading === order.id}
                   />
@@ -510,33 +432,37 @@ const Kitchen: React.FC = () => {
             </div>
           </div>
 
-          {/* ── Column: Completed ── */}
-          <div className="kitchen-column col-done">
-            <div className="kitchen-column-header">
+          {/* ── Column: Ready for Pickup ── */}
+          <div className="kitchen-column" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+            <div className="kitchen-column-header" style={{ borderBottomColor: '#8b5cf6' }}>
               <div className="kitchen-column-header-left">
-                <span className="material-symbols-rounded">
-                  check_circle
+                <span className="material-symbols-rounded" style={{ color: '#8b5cf6' }}>
+                  inventory
                 </span>
-                <h3>Completed</h3>
+                <h3>Ready for Pickup</h3>
               </div>
-              <span className="kitchen-column-count">
-                {doneOrders.length}
+              <span className="kitchen-column-count" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+                {readyOrders.length}
               </span>
             </div>
             <div className="kitchen-column-body">
-              {doneOrders.length === 0 ? (
+              {readyOrders.length === 0 ? (
                 <div className="kitchen-column-empty">
                   <span className="material-symbols-rounded">
-                    sentiment_satisfied
+                    inventory_2
                   </span>
-                  <p>No completed orders yet</p>
+                  <p>No orders ready</p>
                 </div>
               ) : (
-                doneOrders.map((order) => (
+                readyOrders.map((order) => (
                   <OrderCard
                     key={order.id}
                     order={order}
-                    variant="done"
+                    variant="preparing"
+                    actionLabel=""
+                    actionIcon=""
+                    actionClass=""
+                    isLoading={false}
                   />
                 ))
               )}

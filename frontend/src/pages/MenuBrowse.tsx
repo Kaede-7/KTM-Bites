@@ -4,13 +4,16 @@ import "../css/menu.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
+import FastImage from "../components/FastImage";
 import { getMenuItems, getCategories, type MenuItemData, type CategoryData } from "../api/menu";
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
+import { useToast } from "../components/Toast";
 
 const MenuBrowse: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [activeCat, setActiveCat] = useState(searchParams.get("category") || "All");
   const [search, setSearch] = useState(searchParams.get("search") || "");
@@ -66,10 +69,10 @@ const MenuBrowse: React.FC = () => {
     }
     try {
       await addToCart(itemId, 1);
-      alert("Added to cart!");
+      showToast("Added to cart!", "success");
     } catch (err) {
       console.error("Failed to add to cart:", err);
-      alert("Please login to add to cart.");
+      showToast("Please login to add to cart.", "error");
     }
   };
 
@@ -93,7 +96,7 @@ const MenuBrowse: React.FC = () => {
                   onClick={() => navigate(`/menu/${item.id}`)}
                   style={{ cursor: "pointer" }}
                 >
-                  <img src={item.image} alt={item.name} />
+                  <FastImage src={item.image} alt={item.name} />
                   <div className="trending-overlay">
                     <span className="trending-badge">{index === 0 ? "CHEF'S SPECIAL" : "NEW ARRIVAL"}</span>
                     <div className="trending-info">
@@ -156,7 +159,7 @@ const MenuBrowse: React.FC = () => {
             {displayedItems.map((item) => (
               <div className="menu-card-modern" key={item.id}>
                 <div className="mcm-img-wrapper" onClick={() => navigate(`/menu/${item.id}`)}>
-                  <img src={item.image} alt={item.name} />
+                  <FastImage src={item.image} alt={item.name} />
                   <div className="mcm-price-pill" style={{color: "#2e7d32", background: "#e8f5e9"}}>Rs. {item.price}</div>
                 </div>
                 <div className="mcm-body">

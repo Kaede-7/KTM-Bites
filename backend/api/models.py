@@ -74,6 +74,7 @@ class Order(models.Model):
     STATUS_CHOICES = [
         ('placed', 'Order Placed'),
         ('preparing', 'Preparing'),
+        ('ready_for_pickup', 'Ready for Pickup'),
         ('on_way', 'On the Way'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
@@ -133,14 +134,56 @@ class OrderItem(models.Model):
         return self.price * self.quantity
 
 
+class Role(models.TextChoices):
+    ADMIN = 'ADMIN', 'Admin'
+    USER = 'USER', 'User'
+    KITCHEN = 'KITCHEN', 'Kitchen'
+    RIDER = 'RIDER', 'Rider'
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    address = models.CharField(max_length=255, blank=True, default='Thamel, Kathmandu')
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.USER)
+    address = models.CharField(max_length=255, blank=True, default='')
+    phone = models.CharField(max_length=20, blank=True, default='')
     city = models.CharField(max_length=100, blank=True, default='Kathmandu')
     bio = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return f"Profile of {self.user.username}"
+        return f"{self.user.username} ({self.role})"
+
+
+class AdminProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
+    employee_id = models.CharField(max_length=50, blank=True)
+    department = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"Admin: {self.user.username}"
+
+
+class KitchenProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='kitchen_profile')
+    restaurant_name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    is_open = models.BooleanField(default=True)
+    location_lat = models.FloatField(null=True, blank=True)
+    location_lng = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Kitchen: {self.restaurant_name}"
+
+
+class RiderProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='rider_profile')
+    vehicle_type = models.CharField(max_length=50, blank=True)
+    license_number = models.CharField(max_length=50, blank=True)
+    is_available = models.BooleanField(default=True)
+    current_lat = models.FloatField(null=True, blank=True)
+    current_lng = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Rider: {self.user.username}"
 
 
 class PasswordResetToken(models.Model):
@@ -165,14 +208,25 @@ class PasswordResetToken(models.Model):
         return timezone.now() <= self.expires_at
 
 
-# Auto-create UserProfile when a User is created
+# Auto-create/save profiles when a User is created
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def manage_user_profiles(sender, instance, created, **kwargs):
+    """
+    Creates a UserProfile for every new user.
+    Specific profiles (Admin, Kitchen, Rider) should be created 
+    manually or when the role is updated.
+    """
     if created:
-        UserProfile.objects.get_or_create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
+        UserProfile.objects.create(user=instance)
+    
+    # Save the base profile
     if hasattr(instance, 'profile'):
         instance.profile.save()
+    
+    # Save specific profiles if they exist
+    if hasattr(instance, 'admin_profile'):
+        instance.admin_profile.save()
+    if hasattr(instance, 'kitchen_profile'):
+        instance.kitchen_profile.save()
+    if hasattr(instance, 'rider_profile'):
+        instance.rider_profile.save()

@@ -5,13 +5,16 @@ import "../css/menu.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
+import FastImage from "../components/FastImage";
 import { getMenuItem, type MenuItemDetailData } from "../api/menu";
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
+import { useToast } from "../components/Toast";
 
 const ItemDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [qty, setQty] = useState(1);
   const [item, setItem] = useState<MenuItemDetailData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,9 +44,9 @@ const ItemDetail: React.FC = () => {
     setAdding(true);
     try {
       await addToCart(item.id, qty);
-      alert(`${qty}x ${item.name} added to cart!`);
+      showToast(`${qty}× ${item.name} added to cart!`, "success");
     } catch (err) {
-      console.error("Failed to add to cart:", err);
+      showToast("Failed to add to cart. Please try again.", "error");
     } finally {
       setAdding(false);
     }
@@ -71,7 +74,7 @@ const ItemDetail: React.FC = () => {
 
         <div className="item-detail-content">
           <div className="item-detail-image-section">
-            <img src={item.image} alt={item.name} className="item-detail-main-image" />
+            <FastImage src={item.image} alt={item.name} className="item-detail-main-image" />
             {item.badge && <span className="item-detail-badge">{item.badge}</span>}
           </div>
 
@@ -124,7 +127,7 @@ const ItemDetail: React.FC = () => {
               {item.related.map((r) => (
                 <Link to={`/menu/${r.id}`} key={r.id} className="food-card">
                   <div className="food-card-image-wrapper">
-                    <img src={r.image} alt={r.name} className="food-card-image" />
+                    <FastImage src={r.image} alt={r.name} className="food-card-image" />
                   </div>
                   <div className="food-card-body">
                     <p className="food-card-category">{r.category}</p>

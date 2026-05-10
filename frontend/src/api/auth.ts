@@ -79,12 +79,14 @@ export async function googleLogin(token: string, isAccessToken: boolean = false)
   return data;
 }
 
-export async function register(payload: {
+export interface RegisterData {
   full_name: string;
   email: string;
-  phone: string;
-  password: string;
-}): Promise<AuthResponse> {
+  password?: string;
+  is_google?: boolean;
+}
+
+export async function register(payload: RegisterData): Promise<AuthResponse> {
   const { data } = await API.post("/auth/register/", payload);
   saveAuth(data);
   return data;

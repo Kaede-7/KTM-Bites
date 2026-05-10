@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import '../css/chat-widget.css';
 import { sendChatMessage, type ChatMessage, type RecommendedItem } from '../api/ai';
 import { addToCart } from '../api/cart';
@@ -11,7 +12,10 @@ const QUICK_CHIPS = [
   '🌶️ Spicy dishes?',
 ];
 
+const HIDDEN_ROUTES = ['/login', '/signup', '/admin', '/kitchen', '/rider'];
+
 const ChatWidget: React.FC = () => {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -65,6 +69,8 @@ const ChatWidget: React.FC = () => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
+
+  if (HIDDEN_ROUTES.some(r => location.pathname.startsWith(r))) return null;
 
   return (
     <>

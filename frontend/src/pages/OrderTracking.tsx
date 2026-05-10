@@ -4,11 +4,13 @@ import "../css/order-tracking.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
+import FastImage from "../components/FastImage";
 import { getOrder, getOrders, cancelOrder, type OrderData } from "../api/orders";
 
 const statusSteps = [
   { key: "placed",    title: "Order Placed",  desc: "Your order has been confirmed",          icon: "check_circle" },
   { key: "preparing", title: "Preparing",     desc: "The restaurant is preparing your food",  icon: "restaurant" },
+  { key: "ready_for_pickup", title: "Ready for Pickup", desc: "Your food is ready, waiting for rider", icon: "inventory" },
   { key: "on_way",   title: "On the Way",     desc: "Your rider is heading to you",           icon: "local_shipping" },
   { key: "delivered",title: "Delivered",      desc: "Enjoy your meal!",                       icon: "done_all" },
 ];
@@ -209,7 +211,7 @@ const OrderTracking: React.FC = () => {
           <h3>Order Items</h3>
           {order.items.map((item, i) => (
             <div key={i} className="tracking-item-row">
-              <img src={item.image} alt={item.name} className="tracking-item-img" />
+              <FastImage src={item.image} alt={item.name} className="tracking-item-img" />
               <span className="tracking-item-name">{item.name}</span>
               <span className="tracking-item-qty">x{item.quantity}</span>
               <span className="tracking-item-price">Rs. {item.subtotal}</span>
