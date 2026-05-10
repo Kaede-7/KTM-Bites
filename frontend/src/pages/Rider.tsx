@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import AuthCreative from "../components/AuthCreative";
-import { login as authLogin, logout as authLogout, getStoredUser, getToken } from "../api/auth";
+import { logout as authLogout, getStoredUser, getToken } from "../api/auth";
 import { fetchKitchenOrders, updateOrderStatus, type KitchenOrder } from "../api/kitchen";
 
 const Rider: React.FC = () => {
-  // Auth state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
   const [riderUser, setRiderUser] = useState<any>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [loginError, setLoginError] = useState("");
 
   // Dashboard state
   const [orders, setOrders] = useState<KitchenOrder[]>([]);
@@ -25,15 +18,17 @@ const Rider: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-  // Restore session from saved token
+  // Restore session and redirect if needed
   useEffect(() => {
     const token = getToken();
     const user = getStoredUser();
-    if (token && user && (user.is_staff || user.is_superuser)) {
+    if (!token || !user || (user.role !== 'RIDER' && !user.is_staff)) {
+      authLogout(null);
+      navigate("/rider-login");
+    } else {
       setRiderUser(user);
-      setIsLoggedIn(true);
     }
-  }, []);
+  }, [navigate]);
 
   // Load orders
   const loadOrders = async (showRefresh = false) => {
@@ -52,38 +47,17 @@ const Rider: React.FC = () => {
 
   // Auto-refresh
   useEffect(() => {
-    if (!isLoggedIn) return;
+    if (!riderUser) return;
     loadOrders();
     const interval = setInterval(() => loadOrders(true), 30000);
     return () => clearInterval(interval);
-  }, [isLoggedIn]);
+  }, [riderUser]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError("");
-    setLoginLoading(true);
-    try {
-      const response = await authLogin(email, password, rememberMe);
-      if (!response.user.is_staff && !response.user.is_superuser) {
-        authLogout();
-        throw new Error("Access denied. Rider staff credentials required.");
-      }
-      setRiderUser(response.user);
-      setIsLoggedIn(true);
-    } catch (err: any) {
-      setLoginError(err.message || "Invalid credentials.");
-    } finally {
-      setLoginLoading(false);
-    }
-  };
+
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    setRiderUser(null);
-    setOrders([]);
-    setEmail("");
-    setPassword("");
-    authLogout();
+    authLogout(null);
+    navigate("/rider-login");
   };
 
   // Order actions
@@ -113,100 +87,17 @@ const Rider: React.FC = () => {
 
   // Categorize orders
   const availableOrders = orders.filter((o) => o.status === "ready_for_pickup");
-  const pickedOrders = orders.filter((o) => o.status === "on_way");
-  const droppedOrders = orders.filter((o) => o.status === "delivered");
-
-  // ══════════════════════════════════════════
-  // LOGIN VIEW
-  // ══════════════════════════════════════════
-  if (!isLoggedIn) {
-    return (
-      <div className="auth-page">
-        <div className="auth-left">
-          <div className="auth-form-container auth-fade-in">
-            <h1>Rider Portal</h1>
-            <p className="auth-subtitle">Sign in to manage your deliveries.</p>
-
-            <div className="auth-promise-badge">
-              <span className="material-symbols-rounded">two_wheeler</span>
-              Rider Staff Only
-            </div>
-
-            {loginError && (
-              <div className="auth-error">
-                <span className="material-symbols-rounded">error</span>
-                {loginError}
-              </div>
-            )}
-
-            <form className="auth-form" onSubmit={handleLogin}>
-              <div className="auth-input-wrapper">
-                <span className="material-symbols-rounded">mail</span>
-                <input
-                  type="email"
-                  placeholder="rider@ktmbites.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="auth-input-wrapper">
-                <span className="material-symbols-rounded">lock</span>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  className="auth-toggle-password"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  <span className="material-symbols-rounded">
-                    {showPassword ? "visibility_off" : "visibility"}
-                  </span>
-                </button>
-              </div>
-
-              <div className="auth-options-row">
-                <label className="auth-remember-label">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                  />
-                  Remember me
-                </label>
-              </div>
-
-              <button type="submit" className="auth-submit-btn" disabled={loginLoading}>
-                {loginLoading ? "Signing In..." : "Enter Portal"}
-              </button>
-
-              <div className="auth-footer" style={{ marginTop: '2rem' }}>
-                <Link to="/">← Back to Home</Link>
-              </div>
-            </form>
-
-            <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.85rem', color: '#8b7d72' }}>
-              <p>Demo: rider@ktmbites.com / rider123</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="auth-right">
-          <AuthCreative />
-        </div>
-      </div>
-    );
-  }
+  const pickedOrders = orders.filter((o) => o.status === "on_way" && o.rider === riderUser?.id);
+  const droppedOrders = orders.filter((o) => o.status === "delivered" && o.rider === riderUser?.id);
 
   // ══════════════════════════════════════════
   // DASHBOARD VIEW
   // ══════════════════════════════════════════
+  const user = getStoredUser();
+  if (!getToken() || !user) {
+    return <LoadingAnimation message="Redirecting to Rider Login..." />;
+  }
+
   return (
     <div className="rider-page">
       <Navbar />
@@ -287,7 +178,7 @@ const Rider: React.FC = () => {
                       </div>
                       <div className="rider-card-detail">
                         <span className="material-symbols-rounded">location_on</span>
-                        {order.address}, {order.city}
+                        Deliver to: {order.address}, {order.city}
                       </div>
                       {order.phone && (
                         <div className="rider-card-detail">
@@ -336,7 +227,7 @@ const Rider: React.FC = () => {
                       </div>
                       <div className="rider-card-detail">
                         <span className="material-symbols-rounded">location_on</span>
-                        {order.address}, {order.city}
+                        Deliver to: {order.address}, {order.city}
                       </div>
                       {order.phone && (
                         <div className="rider-card-detail">

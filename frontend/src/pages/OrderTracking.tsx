@@ -4,6 +4,7 @@ import "../css/order-tracking.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
+import FastImage from "../components/FastImage";
 import { getOrder, getOrders, cancelOrder, type OrderData } from "../api/orders";
 
 const statusSteps = [
@@ -210,7 +211,7 @@ const OrderTracking: React.FC = () => {
           <h3>Order Items</h3>
           {order.items.map((item, i) => (
             <div key={i} className="tracking-item-row">
-              <img src={item.image} alt={item.name} className="tracking-item-img" />
+              <FastImage src={item.image} alt={item.name} className="tracking-item-img" />
               <span className="tracking-item-name">{item.name}</span>
               <span className="tracking-item-qty">x{item.quantity}</span>
               <span className="tracking-item-price">Rs. {item.subtotal}</span>

@@ -52,12 +52,21 @@ export function isLoggedIn(): boolean {
   return !!getToken();
 }
 
-export function logout() {
+export function logout(redirectUrl: string | null = "/login") {
   localStorage.removeItem("ktmbites_token");
   localStorage.removeItem("ktmbites_user");
   sessionStorage.removeItem("ktmbites_token");
   sessionStorage.removeItem("ktmbites_user");
-  window.location.href = "/login";
+  
+  // Ignore React SyntheticEvent objects passed by mistake when used directly in onClick
+  let url = typeof redirectUrl === 'string' ? redirectUrl : "/login";
+  if (redirectUrl === null) {
+      url = null;
+  }
+  
+  if (url) {
+    window.location.href = url;
+  }
 }
 
 // ── API Calls ──
@@ -72,8 +81,10 @@ export async function login(
   return data;
 }
 
-export async function googleLogin(token: string, isAccessToken: boolean = false): Promise<AuthResponse> {
-  const payload = isAccessToken ? { access_token: token } : { credential: token };
+export async function googleLogin(token: string, isAccessToken: boolean = false, role: string = 'USER'): Promise<AuthResponse> {
+  const payload = isAccessToken 
+    ? { access_token: token, role } 
+    : { credential: token, role };
   const { data } = await API.post("/auth/google/", payload);
   saveAuth(data);
   return data;
@@ -84,6 +95,7 @@ export interface RegisterData {
   email: string;
   password?: string;
   is_google?: boolean;
+  role?: string;
 }
 
 export async function register(payload: RegisterData): Promise<AuthResponse> {

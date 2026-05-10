@@ -66,6 +66,17 @@ class IsAdmin(BasePermission):
             request.user.is_staff or request.user.is_superuser
         )
 
+class IsStaffOrAuthorizedRole(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+        try:
+            return request.user.profile.role in ['ADMIN', 'KITCHEN', 'RIDER']
+        except Exception:
+            return False
+
 
 # ========================
 # THROTTLING
@@ -184,7 +195,13 @@ def login_view(request):
         if user:
             token, _ = Token.objects.get_or_create(user=user)
             Cart.objects.get_or_create(user=user)
-
+            role = "USER"
+            if hasattr(user, 'profile'):
+                try:
+                    role = user.profile.role
+                except Exception:
+                    pass
+            
             return Response({
                 "token": token.key,
                 "user": {
@@ -193,6 +210,7 @@ def login_view(request):
                     "full_name": user.first_name,
                     "is_staff": user.is_staff,
                     "is_superuser": user.is_superuser,
+                    "role": role,
                 }
             })
 
@@ -206,6 +224,7 @@ def login_view(request):
 def google_login_view(request):
     credential = request.data.get('credential')
     access_token = request.data.get('access_token')
+    role = request.data.get('role', 'USER')
 
     if not credential and not access_token:
         return Response({'error': 'No credential provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -245,22 +264,37 @@ def google_login_view(request):
                 last_name=last_name,
                 password=User.objects.make_random_password()
             )
-            # Create profile and specifically ensure phone is empty for Google users initially
-            # (unless we want to map something else, but definitely not last_name)
-            UserProfile.objects.get_or_create(user=user)
+            # Create profile and set the role
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.role = role
+            profile.save()
             Cart.objects.get_or_create(user=user)
+        else:
+            # Upgrade existing user role if requested (e.g. USER -> RIDER)
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            if profile.role == 'USER' and role in ['RIDER', 'KITCHEN']:
+                profile.role = role
+                profile.save()
             
         token, _ = Token.objects.get_or_create(user=user)
         Cart.objects.get_or_create(user=user)
         
+        role = "USER"
+        if hasattr(user, 'profile'):
+            try:
+                role = user.profile.role
+            except Exception:
+                pass
+
         return Response({
-            'token': token.key,
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'full_name': user.first_name,
-                'is_staff': user.is_staff,
-                'is_superuser': user.is_superuser,
+            "token": token.key,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.first_name,
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser,
+                "role": role,
             }
         })
         
@@ -442,7 +476,8 @@ def category_list(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def menu_list(request):
-    items = MenuItem.objects.filter(is_available=True)
+    # Optimize: select_related('category') joins the tables in one query
+    items = MenuItem.objects.select_related('category').filter(is_available=True)
 
     category = request.query_params.get('category')
     if category and category != "All":
@@ -540,7 +575,8 @@ def cart_remove(request, pk):
 def order_list_create(request):
 
     if request.method == "GET":
-        orders = Order.objects.filter(user=request.user)
+        # Optimize: prefetch_related('items') fetches all order items in one batch
+        orders = Order.objects.prefetch_related('items', 'items__menu_item').filter(user=request.user)
         return Response(OrderSerializer(orders, many=True).data)
 
     cart = Cart.objects.get(user=request.user)
@@ -789,7 +825,7 @@ def payment_status_view(request, order_id):
 # ADMIN VIEWS
 # ========================
 @api_view(['GET'])
-@permission_classes([IsAdmin])
+@permission_classes([IsStaffOrAuthorizedRole])
 def admin_orders_list(request):
     """List all orders for admin dashboard."""
     orders = Order.objects.all()
@@ -807,7 +843,7 @@ def admin_orders_list(request):
 
 
 @api_view(['GET', 'PUT', 'PATCH'])
-@permission_classes([IsAdmin])
+@permission_classes([IsStaffOrAuthorizedRole])
 def admin_order_detail(request, pk):
     """View or update a single order (admin can change status)."""
     try:
@@ -822,7 +858,16 @@ def admin_order_detail(request, pk):
     new_status = request.data.get('status')
     if new_status and new_status in dict(Order.STATUS_CHOICES):
         order.status = new_status
-        order.save(update_fields=['status'])
+        
+        # If a rider picks up the order, assign it to them
+        if new_status == 'on_way' and order.rider is None:
+            try:
+                if hasattr(request.user, 'profile') and request.user.profile.role == 'RIDER':
+                    order.rider = request.user
+            except Exception:
+                pass
+                
+        order.save(update_fields=['status', 'rider'] if order.rider else ['status'])
         return Response(OrderSerializer(order).data)
 
     return Response({"error": "Invalid status"}, status=400)
@@ -1082,16 +1127,19 @@ Your job:
 # ========================
 # AI — RECOMMENDATIONS
 # ========================
+from django.core.cache import cache
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def recommendations_view(request):
     """
-    Returns 3 AI-recommended menu items based on:
-    - User's past order history
-    - Current time of day
-    - Live Kathmandu weather (OpenWeatherMap free tier)
+    Returns 3 AI-recommended menu items based on past history, time, and weather.
+    Cached for performance (Weather: 30m, User Recs: 10m).
     """
-    # Uses json, datetime, and Groq imported at the top of the file
+    user_cache_key = f"user_recs_{request.user.id}"
+    cached_recs = cache.get(user_cache_key)
+    if cached_recs:
+        return Response({"recommendations": cached_recs})
 
     # 1. User's recent order history
     recent_items = (
@@ -1100,71 +1148,46 @@ def recommendations_view(request):
         .select_related('menu_item')
         .order_by('-order__created_at')[:15]
     )
-    order_history = list({oi.menu_item.name for oi in recent_items})  # unique names
+    order_history = list({oi.menu_item.name for oi in recent_items})
 
     # 2. Time context
     hour = datetime.now().hour
-    if hour < 11:
-        time_context = "morning (breakfast time)"
-    elif hour < 15:
-        time_context = "midday (lunch time)"
-    elif hour < 18:
-        time_context = "afternoon (snack time)"
-    else:
-        time_context = "evening (dinner time)"
+    if hour < 11: time_context = "morning"
+    elif hour < 15: time_context = "lunch"
+    elif hour < 18: time_context = "afternoon snack"
+    else: time_context = "dinner"
 
-    # 3. Weather (Kathmandu) — graceful fallback if API key missing
-    weather_context = "weather unknown"
-    if settings.OPENWEATHER_API_KEY:
+    # 3. Weather (Kathmandu) — Cache for 30 mins
+    weather_cache_key = "ktm_weather_context"
+    weather_context = cache.get(weather_cache_key)
+    
+    if not weather_context and settings.OPENWEATHER_API_KEY:
         try:
             weather_resp = requests.get(
                 "https://api.openweathermap.org/data/2.5/weather",
                 params={"q": "Kathmandu", "appid": settings.OPENWEATHER_API_KEY, "units": "metric"},
-                timeout=5,
+                timeout=2, # Reduced timeout
             )
             if weather_resp.status_code == 200:
                 wd = weather_resp.json()
                 temp = wd['main']['temp']
                 desc = wd['weather'][0]['description']
                 weather_context = f"{desc}, {temp:.0f}°C"
+                cache.set(weather_cache_key, weather_context, 1800)
         except Exception:
-            pass
+            weather_context = "pleasant"
 
     # 4. Full menu for AI context
     menu_items = MenuItem.objects.filter(is_available=True).select_related('category')
     menu_context = [
-        {
-            "id": item.id,
-            "name": item.name,
-            "category": item.category.name,
-            "price": str(item.price),
-            "description": item.description,
-        }
+        {"id": item.id, "name": item.name, "category": item.category.name, "price": str(item.price)}
         for item in menu_items
     ]
 
-    prompt = f"""You are a smart food recommendation engine for KTM Bites (Kathmandu food delivery).
-
-Context:
-- Time of day: {time_context}
-- Weather in Kathmandu: {weather_context}
-- User's recent orders: {', '.join(order_history) if order_history else 'No order history yet'}
-
-Full menu (JSON):
-{json.dumps(menu_context, ensure_ascii=False)}
-
-Task: Recommend exactly 3 menu items that best match this context.
-- Consider the time of day (e.g. lighter meals at morning, heavier at dinner)
-- Consider the weather (e.g. hot soup/noodles when cold/rainy, cold drinks when hot)
-- Slightly favour items the user has ordered before, but also suggest variety
-- For each item, write a SHORT reason (max 8 words) explaining why
-
-Respond with ONLY valid JSON, no extra text:
-[
-  {{"id": <number>, "reason": "<short reason>"}},
-  {{"id": <number>, "reason": "<short reason>"}},
-  {{"id": <number>, "reason": "<short reason>"}}
-]"""
+    prompt = f"""Generate 3 food recommendations for KTM Bites.
+Context: {time_context}, Weather: {weather_context}, History: {', '.join(order_history)}.
+Menu: {json.dumps(menu_context[:40])}
+Return ONLY JSON: [{{"id": 1, "reason": "reason"}}]"""
 
     try:
         client = Groq(api_key=settings.GROQ_API_KEY)
@@ -1174,13 +1197,11 @@ Respond with ONLY valid JSON, no extra text:
             temperature=0.5,
             max_tokens=256,
         )
-        raw = completion.choices[0].message.content or "[]"
-        recs_raw = json.loads(raw)
+        recs_raw = json.loads(completion.choices[0].message.content)
     except Exception:
-        # Fallback: return top-rated items
-        recs_raw = [{"id": m.id, "reason": "Highly rated"} for m in menu_items[:3]]
+        recs_raw = [{"id": m.id, "reason": "Chef's choice"} for m in menu_items[:3]]
 
-    # Build response with full item data
+    # Build response
     item_ids = [r['id'] for r in recs_raw if isinstance(r.get('id'), int)]
     reason_map = {r['id']: r.get('reason', '') for r in recs_raw if isinstance(r.get('id'), int)}
     items_qs = MenuItem.objects.filter(id__in=item_ids, is_available=True)
@@ -1191,12 +1212,12 @@ Respond with ONLY valid JSON, no extra text:
         if iid in item_map:
             m = item_map[iid]
             recommendations.append({
-                "id": m.id,
-                "name": m.name,
-                "price": str(m.price),
-                "image": m.image,
-                "reason": reason_map.get(iid, ''),
+                "id": m.id, "name": m.name, "price": str(m.price),
+                "image": m.image, "reason": reason_map.get(iid, ''),
             })
 
+    # Cache user recommendations for 10 minutes
+    cache.set(user_cache_key, recommendations, 600)
     return Response({"recommendations": recommendations})
+
 

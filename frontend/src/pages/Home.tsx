@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "../css/home.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import FastImage from "../components/FastImage";
 import { getMenuItems, type MenuItemData } from "../api/menu";
 import { getOrders, type OrderData } from "../api/orders";
 import { getStoredUser, isLoggedIn, getProfile, updateProfile } from "../api/auth";
@@ -38,14 +39,28 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
+    // Stale-while-revalidate: Load from localStorage first for instant UI
+    const cached = localStorage.getItem("ktm_home_data");
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        setFavorites(parsed.favorites || []);
+        setOrders(parsed.orders || []);
+      } catch (e) { /* silent */ }
+    }
+
     const fetchData = async () => {
       try {
         const [items, userOrders] = await Promise.all([
           getMenuItems({ sort: "rating" }),
           getOrders().catch(() => [])
         ]);
-        setFavorites(items.slice(0, 3));
+        const favs = items.slice(0, 3);
+        setFavorites(favs);
         setOrders(userOrders);
+        
+        // Cache the fresh data
+        localStorage.setItem("ktm_home_data", JSON.stringify({ favorites: favs, orders: userOrders }));
       } catch (err) {
         console.error("Failed to fetch home data:", err);
       }
@@ -156,8 +171,8 @@ const Home: React.FC = () => {
             </Link>
           </div>
           <div className="home-hero-img-container">
-            <img 
-              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=800&fit=crop&crop=center" 
+            <FastImage 
+              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=600&fit=crop&crop=center" 
               alt="Delicious food" 
             />
           </div>
@@ -186,7 +201,7 @@ const Home: React.FC = () => {
               {activeOrder && (
                 <>
                   <div className="hip-item">
-                    <img src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
+                    <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
                     <div className="hip-item-info">
                       <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
                       <p>KTM Bites Kitchen</p>
@@ -255,7 +270,7 @@ const Home: React.FC = () => {
               <div className="hf-list">
                 {favorites.map((item) => (
                   <Link to={`/menu/${item.id}`} className="hf-item" key={item.id}>
-                    <img src={item.image} alt={item.name} />
+                    <FastImage src={item.image} alt={item.name} />
                     <div className="hf-item-overlay">
                       <div className="hf-item-info">
                         <h4>{item.name}</h4>

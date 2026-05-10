@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 import { login, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
-import AuthCreative from "../components/AuthCreative";
 
-const Login: React.FC = () => {
+const RiderLogin: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +19,7 @@ const Login: React.FC = () => {
     setLoading(true);
     try {
       await login(email, password, rememberMe);
-      navigate("/home");
+      navigate("/rider");
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
@@ -32,8 +30,9 @@ const Login: React.FC = () => {
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        await googleLogin(tokenResponse.access_token, true);
-        navigate("/home");
+        // We pass 'RIDER' role to ensure if they are signing up via login page, they get the right role
+        await googleLogin(tokenResponse.access_token, true, 'RIDER');
+        navigate("/rider");
       } catch (err: any) {
         setError("Google login failed. Please try again.");
       }
@@ -43,17 +42,13 @@ const Login: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
-      <h1>Welcome Back</h1>
-      <p className="auth-subtitle">Enter your details to access your account.</p>
-
-      <div className="auth-promise-badge">
-        <span className="material-symbols-rounded">bolt</span>
-        Swift Delivery Promise
-      </div>
+      <div className="auth-badge-rider">RIDER PORTAL</div>
+      <h1>Rider Login</h1>
+      <p className="auth-subtitle">Access your delivery dashboard and start earning.</p>
 
       <div className="auth-tabs-modern">
-        <Link to="/login" className="auth-tab-modern active">Sign In</Link>
-        <Link to="/signup" className="auth-tab-modern">Signup</Link>
+        <Link to="/rider-login" className="auth-tab-modern active">Sign In</Link>
+        <Link to="/rider-signup" className="auth-tab-modern">Signup</Link>
       </div>
 
       {error && (
@@ -68,7 +63,7 @@ const Login: React.FC = () => {
           <span className="material-symbols-rounded">mail</span>
           <input
             type="email"
-            placeholder="Email Address"
+            placeholder="Rider Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -104,11 +99,10 @@ const Login: React.FC = () => {
             />
             Remember me
           </label>
-          <Link to="#" className="auth-forgot-link">Forgot Password?</Link>
         </div>
 
         <button type="submit" className="auth-submit-btn" disabled={loading}>
-          {loading ? "Logging In..." : "Log In"}
+          {loading ? "Logging In..." : "Log In to Dashboard"}
         </button>
 
         <div className="auth-divider">
@@ -123,11 +117,11 @@ const Login: React.FC = () => {
         </div>
 
         <div className="auth-footer">
-          New to KTMBites? <Link to="/signup">Sign Up</Link>
+          Not a rider yet? <Link to="/rider-signup">Sign up here</Link>
         </div>
       </form>
     </div>
   );
 };
 
-export default Login;
+export default RiderLogin;

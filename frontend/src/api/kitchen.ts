@@ -29,6 +29,7 @@ export interface KitchenOrder {
   subtotal: number;
   delivery_fee: number;
   total: number;
+  rider?: number;
   items: KitchenOrderItem[];
   created_at: string;
 }

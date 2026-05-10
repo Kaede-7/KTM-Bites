@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../css/ai-recommendations.css';
+import FastImage from './FastImage';
 import { getAIRecommendations, type RecommendedItem } from '../api/ai';
 import { addToCart } from '../api/cart';
 import { isLoggedIn } from '../api/auth';
@@ -95,7 +96,7 @@ const AIRecommendations: React.FC = () => {
           : items.map(item => (
             <Link to={`/menu/${item.id}`} key={item.id} className="ai-rec-card">
               <div className="ai-rec-img-wrap">
-                <img src={item.image} alt={item.name} />
+                <FastImage src={item.image} alt={item.name} />
                 <div className="ai-rec-img-overlay" />
               </div>
               <div className="ai-rec-body">

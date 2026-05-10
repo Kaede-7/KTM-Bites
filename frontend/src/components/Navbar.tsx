@@ -12,6 +12,14 @@ const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path ? "active" : "";
   const loggedIn = isLoggedIn();
 
+  const handleLogout = () => {
+    if (location.pathname.startsWith('/rider')) {
+      logout("/rider-login");
+    } else {
+      logout("/login");
+    }
+  };
+
   useEffect(() => {
     if (loggedIn) {
       getCart()
@@ -54,7 +62,7 @@ const Navbar: React.FC = () => {
               <Link to="/profile" className="navbar-profile-btn" title="Profile">
                 <span className="material-symbols-rounded">person</span>
               </Link>
-              <button className="navbar-logout-btn" onClick={logout} title="Logout" aria-label="Logout">
+              <button className="navbar-logout-btn" onClick={handleLogout} title="Logout" aria-label="Logout">
                 <span className="material-symbols-rounded">logout</span>
               </button>
             </>
@@ -94,7 +102,7 @@ const Navbar: React.FC = () => {
               <Link to="/signup" onClick={() => setIsMenuOpen(false)}><button className="navbar-btn-signup">Sign Up</button></Link>
             </div>
           ) : (
-            <button className="navbar-mobile-link" onClick={() => { logout(); setIsMenuOpen(false); }} style={{ color: "#ef4444", width: "100%", textAlign: "left", cursor: "pointer" }}>
+            <button className="navbar-mobile-link" onClick={() => { handleLogout(); setIsMenuOpen(false); }} style={{ color: "#ef4444", width: "100%", textAlign: "left", cursor: "pointer" }}>
               <span className="material-symbols-rounded">logout</span>Logout
             </button>
           )}

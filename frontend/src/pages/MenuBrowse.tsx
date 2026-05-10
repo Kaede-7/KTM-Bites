@@ -4,6 +4,7 @@ import "../css/menu.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
+import FastImage from "../components/FastImage";
 import { getMenuItems, getCategories, type MenuItemData, type CategoryData } from "../api/menu";
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
@@ -95,7 +96,7 @@ const MenuBrowse: React.FC = () => {
                   onClick={() => navigate(`/menu/${item.id}`)}
                   style={{ cursor: "pointer" }}
                 >
-                  <img src={item.image} alt={item.name} />
+                  <FastImage src={item.image} alt={item.name} />
                   <div className="trending-overlay">
                     <span className="trending-badge">{index === 0 ? "CHEF'S SPECIAL" : "NEW ARRIVAL"}</span>
                     <div className="trending-info">
@@ -158,7 +159,7 @@ const MenuBrowse: React.FC = () => {
             {displayedItems.map((item) => (
               <div className="menu-card-modern" key={item.id}>
                 <div className="mcm-img-wrapper" onClick={() => navigate(`/menu/${item.id}`)}>
-                  <img src={item.image} alt={item.name} />
+                  <FastImage src={item.image} alt={item.name} />
                   <div className="mcm-price-pill" style={{color: "#2e7d32", background: "#e8f5e9"}}>Rs. {item.price}</div>
                 </div>
                 <div className="mcm-body">
