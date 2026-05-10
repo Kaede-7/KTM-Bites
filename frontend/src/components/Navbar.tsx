@@ -49,6 +49,14 @@ const Navbar: React.FC = () => {
             <span className="material-symbols-rounded">local_shipping</span>
             Track Order
           </Link>
+          <Link to="/about" className={`navbar-link ${isActive("/about")}`}>
+            <span className="material-symbols-rounded">info</span>
+            About Us
+          </Link>
+          <Link to="/contact" className={`navbar-link ${isActive("/contact")}`}>
+            <span className="material-symbols-rounded">call</span>
+            Contact
+          </Link>
         </div>
 
         <div className="navbar-actions">
@@ -92,6 +100,12 @@ const Navbar: React.FC = () => {
           </Link>
           <Link to="/order-tracking/latest" className={`navbar-mobile-link`} onClick={() => setIsMenuOpen(false)}>
             <span className="material-symbols-rounded">local_shipping</span>Track Order
+          </Link>
+          <Link to="/about" className={`navbar-mobile-link ${isActive("/about")}`} onClick={() => setIsMenuOpen(false)}>
+            <span className="material-symbols-rounded">info</span>About Us
+          </Link>
+          <Link to="/contact" className={`navbar-mobile-link ${isActive("/contact")}`} onClick={() => setIsMenuOpen(false)}>
+            <span className="material-symbols-rounded">call</span>Contact
           </Link>
           <Link to="/profile" className={`navbar-mobile-link ${isActive("/profile")}`} onClick={() => setIsMenuOpen(false)}>
             <span className="material-symbols-rounded">person</span>Profile

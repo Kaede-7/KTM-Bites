@@ -60,21 +60,18 @@
 /* Success */
 .ktm-toast-success {
   border: 1px solid rgba(16,185,129,0.15);
-  border-left: 4px solid #10b981;
 }
 .ktm-toast-success .ktm-toast-icon { color: #10b981; }
 
 /* Error */
 .ktm-toast-error {
   border: 1px solid rgba(239,68,68,0.15);
-  border-left: 4px solid #ef4444;
 }
 .ktm-toast-error .ktm-toast-icon { color: #ef4444; }
 
 /* Info */
 .ktm-toast-info {
   border: 1px solid rgba(242,139,70,0.15);
-  border-left: 4px solid #f28b46;
 }
 .ktm-toast-info .ktm-toast-icon { color: #f28b46; }
 
