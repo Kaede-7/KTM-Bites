@@ -183,6 +183,10 @@ const Kitchen: React.FC = () => {
         )}
 
         <div className="auth-left">
+          <Link to="/" className="auth-back-btn">
+            <span className="material-symbols-rounded">arrow_back</span>
+            Back to Home
+          </Link>
           <div className="auth-form-container auth-fade-in">
             <h1>Kitchen Login</h1>
             <p className="auth-subtitle">Access the kitchen display system.</p>

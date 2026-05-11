@@ -16,6 +16,15 @@ const ResetPassword: React.FC = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  const validatePasswordStrength = (password: string) => {
+    if (password.length < 8) return "Password must be at least 8 characters long.";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
+    if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter.";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number.";
+    if (!/[^A-Za-z0-9]/.test(password)) return "Password must contain at least one special character.";
+    return "";
+  };
+
   useEffect(() => {
     if (!token) {
       setError("Invalid or missing reset token. Please request a new link.");
@@ -31,8 +40,9 @@ const ResetPassword: React.FC = () => {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+    const passwordError = validatePasswordStrength(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -97,6 +107,9 @@ const ResetPassword: React.FC = () => {
               {showPassword ? "visibility" : "visibility_off"}
             </span>
           </button>
+        </div>
+        <div className="auth-input-hint">
+          Must be 8+ chars with uppercase, number, & special char
         </div>
 
         <div className="auth-input-wrapper" style={{ marginTop: '16px' }}>

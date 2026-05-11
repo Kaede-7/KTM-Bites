@@ -16,6 +16,37 @@
   padding: 48px 40px;
   max-width: 600px;
   min-height: 100vh;
+  position: relative; /* Added for back button positioning */
+}
+
+.auth-back-btn {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8b7d72;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  z-index: 10;
+}
+
+.auth-back-btn:hover {
+  color: #f28b46;
+  transform: translateX(-4px);
+  box-shadow: 0 8px 20px rgba(242, 139, 70, 0.12);
+}
+
+.auth-back-btn .material-symbols-rounded {
+  font-size: 18px;
 }
 
 
@@ -23,7 +54,7 @@
 .auth-form-container {
   width: 100%;
   max-width: 400px;
-  margin: 0 auto;
+  margin: 40px auto 0;
 }
 
 .auth-form-container h1 {
@@ -127,6 +158,17 @@
 
 .auth-input-wrapper input::placeholder {
   color: #a3978f;
+}
+
+.auth-input-hint {
+  font-size: 11px;
+  color: #8b7d72;
+  margin-top: -10px;
+  margin-bottom: 12px;
+  padding-left: 52px;
+  opacity: 0.8;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .auth-toggle-password {

@@ -25,7 +25,9 @@ export interface OrderData {
   order_id: string;        // Human-readable order ID (e.g. "KTM-001")
   status: string;          // "placed", "preparing", "on_way", "delivered", "cancelled"
   status_display: string;  // Formatted status for display
-  payment_method: string;  // "cod", "khalti", "esewa"
+  payment_method: string;  // "khalti"
+  payment_status?: string; // "pending", "completed", "failed"
+  transaction_id?: string; // Khalti transaction ID
   full_name: string;
   phone: string;
   address: string;
@@ -55,6 +57,12 @@ export interface PlaceOrderPayload {
 /** Place a new order (moves cart items into an order) */
 export async function placeOrder(payload: PlaceOrderPayload): Promise<OrderData> {
   const { data } = await API.post('/orders/', payload);
+  return data;
+}
+
+/** Initiate Khalti payment (creates order and gets payment URL) */
+export async function initiatePayment(payload: PlaceOrderPayload & { return_url?: string; website_url?: string }): Promise<{ pidx: string; payment_url: string; order_id: number }> {
+  const { data } = await API.post('/payments/initiate/', payload);
   return data;
 }
 

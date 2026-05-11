@@ -36,6 +36,16 @@ const ChatWidget: React.FC = () => {
     const msg = (text ?? input).trim();
     if (!msg || loading) return;
 
+    if (!isLoggedIn()) {
+      const userMsg: ChatMessage = { role: 'user', content: msg };
+      setMessages(prev => [...prev, userMsg, {
+        role: 'assistant',
+        content: "Please login first to chat with me and get personalized recommendations! 😊",
+      }]);
+      setInput('');
+      return;
+    }
+
     const userMsg: ChatMessage = { role: 'user', content: msg };
     setMessages(prev => [...prev, userMsg]);
     setInput('');

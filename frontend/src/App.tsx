@@ -23,6 +23,8 @@ const Kitchen = lazy(() => import("./pages/Kitchen"));
 const Rider = lazy(() => import("./pages/Rider"));
 const RiderSignup = lazy(() => import("./pages/RiderSignup"));
 const RiderLogin = lazy(() => import("./pages/RiderLogin"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 function App() {
   return (
@@ -40,6 +42,8 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/rider-login" element={<RiderLogin />} />
             <Route path="/rider-signup" element={<RiderSignup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
           {/* Admin, Kitchen, and Rider have their own login systems */}

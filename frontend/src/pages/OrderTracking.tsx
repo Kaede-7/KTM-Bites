@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import FastImage from "../components/FastImage";
 import { getOrder, getOrders, cancelOrder, type OrderData } from "../api/orders";
+import { isLoggedIn } from "../api/auth";
 
 const statusSteps = [
   { key: "placed",    title: "Order Placed",  desc: "Your order has been confirmed",          icon: "check_circle" },
@@ -32,6 +33,10 @@ const OrderTracking: React.FC = () => {
 
   useEffect(() => {
     const fetchOrder = async () => {
+      if (!isLoggedIn()) {
+        setLoading(false);
+        return;
+      }
       try {
         if (id === "latest") {
           const orders = await getOrders();
@@ -199,9 +204,7 @@ const OrderTracking: React.FC = () => {
           <div className="tracking-detail-card">
             <p className="tracking-detail-label">Payment</p>
             <p className="tracking-detail-value">
-              {order.payment_method === "esewa" ? "eSewa"
-                : order.payment_method === "khalti" ? "Khalti"
-                : "Cash on Delivery"}
+              Khalti
             </p>
             <p className="tracking-detail-sub">Total — Rs. {order.total}</p>
           </div>

@@ -14,9 +14,36 @@
 
 .ai-recs-header {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+
+.ai-recs-header-top {
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.ai-weather-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(212, 196, 168, 0.4);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #2a2420;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  animation: recs-fade-up 0.5s ease both;
+}
+
+.ai-weather-badge .material-symbols-rounded {
+  font-size: 15px;
+  color: #f28b46;
 }
 
 .ai-recs-badge {
@@ -126,6 +153,18 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.ai-rec-type-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  color: #f28b46;
+  background: rgba(242, 139, 70, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
 }
 
 .ai-rec-price {

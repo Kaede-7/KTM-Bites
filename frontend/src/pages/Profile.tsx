@@ -261,8 +261,21 @@ const Profile: React.FC = () => {
                         <p className="profile-order-items">
                           {order.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}
                         </p>
-                        <div className="profile-order-footer">
-                          <span className="profile-order-total">Rs. {order.total}</span>
+                        <div className="profile-order-footer" style={{ flexWrap: 'wrap', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span className="profile-order-total">Rs. {order.total}</span>
+                            <span 
+                              className={`profile-order-status ${order.payment_status === 'completed' ? 'delivered' : order.payment_status === 'failed' ? 'cancelled' : 'pending'}`}
+                              style={{ fontSize: '11px', padding: '2px 8px', textTransform: 'capitalize' }}
+                            >
+                              Khalti: {order.payment_status || 'Pending'}
+                            </span>
+                            {order.transaction_id && (
+                              <span style={{ fontSize: '11px', color: '#666', background: '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>
+                                TXN: {order.transaction_id}
+                              </span>
+                            )}
+                          </div>
                           <span className="profile-order-date">
                             {new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                           </span>

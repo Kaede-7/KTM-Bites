@@ -104,7 +104,7 @@ const Login: React.FC = () => {
             />
             Remember me
           </label>
-          <Link to="#" className="auth-forgot-link">Forgot Password?</Link>
+          <Link to="/forgot-password" className="auth-forgot-link">Forgot Password?</Link>
         </div>
 
         <button type="submit" className="auth-submit-btn" disabled={loading}>

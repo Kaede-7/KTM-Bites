@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, updateCartItem, removeFromCart, type CartData } from "../api/cart";
+import { isLoggedIn } from "../api/auth";
 
 const Cart: React.FC = () => {
   const [cart, setCart] = useState<CartData | null>(null);
@@ -16,6 +17,10 @@ const Cart: React.FC = () => {
   }, []);
 
   const fetchCart = async () => {
+    if (!isLoggedIn()) {
+      setLoading(false);
+      return;
+    }
     try {
       const data = await getCart();
       setCart(data);
@@ -67,7 +72,7 @@ const Cart: React.FC = () => {
             <h3>Your cart is empty</h3>
             <p>Looks like you haven't added anything yet</p>
             <Link to="/menu" className="cart-empty-btn">
-              <span className="material-symbols-rounded">restaurant_menu</span>Browse Menu
+              Browse Menu
             </Link>
           </div>
         </div>

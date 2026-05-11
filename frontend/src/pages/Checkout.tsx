@@ -5,12 +5,12 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, type CartData } from "../api/cart";
-import { placeOrder } from "../api/orders";
+import { placeOrder, initiatePayment } from "../api/orders";
 import { getProfile } from "../api/auth";
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
-  const [payment, setPayment] = useState("esewa");
+  const [payment, setPayment] = useState("khalti");
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
@@ -61,20 +61,36 @@ const Checkout: React.FC = () => {
     setError("");
     setPlacing(true);
     try {
-      const order = await placeOrder({
-        full_name: form.fullName,
-        phone: form.phone,
-        address: form.address,
-        city: form.city,
-        landmark: form.landmark,
-        notes: form.notes,
-        payment_method: payment,
-      });
-      navigate(`/order-tracking/${order.id}`);
+      if (payment === "khalti") {
+        const result = await initiatePayment({
+          full_name: form.fullName,
+          phone: form.phone,
+          address: form.address,
+          city: form.city,
+          landmark: form.landmark,
+          notes: form.notes,
+          payment_method: payment,
+          website_url: window.location.origin,
+        });
+        window.location.href = result.payment_url;
+      } else {
+        const order = await placeOrder({
+          full_name: form.fullName,
+          phone: form.phone,
+          address: form.address,
+          city: form.city,
+          landmark: form.landmark,
+          notes: form.notes,
+          payment_method: payment,
+        });
+        navigate(`/order-tracking/${order.id}`);
+      }
     } catch (err: any) {
-      setError(
-        err.response?.data?.error || "Failed to place order. Please try again.",
-      );
+      console.error("Khalti error details:", err.response?.data);
+      const errorMessage = err.response?.data?.details 
+        ? `Khalti Error: ${JSON.stringify(err.response.data.details)}`
+        : err.response?.data?.error || "Failed to place order. Please try again.";
+      setError(errorMessage);
     } finally {
       setPlacing(false);
     }
@@ -180,13 +196,6 @@ const Checkout: React.FC = () => {
               </h3>
               <div className="checkout-payment-options">
                 {[
-                  {
-                    key: "esewa",
-                    name: "eSewa",
-                    desc: "Pay with eSewa wallet",
-                    icon: "account_balance_wallet",
-                    color: "#60bb46",
-                  },
                   {
                     key: "khalti",
                     name: "Khalti",

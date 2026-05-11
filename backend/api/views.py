@@ -94,7 +94,7 @@ def send_password_reset_email(user, token):
     Send password reset email to user.
     Email includes reset link with 15-minute expiry notice.
     """
-    reset_url = f"http://localhost:3000/reset-password?token={token}"
+    reset_url = f"http://localhost:5173/reset-password?token={token}"
     subject = "Password Reset Request - KTM Bites"
     message = f"""
 Hello {user.first_name or user.email},
@@ -390,8 +390,8 @@ class ForgotPasswordView(APIView):
                 # Generate secure token
                 token = secrets.token_urlsafe(32)
                 
-                # Calculate expiry: 15 minutes from now
-                expires_at = timezone.now() + timezone.timedelta(minutes=15)
+                # Calculate expiry: 60 minutes from now
+                expires_at = timezone.now() + timezone.timedelta(minutes=60)
                 
                 # Save token to database
                 PasswordResetToken.objects.create(
@@ -404,12 +404,12 @@ class ForgotPasswordView(APIView):
                 send_password_reset_email(user, token)
                 
             except User.DoesNotExist:
-                # User not found, but we still return generic success message
-                pass
+                return Response({
+                    "detail": "No account found with this email address."
+                }, status=404)
             
-            # Always return generic success response (prevents user enumeration)
             return Response({
-                "message": "If an account with that email exists, a password reset link has been sent."
+                "message": "A password reset link has been sent to your email."
             }, status=200)
         
         return Response(serializer.errors, status=400)
@@ -793,12 +793,12 @@ def verify_payment(request):
         order.transaction_id = data.get("transaction_id", "")
         order.save(update_fields=["payment_status", "transaction_id"])
         from django.shortcuts import redirect
-        return redirect(f"{frontend_base}/order-success?order_id={order.id}")
+        return redirect(f"{frontend_base}/order-tracking/{order.id}")
     else:
         order.payment_status = "failed"
         order.save(update_fields=["payment_status"])
         from django.shortcuts import redirect
-        return redirect(f"{frontend_base}/payment-failed?order_id={order.id}&reason={data.get('status', 'unknown')}")
+        return redirect(f"{frontend_base}/checkout")
 
 
 @api_view(['GET'])
@@ -1184,10 +1184,16 @@ def recommendations_view(request):
         for item in menu_items
     ]
 
-    prompt = f"""Generate 3 food recommendations for KTM Bites.
-Context: {time_context}, Weather: {weather_context}, History: {', '.join(order_history)}.
+    prompt = f"""Generate exactly 3 food recommendations for KTM Bites.
+You must pick:
+1. One item perfectly suited for the current time ({time_context}).
+2. One item based on the user's past orders ({', '.join(order_history) if order_history else 'No history yet, pick a popular item'}).
+3. One item ideally suited for the current weather ({weather_context}).
+
 Menu: {json.dumps(menu_context[:40])}
-Return ONLY JSON: [{{"id": 1, "reason": "reason"}}]"""
+
+Return ONLY a JSON list of 3 objects:
+[{{"id": item_id, "reason": "short explanation", "type": "Time-based" | "History-based" | "Weather-based"}}]"""
 
     try:
         client = Groq(api_key=settings.GROQ_API_KEY)
@@ -1204,6 +1210,8 @@ Return ONLY JSON: [{{"id": 1, "reason": "reason"}}]"""
     # Build response
     item_ids = [r['id'] for r in recs_raw if isinstance(r.get('id'), int)]
     reason_map = {r['id']: r.get('reason', '') for r in recs_raw if isinstance(r.get('id'), int)}
+    type_map = {r['id']: r.get('type', 'AI Pick') for r in recs_raw if isinstance(r.get('id'), int)}
+    
     items_qs = MenuItem.objects.filter(id__in=item_ids, is_available=True)
     item_map = {i.id: i for i in items_qs}
 
@@ -1213,11 +1221,16 @@ Return ONLY JSON: [{{"id": 1, "reason": "reason"}}]"""
             m = item_map[iid]
             recommendations.append({
                 "id": m.id, "name": m.name, "price": str(m.price),
-                "image": m.image, "reason": reason_map.get(iid, ''),
+                "image": m.image, 
+                "reason": reason_map.get(iid, ''),
+                "type": type_map.get(iid, 'AI Pick'),
             })
 
     # Cache user recommendations for 10 minutes
     cache.set(user_cache_key, recommendations, 600)
-    return Response({"recommendations": recommendations})
+    return Response({
+        "recommendations": recommendations,
+        "weather": weather_context
+    })
 
 

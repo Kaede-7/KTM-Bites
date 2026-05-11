@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "../css/admin.css";
 import "../css/auth.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
@@ -7,12 +7,13 @@ import * as adminAPI from "../api/admin";
 import * as authAPI from "../api/auth";
 import LoadingAnimation from "../components/LoadingAnimation";
 import AuthCreative from "../components/AuthCreative";
-import { Link } from "react-router-dom";
+
 
 interface MenuItem {
   id?: number;
   name: string;
   category?: string | number;
+  category_name?: string;
   price: number;
   old_price?: number;
   rating?: number;
@@ -31,6 +32,8 @@ interface Order {
   status: string;
   status_display?: string;
   payment_method: string;
+  payment_status?: string;
+  transaction_id?: string;
   full_name: string;
   phone: string;
   address: string;
@@ -53,7 +56,6 @@ interface User {
 }
 
 const Admin: React.FC = () => {
-  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [email, setEmail] = useState("");
@@ -206,7 +208,7 @@ const Admin: React.FC = () => {
   const handleSaveMenuItem = async () => {
     try {
       setActionLoading(true);
-      if (editingMenuItem && editingMenuItem.id) {
+      if (editingMenuItem && editingMenuItem.id !== undefined) {
         await adminAPI.updateMenuItem(editingMenuItem.id, menuForm);
         setSuccessMessage("Menu item updated successfully!");
       } else {
@@ -255,7 +257,7 @@ const Admin: React.FC = () => {
   const handleViewOrderDetails = async (orderId: number) => {
     try {
       const order = await adminAPI.fetchOrderById(orderId);
-      console.log("Order details:", order);
+      alert(`Order Details: ${order.order_id}\nCustomer: ${order.full_name}\nTotal: Rs. ${order.total}\nStatus: ${order.status_display}`);
     } catch (err: any) {
       setError(err.message || "Failed to load order details");
     }
@@ -286,9 +288,9 @@ const Admin: React.FC = () => {
   const handleSaveUser = async () => {
     try {
       setActionLoading(true);
-      if (editingUser && editingUser.id) {
+      if (editingUser && editingUser.id !== undefined) {
         // Prevent sending empty password if it hasn't changed
-        const updateData = { ...userForm };
+        const updateData: any = { ...userForm };
         if (!updateData.password) {
           delete updateData.password;
         }
@@ -326,6 +328,10 @@ const Admin: React.FC = () => {
       <div className="auth-page">
         {/* Left Panel - Dynamic Form (Login/Signup) */}
         <div className="auth-left">
+          <Link to="/" className="auth-back-btn">
+            <span className="material-symbols-rounded">arrow_back</span>
+            Back to Home
+          </Link>
           <div className="auth-form-container auth-fade-in">
             <h1>Admin Login</h1>
             <p className="auth-subtitle">Access the admin panel.</p>
@@ -343,7 +349,7 @@ const Admin: React.FC = () => {
             )}
 
             {successMessage && (
-              <div className="auth-error" style={{ background: 'rgba(52, 211, 153, 0.1)', color: '#10b981', borderColor: '#10b981' }}>
+              <div className="auth-success-msg">
                 <span className="material-symbols-rounded">check_circle</span>
                 {successMessage}
               </div>
@@ -426,9 +432,9 @@ const Admin: React.FC = () => {
             className="admin-header-logo"
           />
           <div className="admin-header-info">
-            <h1 className="admin-header-title">KTM Bites Admin</h1>
+            <h1 className="admin-header-title">KTM Bites</h1>
             <p className="admin-header-subtitle">
-              Restaurant Management System
+              Administration Portal
             </p>
           </div>
         </div>
@@ -599,7 +605,7 @@ const Admin: React.FC = () => {
                           }
                         >
                           {categories.map((cat) => (
-                            <option key={cat.id} value={cat.id}>
+                            <option key={cat.id || cat.name} value={cat.id}>
                               {cat.name}
                             </option>
                           ))}
@@ -692,7 +698,7 @@ const Admin: React.FC = () => {
                           <td className="admin-table-name">
                             <strong>{item.name}</strong>
                           </td>
-                          <td>{item.category}</td>
+                          <td>{item.category_name || item.category}</td>
                           <td className="admin-table-price">
                             Rs. {item.price}
                           </td>
@@ -788,7 +794,30 @@ const Admin: React.FC = () => {
                               <option value="cancelled">Cancelled</option>
                             </select>
                           </td>
-                          <td>{order.payment_method}</td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>
+                                {order.payment_method}
+                                {order.payment_method === 'khalti' && order.payment_status && (
+                                  <span style={{ 
+                                    marginLeft: '6px', 
+                                    fontSize: '11px', 
+                                    padding: '2px 6px', 
+                                    borderRadius: '4px',
+                                    backgroundColor: order.payment_status === 'completed' ? '#e8f5e9' : '#ffebee',
+                                    color: order.payment_status === 'completed' ? '#2e7d32' : '#c62828'
+                                  }}>
+                                    {order.payment_status}
+                                  </span>
+                                )}
+                              </span>
+                              {order.transaction_id && (
+                                <span style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
+                                  TXN: {order.transaction_id}
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td>
                             {new Date(order.created_at).toLocaleDateString()}
                           </td>
