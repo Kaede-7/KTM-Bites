@@ -128,3 +128,13 @@ export async function changePassword(
   localStorage.setItem("ktmbites_token", data.token);
   return data;
 }
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const { data } = await API.post("/auth/forgot-password/", { email });
+  return data;
+}
+
+export async function resetPassword(token: string, new_password: string): Promise<{ message: string }> {
+  const { data } = await API.post("/auth/reset-password/", { token, new_password });
+  return data;
+}

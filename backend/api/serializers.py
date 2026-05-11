@@ -7,7 +7,7 @@ from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem, Passwo
 # ───── Auth Serializers ─────
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=6)
+    password = serializers.CharField(write_only=True, min_length=8)
     full_name = serializers.CharField(source='first_name')
     phone = serializers.CharField(write_only=True, required=False, default='')
 
@@ -16,6 +16,19 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'full_name', 'phone', 'password', 'role']
+
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        if not any(char.isupper() for char in value):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        if not any(char.islower() for char in value):
+            raise serializers.ValidationError("Password must contain at least one lowercase letter.")
+        if not any(char.isdigit() for char in value):
+            raise serializers.ValidationError("Password must contain at least one number.")
+        if not any(not char.isalnum() for char in value):
+            raise serializers.ValidationError("Password must contain at least one special character.")
+        return value
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists() or User.objects.filter(username=value).exists():
@@ -72,11 +85,16 @@ class ResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True, min_length=8)
 
     def validate_new_password(self, value):
-        """Validate new password strength (basic validation)."""
-        if not any(char.isalpha() for char in value):
-            raise ValidationError("Password must contain at least one letter.")
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        if not any(char.isupper() for char in value):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        if not any(char.islower() for char in value):
+            raise serializers.ValidationError("Password must contain at least one lowercase letter.")
         if not any(char.isdigit() for char in value):
-            raise ValidationError("Password must contain at least one digit.")
+            raise serializers.ValidationError("Password must contain at least one number.")
+        if not any(not char.isalnum() for char in value):
+            raise serializers.ValidationError("Password must contain at least one special character.")
         return value
 
 
@@ -94,12 +112,13 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class MenuItemSerializer(serializers.ModelSerializer):
-    category = serializers.CharField(source='category.name', read_only=True)
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
 
     class Meta:
         model = MenuItem
         fields = [
-            'id', 'name', 'category', 'price', 'old_price',
+            'id', 'name', 'category', 'category_name', 'price', 'old_price',
             'rating', 'reviews', 'time', 'image', 'description',
             'badge', 'is_available',
         ]

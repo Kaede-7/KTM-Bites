@@ -17,6 +17,15 @@ const RiderSignup: React.FC = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const validatePasswordStrength = (password: string) => {
+    if (password.length < 8) return "Password must be at least 8 characters long.";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
+    if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter.";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number.";
+    if (!/[^A-Za-z0-9]/.test(password)) return "Password must contain at least one special character.";
+    return "";
+  };
+
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
   };
@@ -27,6 +36,12 @@ const RiderSignup: React.FC = () => {
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
+      return;
+    }
+
+    const passwordError = validatePasswordStrength(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -105,6 +120,9 @@ const RiderSignup: React.FC = () => {
           <button type="button" className="auth-toggle-password" onClick={() => setShowPassword(!showPassword)}>
             <span className="material-symbols-rounded">{showPassword ? "visibility" : "visibility_off"}</span>
           </button>
+        </div>
+        <div className="auth-input-hint">
+          Must be 8+ chars with uppercase, number, & special char
         </div>
 
         <div className="auth-input-wrapper" style={{ marginBottom: "8px" }}>

@@ -53,7 +53,7 @@ const Home: React.FC = () => {
       try {
         const [items, userOrders] = await Promise.all([
           getMenuItems({ sort: "rating" }),
-          getOrders().catch(() => [])
+          isLoggedIn() ? getOrders().catch(() => []) : Promise.resolve([])
         ]);
         const favs = items.slice(0, 3);
         setFavorites(favs);

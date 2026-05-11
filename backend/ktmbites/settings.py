@@ -138,8 +138,9 @@ OPENWEATHER_API_KEY = os.environ.get('OPENWEATHER_API_KEY', '')
 # --- Email Configuration (Gmail SMTP) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'np03cs4a240042@gmail.com'
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = 'np03cs4a240042@gmail.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'np03cs4a240042@gmail.com').strip()
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '').strip()
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

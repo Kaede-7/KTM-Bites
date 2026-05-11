@@ -24,6 +24,7 @@ const AIRecommendations: React.FC = () => {
   const [notLoggedIn, setNotLoggedIn] = useState(false);
   const [addedItems, setAddedItems] = useState<Set<number>>(new Set());
   const [contextLabel, setContextLabel] = useState('');
+  const [weather, setWeather] = useState('');
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -35,7 +36,10 @@ const AIRecommendations: React.FC = () => {
     if (!isLoggedIn()) { setNotLoggedIn(true); setLoading(false); return; }
 
     getAIRecommendations()
-      .then(res => setItems(res.recommendations.slice(0, 3)))
+      .then(res => {
+        setItems(res.recommendations.slice(0, 3));
+        if (res.weather) setWeather(res.weather);
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -54,10 +58,18 @@ const AIRecommendations: React.FC = () => {
 
   const header = (
     <div className="ai-recs-header">
-      <span className="ai-recs-badge">
-        <span className="material-symbols-rounded">auto_awesome</span>
-        AI Picks
-      </span>
+      <div className="ai-recs-header-top">
+        <span className="ai-recs-badge">
+          <span className="material-symbols-rounded">auto_awesome</span>
+          AI Picks
+        </span>
+        {weather && (
+          <div className="ai-weather-badge">
+            <span className="material-symbols-rounded">cloudy_snowing</span>
+            {weather}
+          </div>
+        )}
+      </div>
       <h2>Recommended For You</h2>
       <span className="ai-recs-subtitle">{contextLabel}</span>
     </div>
@@ -100,6 +112,9 @@ const AIRecommendations: React.FC = () => {
                 <div className="ai-rec-img-overlay" />
               </div>
               <div className="ai-rec-body">
+                {item.type && (
+                  <div className="ai-rec-type-tag">{item.type}</div>
+                )}
                 <div className="ai-rec-name">{item.name}</div>
                 <div className="ai-rec-price">Rs. {item.price}</div>
                 {item.reason && (

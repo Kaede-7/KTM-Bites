@@ -426,13 +426,14 @@
 .cart-empty-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 14px 32px;
+  padding: 10px 24px;
   background: linear-gradient(135deg, #f28b46 0%, #e06c22 100%);
   color: white;
   border: none;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   font-family: 'Inter', sans-serif;
   text-decoration: none;
@@ -448,15 +449,6 @@
 
 .cart-empty-btn:active {
   transform: translateY(0);
-}
-
-.cart-empty-btn .material-symbols-rounded {
-  font-size: 20px;
-  transition: transform 0.3s ease;
-}
-
-.cart-empty-btn:hover .material-symbols-rounded {
-  transform: translateX(3px);
 }
 
 /* ══ RESPONSIVE ═════════════════════════════════════════════════ */

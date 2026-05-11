@@ -27,11 +27,13 @@ export interface RecommendedItem {
   price: number;    // e.g. 250
   image: string;    // URL to the food image
   reason?: string;  // e.g. "Perfect for a rainy evening"
+  type?: string;    // e.g. "Weather-based"
 }
 
 // What the recommendations API returns
 export interface RecommendationsResponse {
   recommendations: RecommendedItem[];
+  weather?: string;
 }
 
 // --- API Functions ---
