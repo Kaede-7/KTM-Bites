@@ -25,10 +25,16 @@ const API = axios.create({
 // Before every request, check if the user is logged in.
 // If they have a token saved, attach it to the request header.
 // This is how the backend knows WHO is making the request.
+// Rider tokens (RIDER_TOKEN_*) are sent without the "Token " prefix
+// because they use a custom auth scheme, not DRF's TokenAuthentication.
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('ktmbites_token') || sessionStorage.getItem('ktmbites_token');
   if (token) {
-    config.headers.Authorization = `Token ${token}`;
+    if (token.startsWith('RIDER_TOKEN_')) {
+      config.headers.Authorization = token;
+    } else {
+      config.headers.Authorization = `Token ${token}`;
+    }
   }
   return config;
 });
@@ -37,10 +43,19 @@ API.interceptors.request.use((config) => {
 // After every response, check if the server returned a 401 error.
 // 401 means "you are not logged in" or "your session expired".
 // If so, clear the saved token and redirect to the login page.
+// Rider pages are excluded — rider auth uses custom tokens that
+// bypass DRF's TokenAuthentication.
 API.interceptors.response.use(
   (response) => response, // If response is OK, just return it
   (error) => {
     if (error.response?.status === 401) {
+      const currentPath = window.location.pathname;
+
+      // Don't clear tokens on rider pages — rider uses custom auth
+      if (currentPath.startsWith('/rider')) {
+        return Promise.reject(error);
+      }
+
       // Clear all saved login data
       localStorage.removeItem('ktmbites_token');
       localStorage.removeItem('ktmbites_user');
@@ -48,7 +63,6 @@ API.interceptors.response.use(
       sessionStorage.removeItem('ktmbites_user');
 
       // Only redirect to login if user is on a protected page
-      const currentPath = window.location.pathname;
       const protectedPaths = ['/profile', '/checkout', '/order-tracking'];
       
       if (protectedPaths.some(path => currentPath.startsWith(path))) {
@@ -60,3 +74,4 @@ API.interceptors.response.use(
 );
 
 export default API;
+

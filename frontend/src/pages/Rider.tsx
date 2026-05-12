@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../css/auth.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
-import AuthCreative from "../components/AuthCreative";
 import { logout as authLogout, getStoredUser, getToken } from "../api/auth";
 import { fetchKitchenOrders, updateOrderStatus, type KitchenOrder } from "../api/kitchen";
+import { updateRiderLocation } from "../api/orders";
+import { fetchRiderProfile } from "../api/rider";
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const Rider: React.FC = () => {
   const navigate = useNavigate();
@@ -17,11 +21,16 @@ const Rider: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [hasPhone, setHasPhone] = useState(true);
+
+  // Live GPS state
+  const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsError, setGpsError] = useState<string | null>(null);
 
   // Restore session and redirect if needed
   useEffect(() => {
     const token = getToken();
-    const user = getStoredUser();
+    const user = getStoredUser() as any;
     if (!token || !user || (user.role !== 'RIDER' && !user.is_staff)) {
       authLogout(null);
       navigate("/rider-login");
@@ -49,16 +58,22 @@ const Rider: React.FC = () => {
   useEffect(() => {
     if (!riderUser) return;
     loadOrders();
+    checkProfile();
     const interval = setInterval(() => loadOrders(true), 30000);
     return () => clearInterval(interval);
   }, [riderUser]);
 
-
-
-  const handleLogout = () => {
-    authLogout(null);
-    navigate("/rider-login");
+  const checkProfile = async () => {
+    try {
+      const profile = await fetchRiderProfile();
+      setHasPhone(!!profile.phone);
+    } catch (err) {
+      console.error("Profile check failed:", err);
+    }
   };
+
+
+
 
   // Order actions
   const handlePickup = async (orderId: number) => {
@@ -90,6 +105,30 @@ const Rider: React.FC = () => {
   const pickedOrders = orders.filter((o) => o.status === "on_way" && o.rider === riderUser?.id);
   const droppedOrders = orders.filter((o) => o.status === "delivered" && o.rider === riderUser?.id);
 
+  // ── GPS Location Pinger ────────────────────────────────────
+  // Always active when rider is logged in so their position is
+  // visible on the dashboard map and sent to the backend.
+  useEffect(() => {
+    if (!riderUser) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setMyLocation(coords);
+        setGpsError(null);
+        updateRiderLocation(coords.lat, coords.lng)
+          .catch((err) => console.error('Location update failed:', err));
+      },
+      (err) => {
+        console.error('Geolocation error:', err);
+        setGpsError(err.code === 1 ? 'Location permission denied' : 'Unable to get location');
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [riderUser]);
+
   // ══════════════════════════════════════════
   // DASHBOARD VIEW
   // ══════════════════════════════════════════
@@ -112,6 +151,14 @@ const Rider: React.FC = () => {
           <div className="rider-topbar-actions">
             <button
               className="rider-refresh-btn"
+              style={{ background: "white", color: "#2a2420", border: "1px solid #ddd" }}
+              onClick={() => navigate("/rider/profile")}
+            >
+              <span className="material-symbols-rounded">person</span>
+              Profile
+            </button>
+            <button
+              className="rider-refresh-btn"
               onClick={() => loadOrders(true)}
               disabled={refreshing}
             >
@@ -120,6 +167,43 @@ const Rider: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {!hasPhone && (
+          <div style={{
+            background: "#fff5f5",
+            border: "1px solid #feb2b2",
+            padding: "16px",
+            borderRadius: "12px",
+            marginBottom: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <span className="material-symbols-rounded" style={{ color: "#c53030" }}>warning</span>
+              <div>
+                <p style={{ fontWeight: "700", color: "#c53030", margin: 0 }}>Missing Phone Number</p>
+                <p style={{ fontSize: "13px", color: "#9b2c2c", margin: 0 }}>Customers need your contact info for live tracking. Please update your profile.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/rider/profile")}
+              style={{
+                background: "#c53030",
+                color: "white",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: "600",
+                border: "none",
+                cursor: "pointer"
+              }}
+            >
+              Update Now
+            </button>
+          </div>
+        )}
 
         {/* Stat Cards */}
         <div className="rider-stats">
@@ -147,6 +231,72 @@ const Rider: React.FC = () => {
             <div className="rider-stat-value">{droppedOrders.length}</div>
             <span className="rider-stat-badge green">Completed</span>
           </div>
+        </div>
+
+        {/* Live GPS Location Card */}
+        <div className="rider-section">
+          <div className="rider-section-header">
+            <h2>Your Live Location</h2>
+            <span className="rider-section-count" style={{ background: myLocation ? '#48bb78' : '#f56565', color: 'white' }}>
+              {myLocation ? 'LIVE' : 'OFF'}
+            </span>
+          </div>
+          {gpsError ? (
+            <div className="rider-empty" style={{ color: '#c53030' }}>
+              <span className="material-symbols-rounded">location_off</span>
+              {gpsError}. Please enable location services in your browser.
+            </div>
+          ) : !myLocation ? (
+            <div className="rider-empty">
+              <span className="material-symbols-rounded">my_location</span>
+              Acquiring GPS signal...
+            </div>
+          ) : (
+            <div className="rider-gps-card">
+              <div className="rider-gps-map">
+                <MapContainer
+                  center={[myLocation.lat, myLocation.lng]}
+                  zoom={16}
+                  scrollWheelZoom={true}
+                  zoomControl={true}
+                  style={{ width: '100%', height: '100%', borderRadius: '16px' }}
+                  key={`${myLocation.lat.toFixed(4)}-${myLocation.lng.toFixed(4)}`}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <Marker
+                    position={[myLocation.lat, myLocation.lng]}
+                    icon={L.divIcon({
+                      className: 'tracking-marker-rider',
+                      html: `<div style="background:#f28b46;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(242,139,70,0.5);"><span class=\"material-symbols-rounded\" style=\"color:white;font-size:22px;\">two_wheeler</span></div>`,
+                      iconSize: [40, 40],
+                      iconAnchor: [20, 20],
+                    })}
+                  />
+                </MapContainer>
+              </div>
+              <div className="rider-gps-info">
+                <div className="rider-gps-coords">
+                  <div className="rider-gps-coord-item">
+                    <span className="material-symbols-rounded" style={{ color: '#f28b46', fontSize: '18px' }}>north</span>
+                    <span className="rider-gps-label">Latitude</span>
+                    <span className="rider-gps-value">{myLocation.lat.toFixed(6)}</span>
+                  </div>
+                  <div className="rider-gps-coord-item">
+                    <span className="material-symbols-rounded" style={{ color: '#4a90d9', fontSize: '18px' }}>east</span>
+                    <span className="rider-gps-label">Longitude</span>
+                    <span className="rider-gps-value">{myLocation.lng.toFixed(6)}</span>
+                  </div>
+                </div>
+                <div style={{ fontSize: '12px', color: '#8b7d72', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span className="rider-gps-pulse" />
+                  GPS tracking active — position updated live
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {loading ? (

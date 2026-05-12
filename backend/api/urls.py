@@ -23,6 +23,8 @@ urlpatterns = [
     path('auth/google/', views.google_login_view, name='google-login'),
     path('auth/forgot-password/', views.ForgotPasswordView.as_view(), name='forgot-password'),
     path('auth/reset-password/', views.ResetPasswordView.as_view(), name='reset-password'),
+    path('rider/register/', views.rider_register_view, name='rider-register'),
+    path('rider/login/', views.rider_login_view, name='rider-login'),
 
     # ── Menu (public — no login needed) ───────────────────────
     path('categories/', views.category_list, name='category-list'),
@@ -55,4 +57,8 @@ urlpatterns = [
     # ── AI Features ───────────────────────────────────────────
     path('ai/chat/', views.chat_view, name='ai-chat'),
     path('ai/recommendations/', views.recommendations_view, name='ai-recommendations'),
+
+    # ── Rider GPS Tracking ────────────────────────────────────
+    path('rider/location/', views.update_rider_location, name='rider-location'),
+    path('rider/profile/', views.rider_profile_view, name='rider-profile'),
 ]

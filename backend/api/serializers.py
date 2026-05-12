@@ -7,7 +7,7 @@ from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem, Passwo
 # ───── Auth Serializers ─────
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=6)
     full_name = serializers.CharField(source='first_name')
     phone = serializers.CharField(write_only=True, required=False, default='')
 
@@ -36,6 +36,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        from .models import RiderProfile
         phone = validated_data.pop('phone', '')
         role = validated_data.pop('role', 'USER')
         user = User.objects.create_user(
@@ -48,6 +49,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.phone = phone
         user.profile.role = role
         user.profile.save()
+
+        # Create RiderProfile automatically for rider registrations
+        if role == 'RIDER':
+            RiderProfile.objects.get_or_create(
+                user=user,
+                defaults={'phone': phone, 'email': user.email, 'username': user.username}
+            )
+
         user.save()
         return user
 
@@ -85,16 +94,11 @@ class ResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True, min_length=8)
 
     def validate_new_password(self, value):
-        if len(value) < 8:
-            raise serializers.ValidationError("Password must be at least 8 characters long.")
-        if not any(char.isupper() for char in value):
-            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
-        if not any(char.islower() for char in value):
-            raise serializers.ValidationError("Password must contain at least one lowercase letter.")
+        """Validate new password strength (basic validation)."""
+        if not any(char.isalpha() for char in value):
+            raise ValidationError("Password must contain at least one letter.")
         if not any(char.isdigit() for char in value):
-            raise serializers.ValidationError("Password must contain at least one number.")
-        if not any(not char.isalnum() for char in value):
-            raise serializers.ValidationError("Password must contain at least one special character.")
+            raise ValidationError("Password must contain at least one digit.")
         return value
 
 
@@ -188,6 +192,8 @@ class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     order_id = serializers.CharField(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    rider_location = serializers.SerializerMethodField()
+    rider_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -196,9 +202,25 @@ class OrderSerializer(serializers.ModelSerializer):
             'payment_method', 'payment_status', 'pidx', 'transaction_id',
             'full_name', 'phone', 'address',
             'city', 'landmark', 'notes', 'subtotal', 'delivery_fee',
-            'total', 'items', 'created_at',
+            'total', 'items', 'created_at', 'rider_location', 'rider_info',
         ]
         read_only_fields = ['subtotal', 'delivery_fee', 'total', 'status', 'payment_status', 'pidx', 'transaction_id', 'rider']
+
+    def get_rider_location(self, obj):
+        """Return rider's live GPS coordinates if available."""
+        if obj.rider:
+            if obj.rider.current_lat and obj.rider.current_lng:
+                return {'lat': obj.rider.current_lat, 'lng': obj.rider.current_lng}
+        return None
+
+    def get_rider_info(self, obj):
+        """Return rider's name and phone for the driver card."""
+        if obj.rider:
+            return {
+                'name': obj.rider.full_name,
+                'phone': obj.rider.phone
+            }
+        return None
 
 
 class PlaceOrderSerializer(serializers.Serializer):

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
-import { login, googleLogin } from "../api/auth";
+import { riderLogin, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
 
 const RiderLogin: React.FC = () => {
@@ -18,7 +18,7 @@ const RiderLogin: React.FC = () => {
     setError("");
     setLoading(true);
     try {
-      await login(email, password, rememberMe);
+      await riderLogin(email, password);
       navigate("/rider");
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed. Please try again.");
