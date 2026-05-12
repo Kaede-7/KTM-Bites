@@ -21,6 +21,7 @@ const About = lazy(() => import("./pages/About"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Kitchen = lazy(() => import("./pages/Kitchen"));
 const Rider = lazy(() => import("./pages/Rider"));
+const RiderProfile = lazy(() => import("./pages/RiderProfile"));
 const RiderSignup = lazy(() => import("./pages/RiderSignup"));
 const RiderLogin = lazy(() => import("./pages/RiderLogin"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -50,6 +51,7 @@ function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/kitchen" element={<Kitchen />} />
           <Route path="/rider" element={<Rider />} />
+          <Route path="/rider/profile" element={<RiderProfile />} />
 
           {/* === Routes that require login === */}
           <Route path="/home" element={<Home />} />

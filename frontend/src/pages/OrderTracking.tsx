@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/order-tracking.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import FastImage from "../components/FastImage";
+import LiveTrackingMap from "../components/LiveTrackingMap";
 import { getOrder, getOrders, cancelOrder, type OrderData } from "../api/orders";
 import { isLoggedIn } from "../api/auth";
 
@@ -53,6 +54,28 @@ const OrderTracking: React.FC = () => {
     };
     fetchOrder();
   }, [id]);
+
+  // Poll for live updates every 10 seconds when order is active
+  useEffect(() => {
+    if (!order) return;
+    if (order.status === 'delivered' || order.status === 'cancelled') return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        if (id === 'latest') {
+          const orders = await getOrders();
+          if (orders.length > 0) setOrder(orders[0]);
+        } else {
+          const data = await getOrder(Number(id));
+          setOrder(data);
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 10000);
+
+    return () => clearInterval(pollInterval);
+  }, [order?.status, id]);
 
   // Countdown timer — updates every second
   useEffect(() => {
@@ -194,6 +217,24 @@ const OrderTracking: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* ── Live GPS Map (only when rider is on the way) ─── */}
+        {order.status === 'on_way' && order.rider_location && (
+          <div style={{ marginBottom: 32 }}>
+            <LiveTrackingMap
+              riderLocation={order.rider_location}
+              riderInfo={order.rider_info}
+              deliveryAddress={order.address}
+              deliveryCity={order.city}
+            />
+          </div>
+        )}
+        {order.status === 'on_way' && !order.rider_location && (
+          <div className="tracking-map-loading" style={{ marginBottom: 32 }}>
+            <span className="material-symbols-rounded">my_location</span>
+            Waiting for rider's GPS signal...
+          </div>
+        )}
 
         <div className="tracking-details">
           <div className="tracking-detail-card">

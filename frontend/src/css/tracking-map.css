@@ -1,0 +1,271 @@
+/* ===== Live Tracking Map ===== */
+
+.tracking-map-section {
+  margin-bottom: 32px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  position: relative;
+  background: #fff;
+}
+
+.tracking-map-container {
+  width: 100%;
+  height: 400px;
+  position: relative;
+}
+
+/* Override Leaflet default styles to match theme */
+.tracking-map-container .leaflet-container {
+  width: 100%;
+  height: 100%;
+  font-family: 'Inter', -apple-system, sans-serif;
+  border-radius: 24px;
+}
+
+.tracking-map-container .leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  margin-right: 16px !important;
+  margin-top: 16px !important;
+}
+
+.tracking-map-container .leaflet-control-zoom a {
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 18px !important;
+  color: #2a2420 !important;
+  background: #fff !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.tracking-map-container .leaflet-control-zoom a:hover {
+  background: #fdf6f0 !important;
+  color: #f28b46 !important;
+}
+
+/* ETA Badge — top center overlay */
+.tracking-map-eta {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  font-size: 14px;
+  font-weight: 700;
+  color: #2a2420;
+}
+
+.tracking-map-eta .eta-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: etaPulse 2s ease-in-out infinite;
+}
+
+@keyframes etaPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+.tracking-map-eta .eta-value {
+  color: #10b981;
+  font-weight: 800;
+}
+
+/* Driver Info Card — bottom left overlay */
+.tracking-driver-card {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  padding: 14px 18px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  min-width: 220px;
+  transition: transform 0.2s;
+}
+
+.tracking-driver-card:hover {
+  transform: translateY(-2px);
+}
+
+.tracking-driver-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fdf6f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tracking-driver-avatar .material-symbols-rounded {
+  font-size: 24px;
+  color: #f28b46;
+}
+
+.tracking-driver-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.tracking-driver-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2a2420;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tracking-driver-phone {
+  font-size: 12px;
+  color: #8b7d72;
+  margin-top: 2px;
+}
+
+.tracking-driver-call {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #10b981;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.tracking-driver-call:hover {
+  background: #0d9668;
+  transform: scale(1.05);
+}
+
+.tracking-driver-call .material-symbols-rounded {
+  font-size: 20px;
+  color: #fff;
+}
+
+/* Custom Leaflet marker icons */
+.tracking-marker-rider {
+  background: none !important;
+  border: none !important;
+}
+
+.tracking-marker-customer {
+  background: none !important;
+  border: none !important;
+}
+
+.marker-icon-rider {
+  width: 40px;
+  height: 40px;
+  background: #f28b46;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(242, 139, 70, 0.4);
+  border: 3px solid #fff;
+  transition: transform 0.8s ease;
+}
+
+.marker-icon-rider .material-symbols-rounded {
+  font-size: 20px;
+  color: #fff;
+}
+
+.marker-icon-customer {
+  width: 36px;
+  height: 36px;
+  background: #2a2420;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(42, 36, 32, 0.3);
+  border: 3px solid #fff;
+}
+
+.marker-icon-customer .material-symbols-rounded {
+  font-size: 18px;
+  color: #fff;
+}
+
+/* Rider marker pulse animation */
+.marker-icon-rider::after {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #f28b46;
+  animation: markerPulse 2s ease-out infinite;
+}
+
+@keyframes markerPulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Map loading state */
+.tracking-map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: #fdf6f0;
+  border-radius: 24px;
+  color: #8b7d72;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 10px;
+}
+
+.tracking-map-loading .material-symbols-rounded {
+  font-size: 24px;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .tracking-map-container {
+    height: 300px;
+  }
+
+  .tracking-driver-card {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .tracking-map-eta {
+    top: 12px;
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+}

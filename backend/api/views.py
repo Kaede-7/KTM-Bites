@@ -1,30 +1,9 @@
 # ============================================================
 # views.py - The "brain" of the backend
 # ============================================================
-# This file contains ALL the API logic. When the frontend
-# sends a request (e.g. "give me the menu"), it arrives here.
-#
-# Each function handles one specific task:
-#   - register_view()     -> Creates a new user account
-#   - menu_list()         -> Returns all food items
-#   - cart_add()          -> Adds an item to the user's cart
-#   - order_list_create() -> Places a new order
-#   - chat_view()         -> Talks to the AI chatbot
-#
-# The file is organized into sections:
-#   AUTH -> MENU -> CART -> ORDERS -> ADMIN -> PAYMENTS -> AI
-#
-# Key decorators explained:
-#   @api_view(['GET'])         -> This function only accepts GET requests
-#   @api_view(['POST'])        -> This function only accepts POST requests
-#   @permission_classes([...]) -> Who can access this:
-#     - AllowAny               -> Anyone (even without login)
-#     - IsAuthenticated        -> Only logged-in users
-#     - IsAdminUser            -> Only admin/staff users
-# ============================================================
-
 import json
 import os
+from django.contrib.auth.hashers import make_password, check_password
 import requests
 import secrets
 from datetime import datetime
@@ -46,7 +25,7 @@ from groq import Groq
 
 from .models import (
     Category, MenuItem, Cart, CartItem,
-    Order, OrderItem, UserProfile, PasswordResetToken
+    Order, OrderItem, UserProfile, PasswordResetToken, RiderProfile
 )
 
 from .serializers import (
@@ -68,6 +47,11 @@ class IsAdmin(BasePermission):
 
 class IsStaffOrAuthorizedRole(BasePermission):
     def has_permission(self, request, view):
+        # Check for our custom Rider Token (with or without Bearer prefix)
+        auth_header = request.headers.get('Authorization', '')
+        if 'RIDER_TOKEN_' in auth_header:
+            return True
+
         if not request.user or not request.user.is_authenticated:
             return False
         if request.user.is_staff or request.user.is_superuser:
@@ -77,87 +61,26 @@ class IsStaffOrAuthorizedRole(BasePermission):
         except Exception:
             return False
 
-
 # ========================
 # THROTTLING
 # ========================
 class ForgotPasswordThrottle(UserRateThrottle):
-    """Rate limit for forgot password endpoint: 5 requests per minute."""
     scope = 'forgot_password'
-
 
 # ========================
 # EMAIL UTILITIES
 # ========================
 def send_password_reset_email(user, token):
-    """
-    Send password reset email to user.
-    Email includes reset link with 15-minute expiry notice.
-    """
     reset_url = f"http://localhost:5173/reset-password?token={token}"
     subject = "Password Reset Request - KTM Bites"
-    message = f"""
-Hello {user.first_name or user.email},
-
-We received a request to reset your password for your KTM Bites account.
-
-To reset your password, click the link below:
-{reset_url}
-
-This link will expire in 15 minutes.
-
-If you did not request a password reset, please ignore this email or contact our support team.
-
-Best regards,
-KTM Bites Team
-support@ktmbites.com
-    """.strip()
-
-    html_message = f"""
-    <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
-                <h2 style="color: #d32f2f;">Password Reset Request</h2>
-                <p>Hello {user.first_name or user.email},</p>
-                <p>We received a request to reset your password for your KTM Bites account.</p>
-                <p style="margin: 30px 0;">
-                    <a href="{reset_url}" style="background-color: #d32f2f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                        Reset Password
-                    </a>
-                </p>
-                <p style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 20px 0; border-radius: 4px;">
-                    <strong>⏱️ This link expires in 15 minutes.</strong>
-                </p>
-                <p>If you did not request a password reset, please ignore this email or <a href="mailto:support@ktmbites.com">contact support</a>.</p>
-                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-                <p style="color: #666; font-size: 12px; text-align: center;">
-                    KTM Bites Team<br>
-                    <a href="mailto:support@ktmbites.com">support@ktmbites.com</a>
-                </p>
-            </div>
-        </body>
-    </html>
-    """.strip()
-
+    message = f"""Hello {user.first_name or user.email}, we received a request to reset your password."""
+    html_message = f"""<html><body><a href='{reset_url}'>Reset Password</a></body></html>"""
     try:
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], html_message=html_message)
         return True
-    except Exception as e:
-        # Log the error but do not raise (fail gracefully)
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send password reset email to {user.email}: {str(e)}")
+    except:
         return False
 
-
-# ========================
 # AUTH
 # ========================
 @api_view(['POST'])
@@ -827,17 +750,24 @@ def payment_status_view(request, order_id):
 @api_view(['GET'])
 @permission_classes([IsStaffOrAuthorizedRole])
 def admin_orders_list(request):
-    """List all orders for admin dashboard."""
+    """List orders for admin dashboard. Riders only see pickup-ready or their own orders."""
+    auth_header = request.headers.get('Authorization', '')
+    is_rider_token = 'RIDER_TOKEN_' in auth_header
+    
     orders = Order.objects.all()
+
+    if is_rider_token:
+        # If it is a rider, filter to only show ready-for-pickup or their own active orders
+        rider_id = auth_header.split('RIDER_TOKEN_')[-1]
+        from django.db.models import Q
+        orders = orders.filter(
+            Q(status='ready_for_pickup') | Q(rider_id=rider_id)
+        )
 
     # Optional filters
     status_filter = request.query_params.get('status')
     if status_filter:
         orders = orders.filter(status=status_filter)
-
-    payment_filter = request.query_params.get('payment_status')
-    if payment_filter:
-        orders = orders.filter(payment_status=payment_filter)
 
     return Response(OrderSerializer(orders, many=True).data)
 
@@ -845,7 +775,7 @@ def admin_orders_list(request):
 @api_view(['GET', 'PUT', 'PATCH'])
 @permission_classes([IsStaffOrAuthorizedRole])
 def admin_order_detail(request, pk):
-    """View or update a single order (admin can change status)."""
+    """View or update a single order."""
     try:
         order = Order.objects.get(pk=pk)
     except Order.DoesNotExist:
@@ -854,20 +784,24 @@ def admin_order_detail(request, pk):
     if request.method == 'GET':
         return Response(OrderSerializer(order).data)
 
+    auth_header = request.headers.get('Authorization', '')
+    is_rider_token = auth_header.startswith('RIDER_TOKEN_')
+
     # PUT or PATCH — update order status
     new_status = request.data.get('status')
     if new_status and new_status in dict(Order.STATUS_CHOICES):
         order.status = new_status
         
         # If a rider picks up the order, assign it to them
-        if new_status == 'on_way' and order.rider is None:
+        if new_status == 'on_way' and is_rider_token:
+            rider_id = auth_header.split('RIDER_TOKEN_')[-1]
             try:
-                if hasattr(request.user, 'profile') and request.user.profile.role == 'RIDER':
-                    order.rider = request.user
-            except Exception:
+                rider_profile = RiderProfile.objects.get(id=rider_id)
+                order.rider = rider_profile
+            except RiderProfile.DoesNotExist:
                 pass
                 
-        order.save(update_fields=['status', 'rider'] if order.rider else ['status'])
+        order.save()
         return Response(OrderSerializer(order).data)
 
     return Response({"error": "Invalid status"}, status=400)
@@ -1234,3 +1168,110 @@ Return ONLY a JSON list of 3 objects:
     })
 
 
+# ════════════════════════════════════════════════════════════════
+# RIDER GPS TRACKING
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def update_rider_location(request):
+    """
+    Rider pings this endpoint with { lat, lng } to update
+    their live GPS position while delivering an order.
+    """
+    auth_header = request.headers.get('Authorization', '')
+    if 'RIDER_TOKEN_' not in auth_header:
+        return Response({"error": "Unauthorized"}, status=401)
+    
+    rider_id = auth_header.split('RIDER_TOKEN_')[-1]
+    try:
+        profile = RiderProfile.objects.get(id=rider_id)
+    except RiderProfile.DoesNotExist:
+        return Response({"error": "Rider not found"}, status=404)
+
+    profile.current_lat = request.data.get('lat')
+    profile.current_lng = request.data.get('lng')
+    profile.save(update_fields=['current_lat', 'current_lng'])
+
+    return Response({"status": "ok"})
+
+@api_view(['GET', 'PUT'])
+@permission_classes([AllowAny])
+def rider_profile_view(request):
+    auth_header = request.headers.get('Authorization', '')
+    if 'RIDER_TOKEN_' not in auth_header:
+        return Response({"error": "Unauthorized"}, status=401)
+    
+    rider_id = auth_header.split('RIDER_TOKEN_')[-1]
+    try:
+        profile = RiderProfile.objects.get(id=rider_id)
+    except RiderProfile.DoesNotExist:
+        return Response({"error": "Rider not found"}, status=404)
+
+    if request.method == 'GET':
+        return Response({
+            "full_name": profile.full_name,
+            "email": profile.email,
+            "phone": profile.phone,
+            "vehicle_type": profile.vehicle_type,
+            "license_number": profile.license_number,
+            "is_available": profile.is_available
+        })
+
+    if request.method == 'PUT':
+        data = request.data
+        profile.full_name = data.get('full_name', profile.full_name)
+        profile.phone = data.get('phone', profile.phone)
+        profile.vehicle_type = data.get('vehicle_type', profile.vehicle_type)
+        profile.license_number = data.get('license_number', profile.license_number)
+        profile.is_available = data.get('is_available', profile.is_available)
+        profile.save()
+
+        return Response({"message": "Profile updated successfully"})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def rider_register_view(request):
+    data = request.data
+    if RiderProfile.objects.filter(email=data.get('email')).exists():
+        return Response({'error': 'This email is already registered as a rider.'}, status=400)
+    
+    rider = RiderProfile.objects.create(
+        full_name=data.get('full_name'),
+        email=data.get('email'),
+        username=data.get('email'),
+        password=make_password(data.get('password')),
+        phone=data.get('phone', '')
+    )
+    
+    return Response({
+        'token': f'RIDER_TOKEN_{rider.id}',
+        'user': {
+            'id': rider.id,
+            'email': rider.email,
+            'full_name': rider.full_name,
+            'role': 'RIDER'
+        }
+    }, status=201)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def rider_login_view(request):
+    email = request.data.get('email')
+    password = request.data.get('password')
+    
+    try:
+        rider = RiderProfile.objects.get(email=email)
+        if check_password(password, rider.password):
+            return Response({
+                'token': f'RIDER_TOKEN_{rider.id}',
+                'user': {
+                    'id': rider.id,
+                    'email': rider.email,
+                    'full_name': rider.full_name,
+                    'role': 'RIDER'
+                }
+            })
+    except RiderProfile.DoesNotExist:
+        pass
+        
+    return Response({'error': 'Invalid rider credentials'}, status=401)

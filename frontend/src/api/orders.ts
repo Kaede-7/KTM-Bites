@@ -20,6 +20,19 @@ export interface OrderItemData {
 }
 
 // A complete order with all its details
+// Rider's live GPS coordinates
+export interface RiderLocation {
+  lat: number;
+  lng: number;
+}
+
+// Rider's contact info for the driver card
+export interface RiderInfo {
+  name: string;
+  phone: string;
+}
+
+// A complete order with all its details
 export interface OrderData {
   id: number;
   order_id: string;        // Human-readable order ID (e.g. "KTM-001")
@@ -39,6 +52,8 @@ export interface OrderData {
   total: number;
   items: OrderItemData[];  // List of items in this order
   created_at: string;      // When the order was placed (ISO date string)
+  rider_location?: RiderLocation | null;  // Live GPS coordinates of rider
+  rider_info?: RiderInfo | null;          // Rider name and phone
 }
 
 // Data needed to place a new order
@@ -82,5 +97,10 @@ export async function getOrder(id: number): Promise<OrderData> {
 export async function cancelOrder(id: number): Promise<{ message: string; order: OrderData }> {
   const { data } = await API.post(`/orders/${id}/cancel/`);
   return data;
+}
+
+/** Update rider's GPS location (called by riders during delivery) */
+export async function updateRiderLocation(lat: number, lng: number): Promise<void> {
+  await API.put('/rider/location/', { lat, lng });
 }
 

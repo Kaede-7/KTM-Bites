@@ -93,6 +93,7 @@ export async function googleLogin(token: string, isAccessToken: boolean = false,
 export interface RegisterData {
   full_name: string;
   email: string;
+  phone?: string;
   password?: string;
   is_google?: boolean;
   role?: string;
@@ -136,5 +137,17 @@ export async function forgotPassword(email: string): Promise<{ message: string }
 
 export async function resetPassword(token: string, new_password: string): Promise<{ message: string }> {
   const { data } = await API.post("/auth/reset-password/", { token, new_password });
+  return data;
+}
+
+export async function riderRegister(payload: RegisterData): Promise<AuthResponse> {
+  const { data } = await API.post("/rider/register/", payload);
+  saveAuth(data);
+  return data;
+}
+
+export async function riderLogin(email: string, password: string): Promise<AuthResponse> {
+  const { data } = await API.post("/rider/login/", { email, password });
+  saveAuth(data);
   return data;
 }

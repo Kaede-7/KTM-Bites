@@ -92,7 +92,7 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    rider = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_orders')
+    rider = models.ForeignKey('RiderProfile', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='placed')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='esewa')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
@@ -180,17 +180,20 @@ class KitchenProfile(models.Model):
 
 
 class RiderProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='rider_profile')
-    email = models.EmailField(max_length=255, blank=True)
-    username = models.CharField(max_length=150, blank=True)
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True)
+    username = models.CharField(max_length=150, unique=True)
+    password = models.CharField(max_length=255) # We will store hashed passwords here
+    phone = models.CharField(max_length=20, blank=True, default='')
     vehicle_type = models.CharField(max_length=50, blank=True)
     license_number = models.CharField(max_length=50, blank=True)
     is_available = models.BooleanField(default=True)
     current_lat = models.FloatField(null=True, blank=True)
     current_lng = models.FloatField(null=True, blank=True)
+    last_login = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Rider: {self.user.username}"
+        return f"Rider: {self.full_name} ({self.email})"
 
 
 class PasswordResetToken(models.Model):
@@ -239,7 +242,3 @@ def manage_user_profiles(sender, instance, created, **kwargs):
         instance.kitchen_profile.email = instance.email
         instance.kitchen_profile.username = instance.username
         instance.kitchen_profile.save()
-    if hasattr(instance, 'rider_profile'):
-        instance.rider_profile.email = instance.email
-        instance.rider_profile.username = instance.username
-        instance.rider_profile.save()

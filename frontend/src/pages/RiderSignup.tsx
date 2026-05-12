@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
-import { register, googleLogin } from "../api/auth";
+import { riderRegister, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
+import AuthCreative from "../components/AuthCreative";
+import { useToast } from "../components/Toast";
+import LoadingAnimation from "../components/LoadingAnimation";
 
 const RiderSignup: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -47,9 +52,10 @@ const RiderSignup: React.FC = () => {
 
     setLoading(true);
     try {
-      await register({
+      await riderRegister({
         full_name: formData.fullName,
         email: formData.email,
+        phone: formData.phone,
         password: formData.password,
         role: 'RIDER'
       });
@@ -106,6 +112,11 @@ const RiderSignup: React.FC = () => {
         <div className="auth-input-wrapper">
           <span className="material-symbols-rounded">mail</span>
           <input type="email" placeholder="Email Address" value={formData.email} onChange={handleChange("email")} required />
+        </div>
+
+        <div className="auth-input-wrapper">
+          <span className="material-symbols-rounded">call</span>
+          <input type="tel" placeholder="Phone Number" value={formData.phone} onChange={handleChange("phone")} required />
         </div>
 
         <div className="auth-input-wrapper">
