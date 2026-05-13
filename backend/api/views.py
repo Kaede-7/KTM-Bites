@@ -590,8 +590,11 @@ def initiate_payment(request):
     a Khalti e-payment session. Returns the Khalti payment_url
     for the frontend to redirect the user to.
     """
-    cart = Cart.objects.get(user=request.user)
-    items = cart.items.all()
+    try:
+        cart = Cart.objects.get(user=request.user)
+        items = cart.items.all()
+    except Cart.DoesNotExist:
+        return Response({"error": "Cart not found"}, status=404)
 
     if not items.exists():
         return Response({"error": "Cart is empty"}, status=400)
@@ -660,10 +663,11 @@ def initiate_payment(request):
             })
         else:
             # Khalti returned an error — mark order as failed
+            print(f"Khalti Error: Status {res.status_code}, Data: {data}")
             order.payment_status = "failed"
             order.save(update_fields=["payment_status"])
             return Response(
-                {"error": "Khalti initiation failed", "details": data},
+                {"error": "Khalti initiation failed", "details": data, "khalti_status": res.status_code},
                 status=400,
             )
     except requests.RequestException as e:
@@ -1130,7 +1134,7 @@ Your job:
 from django.core.cache import cache
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def recommendations_view(request):
     """
     Returns 3 AI-recommended menu items based on past history, time, and weather.
@@ -1139,16 +1143,22 @@ def recommendations_view(request):
     user_cache_key = f"user_recs_{request.user.id}"
     cached_recs = cache.get(user_cache_key)
     if cached_recs:
-        return Response({"recommendations": cached_recs})
+        weather_context = cache.get("ktm_weather_context") or "Pleasant"
+        return Response({
+            "recommendations": cached_recs,
+            "weather": weather_context
+        })
 
     # 1. User's recent order history
-    recent_items = (
-        OrderItem.objects
-        .filter(order__user=request.user)
-        .select_related('menu_item')
-        .order_by('-order__created_at')[:15]
-    )
-    order_history = list({oi.menu_item.name for oi in recent_items})
+    order_history = []
+    if request.user.is_authenticated:
+        recent_items = (
+            OrderItem.objects
+            .filter(order__user=request.user)
+            .select_related('menu_item')
+            .order_by('-order__created_at')[:15]
+        )
+        order_history = list({oi.menu_item.name for oi in recent_items})
 
     # 2. Time context
     hour = datetime.now().hour

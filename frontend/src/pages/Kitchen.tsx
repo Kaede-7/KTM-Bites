@@ -462,7 +462,7 @@ const Kitchen: React.FC = () => {
                   <OrderCard
                     key={order.id}
                     order={order}
-                    variant="preparing"
+                    variant="done"
                     actionLabel=""
                     actionIcon=""
                     actionClass=""
