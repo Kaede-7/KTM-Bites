@@ -649,9 +649,17 @@ def initiate_payment(request):
 
     try:
         res = requests.post(khalti_url, json=payload, headers=headers, timeout=30)
-        data = res.json()
+        
+        # Safely attempt to parse JSON
+        try:
+            data = res.json()
+        except ValueError:
+            # If Khalti returns HTML (e.g. 404 or 500 error page), res.json() fails
+            print(f"🔥 Khalti Initiation Error: Status {res.status_code}")
+            print(f"📄 Raw Response: {res.text[:500]}") 
+            data = {"error": "Khalti returned an invalid response format", "status": res.status_code}
 
-        if res.status_code == 200 and "pidx" in data:
+        if res.status_code == 200 and isinstance(data, dict) and "pidx" in data:
             order.pidx = data["pidx"]
             order.save(update_fields=["pidx"])
             # Clear cart only after successful initiation
@@ -663,7 +671,7 @@ def initiate_payment(request):
             })
         else:
             # Khalti returned an error — mark order as failed
-            print(f"Khalti Error: Status {res.status_code}, Data: {data}")
+            print(f"❌ Khalti Error: Status {res.status_code}, Data: {data}")
             order.payment_status = "failed"
             order.save(update_fields=["payment_status"])
             return Response(
@@ -671,6 +679,7 @@ def initiate_payment(request):
                 status=400,
             )
     except requests.RequestException as e:
+        print(f"📡 Network Error connecting to Khalti: {str(e)}")
         order.payment_status = "failed"
         order.save(update_fields=["payment_status"])
         return Response(
@@ -711,8 +720,14 @@ def verify_payment(request):
 
     try:
         res = requests.post(lookup_url, json={"pidx": pidx}, headers=headers, timeout=30)
-        data = res.json()
-    except requests.RequestException:
+        try:
+            data = res.json()
+        except ValueError:
+            print(f"🔥 Khalti Lookup Error: Status {res.status_code}")
+            print(f"📄 Raw Response: {res.text[:500]}")
+            data = {"status": "Error", "message": "Invalid response format"}
+    except requests.RequestException as e:
+        print(f"📡 Network Error during Khalti lookup: {str(e)}")
         from django.shortcuts import redirect
         return redirect(f"{frontend_base}/payment-failed?order_id={order.id}&reason=lookup_error")
 
