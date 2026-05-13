@@ -98,11 +98,6 @@
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   min-width: 220px;
-  transition: transform 0.2s;
-}
-
-.tracking-driver-card:hover {
-  transform: translateY(-2px);
 }
 
 .tracking-driver-avatar {
@@ -135,10 +130,25 @@
   text-overflow: ellipsis;
 }
 
-.tracking-driver-phone {
+.tracking-driver-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.driver-bike, .driver-phone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: #8b7d72;
-  margin-top: 2px;
+}
+
+.driver-bike .material-symbols-rounded,
+.driver-phone .material-symbols-rounded {
+  font-size: 14px;
+  color: #f28b46;
 }
 
 .tracking-driver-call {
@@ -198,7 +208,7 @@
 .marker-icon-customer {
   width: 36px;
   height: 36px;
-  background: #2a2420;
+  background: #f28b46;
   border-radius: 50%;
   display: flex;
   align-items: center;

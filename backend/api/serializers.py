@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem, PasswordResetToken
+from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem, PasswordResetToken, RiderProfile
 
 
 # ───── Auth Serializers ─────
@@ -50,15 +50,19 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.role = role
         user.profile.save()
 
-        # Create RiderProfile automatically for rider registrations
-        if role == 'RIDER':
-            RiderProfile.objects.get_or_create(
-                user=user,
-                defaults={'phone': phone, 'email': user.email, 'username': user.username}
-            )
-
         user.save()
         return user
+
+
+class RiderProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RiderProfile
+        fields = [
+            'id', 'full_name', 'email', 'username', 'phone', 
+            'vehicle_type', 'license_number', 'is_available', 
+            'last_login'
+        ]
+        read_only_fields = ['last_login']
 
 
 class LoginSerializer(serializers.Serializer):
@@ -218,7 +222,8 @@ class OrderSerializer(serializers.ModelSerializer):
         if obj.rider:
             return {
                 'name': obj.rider.full_name,
-                'phone': obj.rider.phone
+                'phone': obj.rider.phone,
+                'vehicle_type': obj.rider.vehicle_type
             }
         return None
 

@@ -338,9 +338,9 @@
   padding: 14px 20px;
   border-radius: 16px;
   margin-bottom: 24px;
-  background: rgba(242, 139, 70, 0.08);
-  border: 1px solid rgba(242, 139, 70, 0.22);
-  color: #c05a0e;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #2a2420;
   font-size: 14px;
   font-weight: 500;
   flex-wrap: wrap;
@@ -359,7 +359,7 @@
 
 .tracking-cancel-banner strong {
   font-weight: 800;
-  color: #e06c22;
+  color: #2a2420;
   font-variant-numeric: tabular-nums;
 }
 
@@ -395,9 +395,9 @@
   padding: 14px 20px;
   border-radius: 16px;
   margin-bottom: 24px;
-  background: rgba(239, 68, 68, 0.07);
-  border: 1px solid rgba(239, 68, 68, 0.18);
-  color: #ef4444;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #2a2420;
   font-size: 14px;
   font-weight: 600;
 }
@@ -417,9 +417,9 @@
 .tracking-error {
   padding: 12px 18px;
   border-radius: 12px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #2a2420;
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 16px;

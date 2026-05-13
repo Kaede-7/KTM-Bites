@@ -229,6 +229,17 @@
   font-family: inherit;
 }
 
+.kitchen-header-icon {
+  width: 44px;
+  height: 44px;
+  background: #f28b46;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .kitchen-login-input-wrapper input::placeholder {
   color: var(--muted);
 }
@@ -307,15 +318,15 @@
 }
 
 .kitchen-login-alert-error {
-  background: rgba(212, 74, 58, 0.1);
-  border: 1px solid rgba(212, 74, 58, 0.3);
-  color: var(--red);
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--dark);
 }
 
 .kitchen-login-alert-success {
-  background: rgba(58, 157, 92, 0.1);
-  border: 1px solid rgba(58, 157, 92, 0.3);
-  color: var(--green);
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--dark);
 }
 
 /* Demo credentials box */
@@ -807,7 +818,6 @@
   font-size: 12px;
   color: var(--muted);
 }
-}
 
 .kitchen-card-item-name {
   font-size: 13px;
@@ -845,6 +855,24 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.order-card-footer button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #f28b46;
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(242, 139, 70, 0.25);
 }
 
 .kitchen-card-total {
@@ -892,6 +920,11 @@
 
 .kitchen-action-btn.btn-start:hover:not(:disabled) {
   background: #e07a35;
+  transform: translateY(-1px);
+}
+
+.kitchen-action-btn.order-card-footer button:hover {
+  background: #e06c22;
   transform: translateY(-1px);
 }
 
@@ -974,18 +1007,16 @@
 .kitchen-toast .material-symbols-rounded { font-size: 20px; }
 
 .kitchen-toast.toast-success {
-  border: 1px solid rgba(16,185,129,0.2);
-  border-left: 4px solid #10b981;
+  border: 1px solid rgba(0,0,0,0.1);
 }
 
-.kitchen-toast.toast-success .material-symbols-rounded { color: #10b981; }
+.kitchen-toast.toast-success .material-symbols-rounded { color: #2a2420; }
 
 .kitchen-toast.toast-error {
-  border: 1px solid rgba(239,68,68,0.2);
-  border-left: 4px solid #ef4444;
+  border: 1px solid rgba(0,0,0,0.1);
 }
 
-.kitchen-toast.toast-error .material-symbols-rounded { color: #ef4444; }
+.kitchen-toast.toast-error .material-symbols-rounded { color: #2a2420; }
 
 .kitchen-toast-close {
   background: none;

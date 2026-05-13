@@ -193,3 +193,42 @@ export const deleteUser = async (id: number) => {
     handleError(error as AxiosError<ErrorResponse>);
   }
 };
+
+// ═══════════════════════════════════════════
+// RIDERS
+// ═══════════════════════════════════════════
+
+export const fetchAllRiders = async () => {
+  try {
+    const response = await API.get("/admin/riders/");
+    return response.data;
+  } catch (error) {
+    handleError(error as AxiosError<ErrorResponse>);
+  }
+};
+
+export const createRider = async (data: any) => {
+  try {
+    const response = await API.post("/admin/riders/", data);
+    return response.data;
+  } catch (error) {
+    handleError(error as AxiosError<ErrorResponse>);
+  }
+};
+
+export const updateRider = async (id: number, data: any) => {
+  try {
+    const response = await API.put("/admin/riders/", { ...data, id });
+    return response.data;
+  } catch (error) {
+    handleError(error as AxiosError<ErrorResponse>);
+  }
+};
+
+export const deleteRider = async (id: number) => {
+  try {
+    await API.delete("/admin/riders/", { data: { id } });
+  } catch (error) {
+    handleError(error as AxiosError<ErrorResponse>);
+  }
+};

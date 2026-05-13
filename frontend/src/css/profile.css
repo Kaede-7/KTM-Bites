@@ -25,15 +25,13 @@
 .profile-toast-success {
   background: #fff;
   color: #2a2420;
-  border: 1px solid rgba(16,185,129,0.2);
-  border-left: 4px solid #10b981;
+  border: 1px solid rgba(0,0,0,0.08);
 }
 
 .profile-toast-error {
   background: #fff;
   color: #2a2420;
-  border: 1px solid rgba(239,68,68,0.2);
-  border-left: 4px solid #ef4444;
+  border: 1px solid rgba(0,0,0,0.08);
 }
 
 .profile-toast .material-symbols-rounded {
@@ -41,8 +39,8 @@
   flex-shrink: 0;
 }
 
-.profile-toast-success .material-symbols-rounded { color: #10b981; }
-.profile-toast-error .material-symbols-rounded { color: #ef4444; }
+.profile-toast-success .material-symbols-rounded { color: #2a2420; }
+.profile-toast-error .material-symbols-rounded { color: #2a2420; }
 
 .profile-toast-close {
   margin-left: auto;
@@ -220,7 +218,7 @@
   border-radius: 16px;
   padding: 4px;
   margin-bottom: 20px;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(242,139,70,0.1);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -260,15 +258,15 @@
   background: #fff;
   border-radius: 24px;
   padding: 32px;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(242,139,70,0.1);
   margin-bottom: 20px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 16px rgba(242,139,70,0.05);
 }
 
 .profile-section-title {
   font-size: 16px;
   font-weight: 700;
-  color: #2a2420;
+  color: #f28b46;
   margin-bottom: 24px;
   display: flex;
   align-items: center;
@@ -299,7 +297,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #8b7d72;
+  color: #f28b46;
 }
 
 /* Input wrapper with icon */
@@ -308,7 +306,7 @@
   align-items: center;
   gap: 10px;
   padding: 0 14px;
-  border: 2px solid rgba(0,0,0,0.08);
+  border: 2px solid rgba(242,139,70,0.2);
   border-radius: 14px;
   background: #fdf6f0;
   transition: border-color 0.2s, background 0.2s;
@@ -321,7 +319,7 @@
 
 .profile-input-wrapper .material-symbols-rounded {
   font-size: 18px;
-  color: #b8a89a;
+  color: #f28b46;
   flex-shrink: 0;
 }
 
@@ -343,7 +341,7 @@
   width: 100%;
   box-sizing: border-box;
   padding: 14px;
-  border: 2px solid rgba(0,0,0,0.08);
+  border: 2px solid rgba(242,139,70,0.2);
   border-radius: 14px;
   font-size: 14px;
   color: #2a2420;
@@ -366,7 +364,7 @@
   align-items: center;
   gap: 10px;
   padding: 0 14px;
-  border: 2px solid rgba(0,0,0,0.08);
+  border: 2px solid rgba(242,139,70,0.2);
   border-radius: 14px;
   background: #fdf6f0;
   transition: border-color 0.2s, background 0.2s;
@@ -379,7 +377,7 @@
 
 .profile-password-wrapper .material-symbols-rounded {
   font-size: 18px;
-  color: #b8a89a;
+  color: #f28b46;
   flex-shrink: 0;
 }
 
@@ -402,7 +400,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  color: #b8a89a;
+  color: #f28b46;
   padding: 4px;
   transition: color 0.2s;
 }
@@ -413,8 +411,8 @@
 /* Save Button */
 .profile-save-btn {
   padding: 13px 28px;
-  background: #f28b46;
-  color: #fff;
+  background: linear-gradient(135deg, #f28b46 0%, #e06c22 100%);
+  color: white;
   border: none;
   border-radius: 14px;
   font-size: 14px;
@@ -422,16 +420,15 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
-  box-shadow: 0 4px 12px rgba(242,139,70,0.25);
+  box-shadow: 0 8px 24px rgba(242, 139, 70, 0.3);
 }
 
 .profile-save-btn:hover:not(:disabled) {
-  background: #e07a35;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(242,139,70,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(242, 139, 70, 0.4);
 }
 
 .profile-save-btn:disabled {

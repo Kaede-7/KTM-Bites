@@ -54,8 +54,8 @@
   transition: opacity 0.2s ease;
   user-select: none;
   padding-left: 4px;
-  padding-right: 6px; /* Prevents the italic 's' from being clipped by background-clip */
-  margin-bottom: 3px; /* Lifts the text up slightly relative to the mascot */
+  padding-right: 6px; 
+  margin-bottom: 3px; 
 }
 
 .landing-nav-logo-wordmark em {

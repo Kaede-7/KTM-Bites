@@ -8,9 +8,21 @@ import { logout as authLogout, getStoredUser, getToken } from "../api/auth";
 import { fetchKitchenOrders, updateOrderStatus, type KitchenOrder } from "../api/kitchen";
 import { updateRiderLocation } from "../api/orders";
 import { fetchRiderProfile } from "../api/rider";
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useToast } from "../components/Toast";
+import { geocodeAddress, KATHMANDU_CENTER } from "../api/geocode";
+import { useRef } from "react";
+
+// Smooth map panner — flies the map to the rider's current position
+const MapUpdater: React.FC<{ center: [number, number]; zoom?: number }> = ({ center, zoom }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, zoom ?? map.getZoom(), { duration: 1.5, easeLinearity: 0.2 });
+  }, [center[0], center[1]]);
+  return null;
+};
 
 const Rider: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +38,12 @@ const Rider: React.FC = () => {
   // Live GPS state
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [routeLoading, setRouteLoading] = useState<number | null>(null);
+  const { showToast } = useToast();
+  const [simulatingOrderId, setSimulatingOrderId] = useState<number | null>(null);
+  const simulationIntervalRef = useRef<any>(null);
+  const [simulationRoute, setSimulationRoute] = useState<[number, number][]>([]);
+  const [simulationDest, setSimulationDest] = useState<{ lat: number; lng: number } | null>(null);
 
   // Restore session and redirect if needed
   useEffect(() => {
@@ -60,7 +78,10 @@ const Rider: React.FC = () => {
     loadOrders();
     checkProfile();
     const interval = setInterval(() => loadOrders(true), 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (simulationIntervalRef.current) clearInterval(simulationIntervalRef.current);
+    };
   }, [riderUser]);
 
   const checkProfile = async () => {
@@ -105,11 +126,116 @@ const Rider: React.FC = () => {
   const pickedOrders = orders.filter((o) => o.status === "on_way" && o.rider === riderUser?.id);
   const droppedOrders = orders.filter((o) => o.status === "delivered" && o.rider === riderUser?.id);
 
+  // ── Simulation Logic ──────────────────────────────────────────
+
+  const stopSimulation = () => {
+    if (simulationIntervalRef.current) {
+      clearInterval(simulationIntervalRef.current);
+      simulationIntervalRef.current = null;
+    }
+    setSimulatingOrderId(null);
+    setSimulationRoute([]);
+    setSimulationDest(null);
+    showToast("Simulation stopped.", "info");
+  };
+
+  const handleSimulateDelivery = async (order: KitchenOrder) => {
+    if (simulatingOrderId) {
+      stopSimulation();
+      return;
+    }
+
+    setRouteLoading(order.id);
+    showToast("Calculating road-following route...", "info");
+
+    try {
+      // 1. Get destination coordinates
+      const targetPos = await geocodeAddress(order.address, order.city);
+      setSimulationDest(targetPos);
+      
+      // 2. Get current rider coordinates (fallback to Kathmandu if null)
+      const currentPos = myLocation || KATHMANDU_CENTER;
+
+      // 3. Fetch OSRM route
+      const url = `https://router.project-osrm.org/route/v1/driving/${currentPos.lng},${currentPos.lat};${targetPos.lng},${targetPos.lat}?geometries=geojson&overview=full`;
+      const routeRes = await fetch(url);
+      const routeData = await routeRes.json();
+
+      if (routeData.code !== 'Ok' || !routeData.routes.length) {
+        throw new Error("Could not find a road route for simulation.");
+      }
+
+      // OSRM returns [lng, lat]
+      let coords: [number, number][] = routeData.routes[0].geometry.coordinates;
+
+      // Filter out duplicate consecutive points to ensure constant movement
+      coords = coords.filter((c, i) => i === 0 || c[0] !== coords[i-1][0] || c[1] !== coords[i-1][1]);
+
+      if (coords.length < 2) {
+        // If route is too short, just use start and end
+        coords = [[currentPos.lng, currentPos.lat], [targetPos.lng, targetPos.lat]];
+      }
+
+      const totalSteps = coords.length;
+      const routeLatLngs: [number, number][] = coords.map(([lng, lat]) => [lat, lng]);
+      
+      setSimulationRoute(routeLatLngs);
+      setSimulatingOrderId(order.id);
+      setRouteLoading(null);
+      showToast("Simulation started!", "success");
+
+      // We want about 30-40 steps total for a ~30-40s simulation (1 step/sec)
+      const stepJump = Math.max(1, Math.floor(totalSteps / 35));
+      let currentStep = 0;
+
+      const moveToStep = (idx: number) => {
+        const safeIdx = Math.min(idx, totalSteps - 1);
+        const [lng, lat] = coords[safeIdx];
+        setMyLocation({ lat, lng });
+        updateRiderLocation(lat, lng).catch(err => console.error("Sim location update failed:", err));
+      };
+
+      // Initial move
+      moveToStep(0);
+      currentStep += stepJump;
+
+      simulationIntervalRef.current = setInterval(() => {
+        if (currentStep >= totalSteps) {
+          // Final snap
+          moveToStep(totalSteps - 1);
+          
+          // Small delay before stopping to let the map finish its last flyTo
+          setTimeout(() => {
+            stopSimulation();
+            handleDrop(order.id);
+            showToast("Simulation complete!", "success");
+          }, 1000);
+          
+          if (simulationIntervalRef.current) {
+            clearInterval(simulationIntervalRef.current);
+            simulationIntervalRef.current = null;
+          }
+          return;
+        }
+
+        moveToStep(currentStep);
+        currentStep += stepJump;
+      }, 1000); // Faster updates (1s) for smoother movement
+
+    } catch (err: any) {
+      showToast(err.message || "Simulation failed to start.", "error");
+      setSimulatingOrderId(null);
+      setRouteLoading(null);
+      setSimulationRoute([]);
+      setSimulationDest(null);
+    }
+  };
+
   // ── GPS Location Pinger ────────────────────────────────────
   // Always active when rider is logged in so their position is
   // visible on the dashboard map and sent to the backend.
   useEffect(() => {
-    if (!riderUser) return;
+    if (!riderUser || simulatingOrderId) return;
 
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -127,7 +253,7 @@ const Rider: React.FC = () => {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [riderUser]);
+  }, [riderUser, simulatingOrderId]);
 
   // ══════════════════════════════════════════
   // DASHBOARD VIEW
@@ -260,12 +386,37 @@ const Rider: React.FC = () => {
                   scrollWheelZoom={true}
                   zoomControl={true}
                   style={{ width: '100%', height: '100%', borderRadius: '16px' }}
-                  key={`${myLocation.lat.toFixed(4)}-${myLocation.lng.toFixed(4)}`}
                 >
                   <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
+
+                  {/* Smooth pan to rider position */}
+                  <MapUpdater center={[myLocation.lat, myLocation.lng]} zoom={simulatingOrderId ? 15 : 16} />
+
+                  {/* Route polyline during simulation */}
+                  {simulationRoute.length > 0 && (
+                    <Polyline
+                      positions={simulationRoute}
+                      pathOptions={{ color: '#7c3aed', weight: 4, opacity: 0.7, dashArray: '8 6' }}
+                    />
+                  )}
+
+                  {/* Destination marker during simulation */}
+                  {simulationDest && (
+                    <Marker
+                      position={[simulationDest.lat, simulationDest.lng]}
+                      icon={L.divIcon({
+                        className: 'tracking-marker-dest',
+                        html: `<div style="background:#ef4444;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(239,68,68,0.5);border:3px solid white;"><span class=\"material-symbols-rounded\" style=\"color:white;font-size:18px;\">flag</span></div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16],
+                      })}
+                    />
+                  )}
+
+                  {/* Rider bike marker */}
                   <Marker
                     position={[myLocation.lat, myLocation.lng]}
                     icon={L.divIcon({
@@ -393,10 +544,22 @@ const Rider: React.FC = () => {
                         <button
                           className="rider-action-btn rider-btn-drop"
                           onClick={() => handleDrop(order.id)}
-                          disabled={actionLoading === order.id}
+                          disabled={actionLoading === order.id || simulatingOrderId === order.id}
                         >
                           <span className="material-symbols-rounded">done_all</span>
                           {actionLoading === order.id ? "Delivering…" : "Drop Off"}
+                        </button>
+                        
+                        <button
+                          className={`rider-action-btn ${simulatingOrderId === order.id ? 'rider-btn-sim-active' : 'rider-btn-sim'}`}
+                          onClick={() => handleSimulateDelivery(order)}
+                          disabled={routeLoading === order.id}
+                          title={simulatingOrderId === order.id ? "Stop Simulation" : "Simulate Delivery"}
+                        >
+                          <span className="material-symbols-rounded">
+                            {routeLoading === order.id ? "sync" : (simulatingOrderId === order.id ? "stop_circle" : "route")}
+                          </span>
+                          {routeLoading === order.id ? "Calculating..." : (simulatingOrderId === order.id ? "Stop" : "Simulate")}
                         </button>
                       </div>
                     </div>

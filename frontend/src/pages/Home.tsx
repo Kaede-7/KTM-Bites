@@ -282,7 +282,7 @@ const Home: React.FC = () => {
                     <div className="hf-item-overlay">
                       <div className="hf-item-info">
                         <h4>{item.name}</h4>
-                        <p>{item.category}</p>
+                        <p>{item.category_name} • Rs. {item.price}</p>
                       </div>
                       <button className="hf-item-btn" onClick={(e) => handleAddToCart(e, item.id)}>
                         <span className="material-symbols-rounded" style={{fontSize: '20px'}}>add</span>

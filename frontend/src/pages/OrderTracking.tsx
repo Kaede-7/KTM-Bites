@@ -55,10 +55,13 @@ const OrderTracking: React.FC = () => {
     fetchOrder();
   }, [id]);
 
-  // Poll for live updates every 10 seconds when order is active
+  // Poll for live updates — fast when rider is on the way, slower otherwise
   useEffect(() => {
     if (!order) return;
     if (order.status === 'delivered' || order.status === 'cancelled') return;
+
+    // Poll every 2s when rider is actively delivering, 10s otherwise
+    const interval = order.status === 'on_way' ? 2000 : 10000;
 
     const pollInterval = setInterval(async () => {
       try {
@@ -72,7 +75,7 @@ const OrderTracking: React.FC = () => {
       } catch (err) {
         console.error('Polling error:', err);
       }
-    }, 10000);
+    }, interval);
 
     return () => clearInterval(pollInterval);
   }, [order?.status, id]);

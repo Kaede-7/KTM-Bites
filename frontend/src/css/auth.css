@@ -296,9 +296,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: rgba(0, 0, 0, 0.05);
+  color: #2a2420;
   padding: 12px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   font-size: 13px;
   font-weight: 500;
@@ -733,6 +734,38 @@
 .rider-btn-drop:hover:not(:disabled) {
   background: #0d9668;
   transform: translateY(-1px);
+}
+
+/* Simulate Delivery Button */
+.rider-btn-sim {
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.18);
+}
+
+.rider-btn-sim:hover:not(:disabled) {
+  background: #7c3aed;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Simulate Active (Stop) State */
+.rider-btn-sim-active {
+  background: #ef4444;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  animation: simPulse 1.5s ease-in-out infinite;
+}
+
+.rider-btn-sim-active:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+@keyframes simPulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5); }
 }
 
 .rider-empty {

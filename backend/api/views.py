@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.core.mail import send_mail
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -33,7 +33,7 @@ from .serializers import (
     ForgotPasswordSerializer, ResetPasswordSerializer,
     CategorySerializer, MenuItemSerializer, MenuItemDetailSerializer,
     CartSerializer, AddToCartSerializer, UpdateCartItemSerializer,
-    OrderSerializer, PlaceOrderSerializer,
+    OrderSerializer, PlaceOrderSerializer, RiderProfileSerializer,
 )
 
 # ========================
@@ -677,6 +677,7 @@ def initiate_payment(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@throttle_classes([])
 def verify_payment(request):
     """
     Khalti redirects the user's browser here after payment.
@@ -758,7 +759,8 @@ def admin_orders_list(request):
 
     if is_rider_token:
         # If it is a rider, filter to only show ready-for-pickup or their own active orders
-        rider_id = auth_header.split('RIDER_TOKEN_')[-1]
+        # Split and take the last part to handle "Bearer RIDER_TOKEN_1" or just "RIDER_TOKEN_1"
+        rider_id = auth_header.split('RIDER_TOKEN_')[-1].strip()
         from django.db.models import Q
         orders = orders.filter(
             Q(status='ready_for_pickup') | Q(rider_id=rider_id)
@@ -785,7 +787,7 @@ def admin_order_detail(request, pk):
         return Response(OrderSerializer(order).data)
 
     auth_header = request.headers.get('Authorization', '')
-    is_rider_token = auth_header.startswith('RIDER_TOKEN_')
+    is_rider_token = 'RIDER_TOKEN_' in auth_header
 
     # PUT or PATCH — update order status
     new_status = request.data.get('status')
@@ -794,7 +796,7 @@ def admin_order_detail(request, pk):
         
         # If a rider picks up the order, assign it to them
         if new_status == 'on_way' and is_rider_token:
-            rider_id = auth_header.split('RIDER_TOKEN_')[-1]
+            rider_id = auth_header.split('RIDER_TOKEN_')[-1].strip()
             try:
                 rider_profile = RiderProfile.objects.get(id=rider_id)
                 order.rider = rider_profile
@@ -888,6 +890,70 @@ def admin_users_list(request):
     if request.method == 'DELETE':
         user.delete()
         return Response({"message": "User deleted successfully"}, status=204)
+
+
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@permission_classes([IsAdmin])
+def admin_riders_list(request):
+    """CRUD for riders (admin)."""
+    if request.method == 'GET':
+        riders = RiderProfile.objects.all().order_by('full_name')
+        serializer = RiderProfileSerializer(riders, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
+        # Create a new rider
+        email = request.data.get('email')
+        password = request.data.get('password')
+        if not email or not password:
+            return Response({"error": "Email and password are required"}, status=400)
+        if RiderProfile.objects.filter(email=email).exists():
+            return Response({"error": "Email already in use"}, status=400)
+            
+        rider = RiderProfile.objects.create(
+            full_name=request.data.get('full_name', ''),
+            email=email,
+            username=email,
+            password=make_password(password),
+            phone=request.data.get('phone', ''),
+            vehicle_type=request.data.get('vehicle_type', ''),
+            license_number=request.data.get('license_number', '')
+        )
+        return Response({"message": "Rider created successfully", "id": rider.id}, status=201)
+
+    # For PUT and DELETE, id is required
+    rider_id = request.data.get('id')
+    if not rider_id:
+        return Response({"error": "id is required"}, status=400)
+
+    try:
+        rider = RiderProfile.objects.get(pk=rider_id)
+    except RiderProfile.DoesNotExist:
+        return Response({"error": "Rider not found"}, status=404)
+
+    if request.method == 'PUT':
+        # Update rider
+        rider.full_name = request.data.get('full_name', rider.full_name)
+        new_email = request.data.get('email', rider.email)
+        if new_email != rider.email and RiderProfile.objects.filter(email=new_email).exists():
+            return Response({"error": "Email already in use"}, status=400)
+        rider.email = new_email
+        rider.username = new_email
+        
+        if 'password' in request.data and request.data['password']:
+            rider.password = make_password(request.data['password'])
+        
+        rider.phone = request.data.get('phone', rider.phone)
+        rider.vehicle_type = request.data.get('vehicle_type', rider.vehicle_type)
+        rider.license_number = request.data.get('license_number', rider.license_number)
+        rider.is_available = request.data.get('is_available', rider.is_available)
+        
+        rider.save()
+        return Response({"message": "Rider updated successfully"})
+
+    if request.method == 'DELETE':
+        rider.delete()
+        return Response({"message": "Rider deleted successfully"}, status=204)
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
@@ -1095,21 +1161,26 @@ def recommendations_view(request):
     weather_cache_key = "ktm_weather_context"
     weather_context = cache.get(weather_cache_key)
     
-    if not weather_context and settings.OPENWEATHER_API_KEY:
-        try:
-            weather_resp = requests.get(
-                "https://api.openweathermap.org/data/2.5/weather",
-                params={"q": "Kathmandu", "appid": settings.OPENWEATHER_API_KEY, "units": "metric"},
-                timeout=2, # Reduced timeout
-            )
-            if weather_resp.status_code == 200:
-                wd = weather_resp.json()
-                temp = wd['main']['temp']
-                desc = wd['weather'][0]['description']
-                weather_context = f"{desc}, {temp:.0f}°C"
-                cache.set(weather_cache_key, weather_context, 1800)
-        except Exception:
-            weather_context = "pleasant"
+    if not weather_context:
+        if settings.OPENWEATHER_API_KEY:
+            try:
+                weather_resp = requests.get(
+                    "https://api.openweathermap.org/data/2.5/weather",
+                    params={"q": "Kathmandu", "appid": settings.OPENWEATHER_API_KEY, "units": "metric"},
+                    timeout=2,
+                )
+                if weather_resp.status_code == 200:
+                    wd = weather_resp.json()
+                    temp = wd['main']['temp']
+                    desc = wd['weather'][0]['description'].capitalize()
+                    weather_context = f"{desc}, {temp:.0f}°C"
+                    cache.set(weather_cache_key, weather_context, 1800)
+            except Exception:
+                pass
+        
+        # Final fallback if API fails or key is missing
+        if not weather_context:
+            weather_context = "Pleasant"
 
     # 4. Full menu for AI context
     menu_items = MenuItem.objects.filter(is_available=True).select_related('category')
@@ -1181,12 +1252,13 @@ def update_rider_location(request):
     if 'RIDER_TOKEN_' not in auth_header:
         return Response({"error": "Unauthorized"}, status=401)
     
-    rider_id = auth_header.split('RIDER_TOKEN_')[-1]
+    rider_id = auth_header.split('RIDER_TOKEN_')[-1].strip()
     try:
         profile = RiderProfile.objects.get(id=rider_id)
     except RiderProfile.DoesNotExist:
         return Response({"error": "Rider not found"}, status=404)
 
+    print(f"DEBUG: Updating location for rider {rider_id}: lat={request.data.get('lat')}, lng={request.data.get('lng')}")
     profile.current_lat = request.data.get('lat')
     profile.current_lng = request.data.get('lng')
     profile.save(update_fields=['current_lat', 'current_lng'])
@@ -1200,7 +1272,7 @@ def rider_profile_view(request):
     if 'RIDER_TOKEN_' not in auth_header:
         return Response({"error": "Unauthorized"}, status=401)
     
-    rider_id = auth_header.split('RIDER_TOKEN_')[-1]
+    rider_id = auth_header.split('RIDER_TOKEN_')[-1].strip()
     try:
         profile = RiderProfile.objects.get(id=rider_id)
     except RiderProfile.DoesNotExist:
@@ -1232,15 +1304,17 @@ def rider_profile_view(request):
 @permission_classes([AllowAny])
 def rider_register_view(request):
     data = request.data
-    if RiderProfile.objects.filter(email=data.get('email')).exists():
+    email = data.get('email', '').strip().lower()
+    
+    if RiderProfile.objects.filter(email=email).exists():
         return Response({'error': 'This email is already registered as a rider.'}, status=400)
     
     rider = RiderProfile.objects.create(
-        full_name=data.get('full_name'),
-        email=data.get('email'),
-        username=data.get('email'),
+        full_name=data.get('full_name', '').strip(),
+        email=email,
+        username=email,
         password=make_password(data.get('password')),
-        phone=data.get('phone', '')
+        phone=data.get('phone', '').strip()
     )
     
     return Response({
@@ -1256,11 +1330,11 @@ def rider_register_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def rider_login_view(request):
-    email = request.data.get('email')
-    password = request.data.get('password')
+    email = request.data.get('email', '').strip()
+    password = request.data.get('password', '')
     
     try:
-        rider = RiderProfile.objects.get(email=email)
+        rider = RiderProfile.objects.get(email__iexact=email)
         if check_password(password, rider.password):
             return Response({
                 'token': f'RIDER_TOKEN_{rider.id}',
@@ -1274,4 +1348,4 @@ def rider_login_view(request):
     except RiderProfile.DoesNotExist:
         pass
         
-    return Response({'error': 'Invalid rider credentials'}, status=401)
+    return Response({'error': 'Invalid rider credentials. Please check your email and password.'}, status=401)
