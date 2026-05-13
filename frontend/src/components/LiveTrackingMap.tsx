@@ -95,6 +95,26 @@ const FitBounds: React.FC<FitBoundsProps> = ({ riderPos, customerPos }) => {
   return null;
 };
 
+// ── Smooth Map Panner ────────────────────────────────────────
+// Flies the map to follow the rider's position on each update
+const MapPanner: React.FC<{ position: LatLng }> = ({ position }) => {
+  const map = useMap();
+  const isFirst = useRef(true);
+
+  useEffect(() => {
+    if (isFirst.current) {
+      isFirst.current = false;
+      return; // Skip the initial render (FitBounds handles that)
+    }
+    map.flyTo([position.lat, position.lng], map.getZoom(), {
+      duration: 2.5,
+      easeLinearity: 0.2,
+    });
+  }, [position.lat, position.lng]);
+
+  return null;
+};
+
 // ── Main Component ───────────────────────────────────────────
 
 interface LiveTrackingMapProps {
@@ -204,6 +224,9 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
 
           {/* Auto-fit bounds */}
           <FitBounds riderPos={riderPos} customerPos={customerPos} />
+
+          {/* Smooth pan to follow rider */}
+          <MapPanner position={riderPos} />
         </MapContainer>
 
         {/* Driver Info Card */}
@@ -214,8 +237,17 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
             </div>
             <div className="tracking-driver-details">
               <div className="tracking-driver-name">{riderInfo.name}</div>
-              <div className="tracking-driver-phone">
-                {riderInfo.phone ? riderInfo.phone : "No contact number"}
+              <div className="tracking-driver-meta">
+                {riderInfo.vehicle_type && (
+                  <span className="driver-bike">
+                    <span className="material-symbols-rounded">two_wheeler</span>
+                    {riderInfo.vehicle_type}
+                  </span>
+                )}
+                <span className="driver-phone">
+                  <span className="material-symbols-rounded">call</span>
+                  {riderInfo.phone ? riderInfo.phone : "No contact"}
+                </span>
               </div>
             </div>
           </div>

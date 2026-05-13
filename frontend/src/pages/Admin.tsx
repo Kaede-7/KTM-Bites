@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "../css/admin.css";
 import "../css/auth.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 import * as adminAPI from "../api/admin";
 import * as authAPI from "../api/auth";
+import { geocodeAddress, KATHMANDU_CENTER } from "../api/geocode";
+import API from "../api/axios";
 import LoadingAnimation from "../components/LoadingAnimation";
 import AuthCreative from "../components/AuthCreative";
+import { useToast } from "../components/Toast";
 
 
 interface MenuItem {
@@ -37,9 +40,12 @@ interface Order {
   full_name: string;
   phone: string;
   address: string;
+  city: string;
   total: number;
   items?: any[];
   created_at: string;
+  rider?: number;
+  rider_location?: { lat: number, lng: number };
 }
 
 interface Category {
@@ -55,7 +61,20 @@ interface User {
   phone?: string;
 }
 
+interface Rider {
+  id?: number;
+  full_name: string;
+  email: string;
+  username: string;
+  phone: string;
+  vehicle_type?: string;
+  license_number?: string;
+  is_available?: boolean;
+  password?: string;
+}
+
 const Admin: React.FC = () => {
+  const { showToast } = useToast();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [email, setEmail] = useState("");
@@ -93,9 +112,26 @@ const Admin: React.FC = () => {
     password: "",
   });
 
+  // Riders State
+  const [riders, setRiders] = useState<Rider[]>([]);
+  const [showRiderModal, setShowRiderModal] = useState(false);
+  const [editingRider, setEditingRider] = useState<Rider | null>(null);
+  const [riderForm, setRiderForm] = useState<Rider>({
+    full_name: "",
+    email: "",
+    username: "",
+    phone: "",
+    vehicle_type: "",
+    license_number: "",
+    is_available: true,
+    password: "",
+  });
+
   // Loading States
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [simulatingOrderId, setSimulatingOrderId] = useState<number | null>(null);
+  const simulationIntervalRef = useRef<any>(null);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -141,6 +177,9 @@ const Admin: React.FC = () => {
       } else if (currentSection === "users") {
         const userData = await adminAPI.fetchAllUsers();
         setUsers(userData);
+      } else if (currentSection === "riders") {
+        const riderData = await adminAPI.fetchAllRiders();
+        setRiders(riderData);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load data");
@@ -323,6 +362,161 @@ const Admin: React.FC = () => {
     }
   };
 
+  const handleAddRider = () => {
+    setEditingRider(null);
+    setRiderForm({
+      full_name: "",
+      email: "",
+      username: "",
+      phone: "",
+      vehicle_type: "",
+      license_number: "",
+      is_available: true,
+      password: "",
+    });
+    setShowRiderModal(true);
+  };
+
+  const handleEditRider = (rider: Rider) => {
+    setEditingRider(rider);
+    setRiderForm({
+      ...rider,
+      password: "", // Don't populate password on edit
+    });
+    setShowRiderModal(true);
+  };
+
+  const handleSaveRider = async () => {
+    try {
+      setActionLoading(true);
+      if (editingRider && editingRider.id !== undefined) {
+        const updateData: any = { ...riderForm };
+        if (!updateData.password) {
+          delete updateData.password;
+        }
+        await adminAPI.updateRider(editingRider.id, updateData);
+        setSuccessMessage("Rider updated successfully!");
+      } else {
+        await adminAPI.createRider(riderForm);
+        setSuccessMessage("Rider created successfully!");
+      }
+      setShowRiderModal(false);
+      loadData();
+    } catch (err: any) {
+      setError(err.message || "Failed to save rider");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteRider = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this rider? This cannot be undone.")) return;
+    try {
+      setActionLoading(true);
+      await adminAPI.deleteRider(id);
+      setSuccessMessage("Rider deleted successfully!");
+      loadData();
+    } catch (err: any) {
+      setError(err.message || "Failed to delete rider");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ── Simulation Logic ──────────────────────────────────────────
+
+  const stopSimulation = () => {
+    if (simulationIntervalRef.current) {
+      clearInterval(simulationIntervalRef.current);
+      simulationIntervalRef.current = null;
+    }
+    setSimulatingOrderId(null);
+    showToast("Simulation stopped.", "info");
+  };
+
+  const handleSimulateDelivery = async (order: Order) => {
+    if (simulatingOrderId) {
+      stopSimulation();
+      return;
+    }
+
+    if (!order.rider) {
+      showToast("No rider assigned to this order.", "error");
+      return;
+    }
+
+    setSimulatingOrderId(order.id);
+    showToast("Starting road-follower simulation...", "success");
+
+    try {
+      // 1. Get destination coordinates
+      const targetPos = await geocodeAddress(order.address, order.city);
+      
+      // 2. Get current rider coordinates (fallback to Kathmandu if null)
+      const currentPos = order.rider_location || KATHMANDU_CENTER;
+
+      // 3. Fetch OSRM route
+      const url = `https://router.project-osrm.org/route/v1/driving/${currentPos.lng},${currentPos.lat};${targetPos.lng},${targetPos.lat}?geometries=geojson&overview=full`;
+      const routeRes = await fetch(url);
+      const routeData = await routeRes.json();
+
+      if (routeData.code !== 'Ok' || !routeData.routes.length) {
+        throw new Error("Could not find a road route for simulation.");
+      }
+
+      // OSRM returns [lng, lat]
+      let coords: [number, number][] = routeData.routes[0].geometry.coordinates;
+
+      // Filter out duplicate consecutive points
+      coords = coords.filter((c, i) => i === 0 || c[0] !== coords[i-1][0] || c[1] !== coords[i-1][1]);
+
+      if (coords.length < 2) {
+        coords = [[currentPos.lng, currentPos.lat], [targetPos.lng, targetPos.lat]];
+      }
+
+      const totalSteps = coords.length;
+      // Faster updates (1s) and more steps (up to 40)
+      const stepJump = Math.max(1, Math.floor(totalSteps / 35)); 
+      let currentStep = 0;
+
+      simulationIntervalRef.current = setInterval(async () => {
+        const isLastStep = currentStep >= totalSteps;
+        const safeIdx = isLastStep ? totalSteps - 1 : currentStep;
+        const [lng, lat] = coords[safeIdx];
+        
+        // Update rider location in DB
+        try {
+          await API.put('/rider/location/', { lat, lng }, {
+            headers: { 'Authorization': `RIDER_TOKEN_${order.rider}` }
+          });
+          
+          if (isLastStep) {
+            setTimeout(() => {
+              stopSimulation();
+              handleUpdateOrderStatus(order.id, "delivered");
+              showToast("Simulation complete: Order delivered!", "success");
+            }, 1000);
+            
+            if (simulationIntervalRef.current) {
+              clearInterval(simulationIntervalRef.current);
+              simulationIntervalRef.current = null;
+            }
+            return;
+          }
+
+          currentStep += stepJump;
+        } catch (err) {
+          console.error("Simulation step failed:", err);
+          stopSimulation();
+        }
+      }, 1000);
+
+    } catch (err: any) {
+      showToast(err.message || "Simulation failed to start.", "error");
+      setSimulatingOrderId(null);
+    }
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="auth-page">
@@ -480,6 +674,13 @@ const Admin: React.FC = () => {
               <span className="material-symbols-rounded">people</span>
               <span>Users</span>
             </button>
+            <button
+              className={`admin-nav-item ${currentSection === "riders" ? "active" : ""}`}
+              onClick={() => setCurrentSection("riders")}
+            >
+              <span className="material-symbols-rounded">delivery_dining</span>
+              <span>Riders</span>
+            </button>
           </nav>
         </div>
 
@@ -536,6 +737,13 @@ const Admin: React.FC = () => {
                   </div>
                   <div className="admin-stat-label">Total Users</div>
                   <div className="admin-stat-value">{users.length}</div>
+                </div>
+                <div className="admin-stat-card">
+                  <div className="admin-stat-icon">
+                    <span className="material-symbols-rounded">delivery_dining</span>
+                  </div>
+                  <div className="admin-stat-label">Active Riders</div>
+                  <div className="admin-stat-value">{riders.filter(r => r.is_available).length} / {riders.length}</div>
                 </div>
                 <div className="admin-stat-card">
                   <div className="admin-stat-icon">
@@ -822,15 +1030,27 @@ const Admin: React.FC = () => {
                             {new Date(order.created_at).toLocaleDateString()}
                           </td>
                           <td>
-                            <button
-                              className="admin-btn-icon admin-btn-view"
-                              onClick={() => handleViewOrderDetails(order.id)}
-                              title="View order details"
-                            >
-                              <span className="material-symbols-rounded">
-                                visibility
-                              </span>
-                            </button>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                className="admin-btn-icon admin-btn-view"
+                                onClick={() => handleViewOrderDetails(order.id)}
+                                title="View order details"
+                              >
+                                <span className="material-symbols-rounded">visibility</span>
+                              </button>
+                              
+                              {order.status === 'on_way' && (
+                                <button
+                                  className={`admin-btn-icon ${simulatingOrderId === order.id ? 'admin-btn-sim-active' : 'admin-btn-sim'}`}
+                                  onClick={() => handleSimulateDelivery(order)}
+                                  title={simulatingOrderId === order.id ? "Stop Simulation" : "Simulate Delivery"}
+                                >
+                                  <span className="material-symbols-rounded">
+                                    {simulatingOrderId === order.id ? "stop_circle" : "route"}
+                                  </span>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -975,6 +1195,238 @@ const Admin: React.FC = () => {
                               className="admin-btn-icon admin-btn-delete"
                               onClick={() => handleDeleteUser(user.id)}
                               title="Delete user"
+                            >
+                              <span className="material-symbols-rounded">
+                                delete
+                              </span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          )}
+
+          {currentSection === "riders" && (
+            <div className="admin-section">
+              <div className="admin-section-header">
+                <h2 className="admin-section-title">Riders Management</h2>
+                <button
+                  className="admin-btn-primary"
+                  onClick={handleAddRider}
+                  disabled={actionLoading}
+                >
+                  <span className="material-symbols-rounded">add</span>
+                  Add New Rider
+                </button>
+              </div>
+
+              {showRiderModal && (
+                <div className="admin-modal-overlay">
+                  <div className="admin-modal">
+                    <div className="admin-modal-header">
+                      <h3>{editingRider ? "Edit Rider" : "Add New Rider"}</h3>
+                      <button
+                        className="admin-modal-close"
+                        onClick={() => setShowRiderModal(false)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="admin-modal-body">
+                      <div className="admin-form-group">
+                        <label>Full Name *</label>
+                        <input
+                          type="text"
+                          value={riderForm.full_name}
+                          onChange={(e) =>
+                            setRiderForm({
+                              ...riderForm,
+                              full_name: e.target.value,
+                            })
+                          }
+                          placeholder="Enter full name"
+                          required
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>Email *</label>
+                        <input
+                          type="email"
+                          value={riderForm.email}
+                          onChange={(e) =>
+                            setRiderForm({
+                              ...riderForm,
+                              email: e.target.value,
+                            })
+                          }
+                          placeholder="Enter email"
+                          required
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>Phone *</label>
+                        <input
+                          type="text"
+                          value={riderForm.phone}
+                          onChange={(e) =>
+                            setRiderForm({
+                              ...riderForm,
+                              phone: e.target.value,
+                            })
+                          }
+                          placeholder="Enter phone number"
+                          required
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>Vehicle Type</label>
+                        <input
+                          type="text"
+                          value={riderForm.vehicle_type}
+                          onChange={(e) =>
+                            setRiderForm({
+                              ...riderForm,
+                              vehicle_type: e.target.value,
+                            })
+                          }
+                          placeholder="e.g. Scooter, Bike"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>License Number</label>
+                        <input
+                          type="text"
+                          value={riderForm.license_number}
+                          onChange={(e) =>
+                            setRiderForm({
+                              ...riderForm,
+                              license_number: e.target.value,
+                            })
+                          }
+                          placeholder="Enter license number"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>
+                          Password{" "}
+                          {editingRider ? "(leave blank to keep current)" : "*"}
+                        </label>
+                        <input
+                          type="password"
+                          value={riderForm.password}
+                          onChange={(e) =>
+                            setRiderForm({
+                              ...riderForm,
+                              password: e.target.value,
+                            })
+                          }
+                          placeholder={
+                            editingRider
+                              ? "Enter new password if changing"
+                              : "Enter password"
+                          }
+                          required={!editingRider}
+                        />
+                      </div>
+                      <div className="admin-form-group-checkbox">
+                        <input
+                          type="checkbox"
+                          id="is_available"
+                          checked={riderForm.is_available}
+                          onChange={(e) =>
+                            setRiderForm({
+                              ...riderForm,
+                              is_available: e.target.checked,
+                            })
+                          }
+                        />
+                        <label htmlFor="is_available">
+                          Available for Delivery
+                        </label>
+                      </div>
+                    </div>
+                    <div className="admin-modal-footer">
+                      <button
+                        className="admin-btn-secondary"
+                        onClick={() => setShowRiderModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="admin-btn-primary"
+                        onClick={handleSaveRider}
+                        disabled={actionLoading}
+                      >
+                        {actionLoading ? "Saving..." : "Save Rider"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="admin-table-card">
+                {loading ? (
+                  <LoadingAnimation message="Loading riders..." />
+                ) : riders.length === 0 ? (
+                  <div className="admin-empty-state">
+                    <span className="material-symbols-rounded">
+                      delivery_dining
+                    </span>
+                    <p>No riders found</p>
+                  </div>
+                ) : (
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email / Phone</th>
+                        <th>Vehicle</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {riders.map((rider) => (
+                        <tr key={rider.id}>
+                          <td>
+                            <strong>{rider.full_name}</strong>
+                          </td>
+                          <td>
+                            <div
+                              style={{ display: "flex", flexDirection: "column" }}
+                            >
+                              <span>{rider.email}</span>
+                              <span style={{ fontSize: "12px", color: "#666" }}>
+                                {rider.phone}
+                              </span>
+                            </div>
+                          </td>
+                          <td>{rider.vehicle_type || "N/A"}</td>
+                          <td>
+                            <span
+                              className={`admin-badge ${rider.is_available ? "available" : "unavailable"}`}
+                            >
+                              {rider.is_available ? "Online" : "Offline"}
+                            </span>
+                          </td>
+                          <td className="admin-actions">
+                            <button
+                              className="admin-btn-icon admin-btn-edit"
+                              onClick={() => handleEditRider(rider)}
+                              title="Edit rider"
+                            >
+                              <span className="material-symbols-rounded">
+                                edit
+                              </span>
+                            </button>
+                            <button
+                              className="admin-btn-icon admin-btn-delete"
+                              onClick={() => handleDeleteRider(rider.id!)}
+                              title="Delete rider"
                             >
                               <span className="material-symbols-rounded">
                                 delete

@@ -4,6 +4,8 @@ import "../css/auth.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
+import "../css/order-tracking.css";
+import { logout, getToken } from "../api/auth";
 import { fetchRiderProfile, updateRiderProfile, type RiderProfileData } from "../api/rider";
 import { useToast } from "../components/Toast";
 
@@ -22,6 +24,13 @@ const RiderProfile: React.FC = () => {
   });
 
   useEffect(() => {
+    const token = getToken();
+    if (!token || !token.startsWith('RIDER_TOKEN_')) {
+      console.warn("Unauthorized access to rider profile - redirecting");
+      navigate("/rider-login");
+      return;
+    }
+
     const getProfile = async () => {
       try {
         const data = await fetchRiderProfile();
@@ -33,7 +42,7 @@ const RiderProfile: React.FC = () => {
       }
     };
     getProfile();
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +71,17 @@ const RiderProfile: React.FC = () => {
       <div className="tracking-container" style={{ maxWidth: "600px", marginTop: "40px" }}>
         <div className="tracking-card auth-fade-in" style={{ padding: "40px" }}>
           <div className="auth-badge-rider" style={{ marginBottom: "20px" }}>RIDER PROFILE</div>
-          <h1 className="tracking-title" style={{ fontSize: "28px", marginBottom: "30px" }}>Delivery Partner Settings</h1>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "30px" }}>
+            <h1 className="tracking-title" style={{ fontSize: "28px", margin: 0 }}>Delivery Partner Settings</h1>
+            <button 
+              className="navbar-logout-btn" 
+              style={{ background: "#fee2e2", color: "#ef4444", border: "none", padding: "8px", borderRadius: "10px" }}
+              onClick={() => logout("/rider-login")}
+              title="Logout"
+            >
+              <span className="material-symbols-rounded">logout</span>
+            </button>
+          </div>
           
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-input-wrapper">

@@ -160,7 +160,7 @@ const MenuBrowse: React.FC = () => {
               <div className="menu-card-modern" key={item.id}>
                 <div className="mcm-img-wrapper" onClick={() => navigate(`/menu/${item.id}`)}>
                   <FastImage src={item.image} alt={item.name} />
-                  <div className="mcm-price-pill" style={{color: "#2e7d32", background: "#e8f5e9"}}>Rs. {item.price}</div>
+                  <div className="mcm-price-pill">Rs. {item.price}</div>
                 </div>
                 <div className="mcm-body">
                   <h3 className="mcm-title">{item.name}</h3>

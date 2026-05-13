@@ -59,21 +59,21 @@
 
 /* Success */
 .ktm-toast-success {
-  border: 1px solid rgba(16,185,129,0.15);
+  border: 1px solid rgba(0,0,0,0.08);
 }
-.ktm-toast-success .ktm-toast-icon { color: #10b981; }
+.ktm-toast-success .ktm-toast-icon { color: #2a2420; }
 
 /* Error */
 .ktm-toast-error {
-  border: 1px solid rgba(239,68,68,0.15);
+  border: 1px solid rgba(0,0,0,0.08);
 }
-.ktm-toast-error .ktm-toast-icon { color: #ef4444; }
+.ktm-toast-error .ktm-toast-icon { color: #2a2420; }
 
 /* Info */
 .ktm-toast-info {
-  border: 1px solid rgba(242,139,70,0.15);
+  border: 1px solid rgba(0,0,0,0.08);
 }
-.ktm-toast-info .ktm-toast-icon { color: #f28b46; }
+.ktm-toast-info .ktm-toast-icon { color: #2a2420; }
 
 @media (max-width: 480px) {
   .ktm-toast-container {

@@ -101,12 +101,12 @@
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s, background 0.2s;
-  box-shadow: 0 4px 12px rgba(242, 139, 70, 0.4);
+  box-shadow: 0 4px 12px rgba(242, 139, 70, 0.3);
 }
 
 .trending-add-btn:hover {
   transform: scale(1.1);
-  background: #d95e14;
+  background: #e06c22;
 }
 
 /* === Category Navigation === */
@@ -150,10 +150,10 @@
 }
 
 .menu-pill.active {
-  background: #f28b46; /* Orange Theme */
+  background: #f28b46; 
   color: #fff;
   border-color: #f28b46;
-  box-shadow: 0 4px 12px rgba(242, 139, 70, 0.3);
+  box-shadow: 0 4px 12px rgba(242, 139, 70, 0.25);
 }
 
 .menu-toolbar-right {
@@ -262,13 +262,14 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #f8f6f4;
+  color: #2a2420;
   font-weight: 800;
   font-size: 13px;
   padding: 6px 12px;
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid rgba(0,0,0,0.05);
 }
 
 .mcm-body {

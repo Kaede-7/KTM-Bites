@@ -38,7 +38,18 @@ const Navbar: React.FC = () => {
           <span className="navbar-logo-wordmark">KTM<em>Bites</em></span>
         </Link>
 
-        {!isRiderPath && (
+        {isRiderPath ? (
+          <div className="navbar-links">
+            <Link to="/rider" className={`navbar-link ${isActive("/rider")}`}>
+              <span className="material-symbols-rounded">dashboard</span>
+              Dashboard
+            </Link>
+            <Link to="/rider/profile" className={`navbar-link ${isActive("/rider/profile")}`}>
+              <span className="material-symbols-rounded">account_circle</span>
+              Profile
+            </Link>
+          </div>
+        ) : (
           <div className="navbar-links">
             <Link to="/home" className={`navbar-link ${isActive("/home")}`}>
               <span className="material-symbols-rounded">home</span>
@@ -100,9 +111,17 @@ const Navbar: React.FC = () => {
       {isMenuOpen && (
         <div className="navbar-mobile-menu">
           {isRiderPath ? (
-            <button className="navbar-mobile-link" onClick={() => { handleLogout(); setIsMenuOpen(false); }} style={{ color: "#ef4444", width: "100%", textAlign: "left", cursor: "pointer" }}>
-              <span className="material-symbols-rounded">logout</span>Logout
-            </button>
+            <>
+              <Link to="/rider" className={`navbar-mobile-link ${isActive("/rider")}`} onClick={() => setIsMenuOpen(false)}>
+                <span className="material-symbols-rounded">dashboard</span>Dashboard
+              </Link>
+              <Link to="/rider/profile" className={`navbar-mobile-link ${isActive("/rider/profile")}`} onClick={() => setIsMenuOpen(false)}>
+                <span className="material-symbols-rounded">account_circle</span>Profile
+              </Link>
+              <button className="navbar-mobile-link" onClick={() => { handleLogout(); setIsMenuOpen(false); }} style={{ color: "#ef4444", width: "100%", textAlign: "left", cursor: "pointer" }}>
+                <span className="material-symbols-rounded">logout</span>Logout
+              </button>
+            </>
           ) : (
             <>
               <Link to="/home" className={`navbar-mobile-link ${isActive("/home")}`} onClick={() => setIsMenuOpen(false)}>

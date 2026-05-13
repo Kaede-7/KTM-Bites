@@ -30,6 +30,7 @@ export interface RiderLocation {
 export interface RiderInfo {
   name: string;
   phone: string;
+  vehicle_type: string;
 }
 
 // A complete order with all its details

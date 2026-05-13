@@ -11,6 +11,7 @@ export interface MenuItemData {
   id: number;
   name: string;
   category: string;
+  category_name?: string;
   price: number;
   old_price: number | null;
   rating: number;
