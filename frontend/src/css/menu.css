@@ -39,12 +39,9 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
 }
 
-.trending-card:hover img {
-  transform: scale(1.03);
-}
+/* Trending card zoom removed */
 
 .trending-overlay {
   position: absolute;
@@ -100,12 +97,10 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s, background 0.2s;
   box-shadow: 0 4px 12px rgba(242, 139, 70, 0.3);
 }
 
 .trending-add-btn:hover {
-  transform: scale(1.1);
   background: #e06c22;
 }
 
@@ -230,12 +225,9 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.02);
   display: flex;
   flex-direction: column;
-  transition: box-shadow 0.3s ease;
 }
 
-.menu-card-modern:hover {
-  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
-}
+/* Menu card hover shadow removed */
 
 .mcm-img-wrapper {
   position: relative;
@@ -251,12 +243,9 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
 }
 
-.menu-card-modern:hover .mcm-img-wrapper img {
-  transform: scale(1.05);
-}
+/* Menu image hover zoom removed */
 
 .mcm-price-pill {
   position: absolute;

@@ -78,7 +78,6 @@
   display: flex;
   gap: 18px;
   align-items: center;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   box-shadow: 0 2px 12px rgba(200, 132, 26, 0.04);
   animation: cart-item-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -97,7 +96,6 @@
 .cart-item:hover {
   border-color: rgba(242, 139, 70, 0.35);
   box-shadow: 0 8px 32px rgba(242, 139, 70, 0.1);
-  transform: translateY(-2px);
 }
 
 /* ── Item Image ──────────────────────────────────────────────── */
@@ -108,12 +106,9 @@
   object-fit: cover;
   flex-shrink: 0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transition: transform 0.35s ease;
 }
 
-.cart-item:hover .cart-item-image {
-  transform: scale(1.04);
-}
+/* Item hover zoom removed */
 
 /* ── Item Info ───────────────────────────────────────────────── */
 .cart-item-info {
