@@ -100,6 +100,8 @@ const Admin: React.FC = () => {
 
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // Users State
   const [users, setUsers] = useState<User[]>([]);
@@ -149,6 +151,18 @@ const Admin: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [error, successMessage]);
+
+  const getTimeAgo = (dateStr: string) => {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now.getTime() - date.getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return date.toLocaleDateString();
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -296,7 +310,8 @@ const Admin: React.FC = () => {
   const handleViewOrderDetails = async (orderId: number) => {
     try {
       const order = await adminAPI.fetchOrderById(orderId);
-      alert(`Order Details: ${order.order_id}\nCustomer: ${order.full_name}\nTotal: Rs. ${order.total}\nStatus: ${order.status_display}`);
+      setSelectedOrder(order);
+      setShowOrderModal(true);
     } catch (err: any) {
       setError(err.message || "Failed to load order details");
     }
@@ -693,7 +708,7 @@ const Admin: React.FC = () => {
                 onClick={() => setError("")}
                 className="admin-alert-close"
               >
-                ✕
+                <span className="material-symbols-rounded">close</span>
               </button>
             </div>
           )}
@@ -706,7 +721,7 @@ const Admin: React.FC = () => {
                 onClick={() => setSuccessMessage("")}
                 className="admin-alert-close"
               >
-                ✕
+                <span className="material-symbols-rounded">close</span>
               </button>
             </div>
           )}
@@ -785,7 +800,7 @@ const Admin: React.FC = () => {
                         className="admin-modal-close"
                         onClick={() => setShowMenuModal(false)}
                       >
-                        ✕
+                        <span className="material-symbols-rounded">close</span>
                       </button>
                     </div>
                     <div className="admin-modal-body">
@@ -893,22 +908,40 @@ const Admin: React.FC = () => {
                   <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Item</th>
+                        <th style={{ width: '150px' }}>Category</th>
+                        <th style={{ width: '120px' }}>Price</th>
+                        <th style={{ width: '140px' }}>Performance</th>
+                        <th style={{ width: '140px' }}>Status</th>
+                        <th style={{ width: '100px', textAlign: 'right', paddingRight: '24px' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {menuItems.map((item) => (
                         <tr key={item.id}>
-                          <td className="admin-table-name">
-                            <strong>{item.name}</strong>
+                          <td className="admin-table-item-cell">
+                            <div className="admin-table-item-info">
+                              <img src={item.image} alt={item.name} className="admin-table-thumb" />
+                              <div className="admin-table-item-text">
+                                <strong>{item.name}</strong>
+                                <span>ID: #{item.id}</span>
+                              </div>
+                            </div>
                           </td>
-                          <td>{item.category_name || item.category}</td>
+                          <td>
+                            <span className="admin-table-category-tag">
+                              {item.category_name || item.category}
+                            </span>
+                          </td>
                           <td className="admin-table-price">
                             Rs. {item.price}
+                          </td>
+                          <td>
+                            <div className="admin-table-rating">
+                              <span className="material-symbols-rounded">star</span>
+                              <span>{item.rating || "4.5"}</span>
+                              <span className="reviews">({item.reviews || "0"})</span>
+                            </div>
                           </td>
                           <td>
                             <span
@@ -917,25 +950,27 @@ const Admin: React.FC = () => {
                               {item.is_available ? "Available" : "Unavailable"}
                             </span>
                           </td>
-                          <td className="admin-actions">
-                            <button
-                              className="admin-btn-icon admin-btn-edit"
-                              onClick={() => handleEditMenuItem(item)}
-                              title="Edit item"
-                            >
-                              <span className="material-symbols-rounded">
-                                edit
-                              </span>
-                            </button>
-                            <button
-                              className="admin-btn-icon admin-btn-delete"
-                              onClick={() => handleDeleteMenuItem(item.id!)}
-                              title="Delete item"
-                            >
-                              <span className="material-symbols-rounded">
-                                delete
-                              </span>
-                            </button>
+                          <td className="admin-actions-cell" style={{ textAlign: 'right', paddingRight: '24px' }}>
+                            <div className="admin-actions" style={{ justifyContent: 'flex-end' }}>
+                              <button
+                                className="admin-btn-icon admin-btn-edit"
+                                onClick={() => handleEditMenuItem(item)}
+                                title="Edit item"
+                              >
+                                <span className="material-symbols-rounded">
+                                  edit
+                                </span>
+                              </button>
+                              <button
+                                className="admin-btn-icon admin-btn-delete"
+                                onClick={() => handleDeleteMenuItem(item.id!)}
+                                title="Delete item"
+                              >
+                                <span className="material-symbols-rounded">
+                                  delete
+                                </span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -963,13 +998,14 @@ const Admin: React.FC = () => {
                   <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>Order ID</th>
+                        <th style={{ width: '120px' }}>Order ID</th>
                         <th>Customer</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Payment</th>
-                        <th>Date</th>
-                        <th>Actions</th>
+                        <th style={{ width: '100px' }}>Items</th>
+                        <th style={{ width: '120px' }}>Total</th>
+                        <th style={{ width: '180px' }}>Status</th>
+                        <th style={{ width: '140px' }}>Payment</th>
+                        <th style={{ width: '120px' }}>Placed</th>
+                        <th style={{ width: '100px', textAlign: 'right', paddingRight: '24px' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -978,7 +1014,17 @@ const Admin: React.FC = () => {
                           <td className="admin-table-order-id">
                             <strong>{order.order_id}</strong>
                           </td>
-                          <td>{order.full_name}</td>
+                          <td>
+                            <div className="admin-table-customer-info">
+                              <strong>{order.full_name}</strong>
+                              <span>{order.phone}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="admin-table-items-count">
+                              {order.items?.length || 0} items
+                            </span>
+                          </td>
                           <td className="admin-table-price">
                             Rs. {order.total}
                           </td>
@@ -1004,33 +1050,26 @@ const Admin: React.FC = () => {
                           </td>
                           <td>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>
                                 {order.payment_method}
-                                {order.payment_method === 'khalti' && order.payment_status && (
-                                  <span style={{ 
-                                    marginLeft: '6px', 
-                                    fontSize: '11px', 
-                                    padding: '2px 6px', 
-                                    borderRadius: '4px',
-                                    backgroundColor: order.payment_status === 'completed' ? '#e8f5e9' : '#ffebee',
-                                    color: order.payment_status === 'completed' ? '#2e7d32' : '#c62828'
-                                  }}>
-                                    {order.payment_status}
-                                  </span>
-                                )}
                               </span>
-                              {order.transaction_id && (
-                                <span style={{ fontSize: '11px', color: '#666', fontFamily: 'monospace' }}>
-                                  TXN: {order.transaction_id}
+                              {order.payment_status === 'completed' && (
+                                <span className="admin-payment-verified">
+                                  <span className="material-symbols-rounded">verified</span>
                                 </span>
                               )}
                             </div>
+                            </div>
                           </td>
                           <td>
-                            {new Date(order.created_at).toLocaleDateString()}
+                            <div className="admin-table-time">
+                              <strong>{getTimeAgo(order.created_at)}</strong>
+                              <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                            </div>
                           </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                          <td className="admin-actions-cell" style={{ textAlign: 'right', paddingRight: '24px' }}>
+                            <div className="admin-actions" style={{ justifyContent: 'flex-end' }}>
                               <button
                                 className="admin-btn-icon admin-btn-view"
                                 onClick={() => handleViewOrderDetails(order.id)}
@@ -1086,7 +1125,7 @@ const Admin: React.FC = () => {
                         className="admin-modal-close"
                         onClick={() => setShowUserModal(false)}
                       >
-                        ✕
+                        <span className="material-symbols-rounded">close</span>
                       </button>
                     </div>
                     <div className="admin-modal-body">
@@ -1167,39 +1206,51 @@ const Admin: React.FC = () => {
                   <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>ID</th>
-                        <th>Email</th>
-                        <th>Full Name</th>
-                        <th>Phone</th>
-                        <th>Actions</th>
+                        <th style={{ width: '100px' }}>ID</th>
+                        <th>User Profile</th>
+                        <th style={{ width: '250px', textAlign: 'center' }}>Contact</th>
+                        <th style={{ width: '140px', textAlign: 'right', paddingRight: '24px' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((user) => (
                         <tr key={user.id}>
-                          <td>#{user.id}</td>
-                          <td className="admin-table-email">{user.email}</td>
-                          <td>{user.full_name}</td>
-                          <td>{user.phone || "N/A"}</td>
-                          <td className="admin-actions">
-                            <button
-                              className="admin-btn-icon admin-btn-edit"
-                              onClick={() => handleEditUser(user)}
-                              title="Edit user"
-                            >
-                              <span className="material-symbols-rounded">
-                                edit
-                              </span>
-                            </button>
-                            <button
-                              className="admin-btn-icon admin-btn-delete"
-                              onClick={() => handleDeleteUser(user.id)}
-                              title="Delete user"
-                            >
-                              <span className="material-symbols-rounded">
-                                delete
-                              </span>
-                            </button>
+                          <td style={{ color: '#b8a99e', fontWeight: 600 }}>#{user.id}</td>
+                          <td>
+                            <div className="admin-table-customer-info">
+                              <strong>{user.full_name}</strong>
+                              <span>{user.email}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                              <div className="admin-table-contact-pill">
+                                <span className="material-symbols-rounded">phone</span>
+                                {user.phone || "N/A"}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="admin-actions-cell" style={{ textAlign: 'right', paddingRight: '24px' }}>
+                            <div className="admin-actions" style={{ justifyContent: 'flex-end' }}>
+                              <button
+                                className="admin-btn-icon admin-btn-edit"
+                                onClick={() => handleEditUser(user)}
+                                title="Edit user"
+                              >
+                                <span className="material-symbols-rounded">
+                                  edit
+                                </span>
+                              </button>
+                              <button
+                                className="admin-btn-icon admin-btn-delete"
+                                onClick={() => handleDeleteUser(user.id)}
+                                title="Delete user"
+                              >
+                                <span className="material-symbols-rounded">
+                                  delete
+                                </span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1233,7 +1284,7 @@ const Admin: React.FC = () => {
                         className="admin-modal-close"
                         onClick={() => setShowRiderModal(false)}
                       >
-                        ✕
+                        <span className="material-symbols-rounded">close</span>
                       </button>
                     </div>
                     <div className="admin-modal-body">
@@ -1382,30 +1433,44 @@ const Admin: React.FC = () => {
                   <table className="admin-table">
                     <thead>
                       <tr>
-                        <th>Name</th>
-                        <th>Email / Phone</th>
-                        <th>Vehicle</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>Rider Profile</th>
+                        <th style={{ width: '200px', textAlign: 'center' }}>Contact</th>
+                        <th style={{ width: '150px' }}>Vehicle</th>
+                        <th style={{ width: '140px' }}>Status</th>
+                        <th style={{ width: '120px', textAlign: 'right', paddingRight: '24px' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {riders.map((rider) => (
                         <tr key={rider.id}>
                           <td>
-                            <strong>{rider.full_name}</strong>
-                          </td>
-                          <td>
-                            <div
-                              style={{ display: "flex", flexDirection: "column" }}
-                            >
-                              <span>{rider.email}</span>
-                              <span style={{ fontSize: "12px", color: "#666" }}>
-                                {rider.phone}
-                              </span>
+                            <div className="admin-table-item-info">
+                              <div className="admin-table-rider-avatar">
+                                <span className="material-symbols-rounded">person</span>
+                              </div>
+                              <div className="admin-table-item-text">
+                                <strong>{rider.full_name}</strong>
+                                <span>{rider.email}</span>
+                              </div>
                             </div>
                           </td>
-                          <td>{rider.vehicle_type || "N/A"}</td>
+                          <td>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                              <div className="admin-table-contact-pill">
+                                <span className="material-symbols-rounded">phone</span>
+                                {rider.phone}
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="admin-table-vehicle-badge">
+                              <span className="material-symbols-rounded">
+                                {rider.vehicle_type?.toLowerCase().includes('bike') ? 'motorcycle' : 
+                                 rider.vehicle_type?.toLowerCase().includes('scooter') ? 'moped' : 'delivery_dining'}
+                              </span>
+                              {rider.vehicle_type || "N/A"}
+                            </div>
+                          </td>
                           <td>
                             <span
                               className={`admin-badge ${rider.is_available ? "available" : "unavailable"}`}
@@ -1413,31 +1478,117 @@ const Admin: React.FC = () => {
                               {rider.is_available ? "Online" : "Offline"}
                             </span>
                           </td>
-                          <td className="admin-actions">
-                            <button
-                              className="admin-btn-icon admin-btn-edit"
-                              onClick={() => handleEditRider(rider)}
-                              title="Edit rider"
-                            >
-                              <span className="material-symbols-rounded">
-                                edit
-                              </span>
-                            </button>
-                            <button
-                              className="admin-btn-icon admin-btn-delete"
-                              onClick={() => handleDeleteRider(rider.id!)}
-                              title="Delete rider"
-                            >
-                              <span className="material-symbols-rounded">
-                                delete
-                              </span>
-                            </button>
+                          <td className="admin-actions-cell" style={{ textAlign: 'right', paddingRight: '24px' }}>
+                            <div className="admin-actions" style={{ justifyContent: 'flex-end' }}>
+                              <button
+                                className="admin-btn-icon admin-btn-edit"
+                                onClick={() => handleEditRider(rider)}
+                                title="Edit rider"
+                              >
+                                <span className="material-symbols-rounded">
+                                  edit
+                                </span>
+                              </button>
+                              <button
+                                className="admin-btn-icon admin-btn-delete"
+                                onClick={() => handleDeleteRider(rider.id!)}
+                                title="Delete rider"
+                              >
+                                <span className="material-symbols-rounded">
+                                  delete
+                                </span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 )}
+              </div>
+            </div>
+          )}
+
+          {showOrderModal && selectedOrder && (
+            <div className="admin-modal-overlay">
+              <div className="admin-modal admin-modal-wide">
+                <div className="admin-modal-header">
+                  <h3>Order Details: {selectedOrder.order_id}</h3>
+                  <button
+                    className="admin-modal-close"
+                    onClick={() => setShowOrderModal(false)}
+                  >
+                    <span className="material-symbols-rounded">close</span>
+                  </button>
+                </div>
+                <div className="admin-modal-body">
+                  <div className="admin-order-details-grid">
+                    <div className="admin-order-details-info">
+                      <div className="admin-order-details-section">
+                        <h4>Customer Information</h4>
+                        <div className="admin-detail-row">
+                          <span className="detail-label">Name:</span>
+                          <span className="detail-value">{selectedOrder.full_name}</span>
+                        </div>
+                        <div className="admin-detail-row">
+                          <span className="detail-label">Phone:</span>
+                          <span className="detail-value">{selectedOrder.phone}</span>
+                        </div>
+                        <div className="admin-detail-row">
+                          <span className="detail-label">Address:</span>
+                          <span className="detail-value">{selectedOrder.address}, {selectedOrder.city}</span>
+                        </div>
+                      </div>
+
+                      <div className="admin-order-details-section">
+                        <h4>Order Status</h4>
+                        <div className="admin-detail-row">
+                          <span className="detail-label">Current Status:</span>
+                          <span className={`admin-badge admin-status-${selectedOrder.status}`}>
+                            {selectedOrder.status_display || selectedOrder.status}
+                          </span>
+                        </div>
+                        <div className="admin-detail-row">
+                          <span className="detail-label">Payment:</span>
+                          <span className="detail-value" style={{ textTransform: 'capitalize' }}>
+                            {selectedOrder.payment_method} ({selectedOrder.payment_status || 'Pending'})
+                          </span>
+                        </div>
+                        <div className="admin-detail-row">
+                          <span className="detail-label">Date:</span>
+                          <span className="detail-value">{new Date(selectedOrder.created_at).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="admin-order-details-items">
+                      <h4>Order Items</h4>
+                      <div className="admin-items-list">
+                        {selectedOrder.items?.map((item, idx) => (
+                          <div key={idx} className="admin-item-row">
+                            <div className="item-info">
+                              <span className="item-qty">{item.quantity}×</span>
+                              <span className="item-name">{item.name}</span>
+                            </div>
+                            <span className="item-price">Rs. {item.subtotal}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="admin-order-total-row">
+                        <span>Total Amount</span>
+                        <strong>Rs. {selectedOrder.total}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="admin-modal-footer">
+                  <button
+                    className="admin-btn-secondary"
+                    onClick={() => setShowOrderModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -706,15 +706,17 @@
 /* Order Cards */
 .kitchen-order-card {
   background: var(--white);
-  border: 2px solid var(--line);
-  border-radius: var(--radius-lg);
+  border: 1px solid rgba(212, 196, 168, 0.2);
+  border-radius: 24px;
   overflow: hidden;
-  transition: all var(--transition);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .kitchen-order-card:hover {
-  border-color: var(--warm);
-  box-shadow: var(--shadow-md);
+  border-color: rgba(242, 139, 70, 0.3);
+  box-shadow: 0 12px 30px rgba(242, 139, 70, 0.08);
+  transform: translateY(-2px);
 }
 
 .kitchen-order-card.card-new {
@@ -726,8 +728,7 @@
 }
 
 .kitchen-order-card.card-done {
-  border-left: 4px solid var(--green);
-  opacity: 0.7;
+  border-left: 4px solid #8b5cf6;
 }
 
 .kitchen-order-card.card-done:hover {
@@ -884,6 +885,7 @@
   font-size: 13px;
   color: var(--muted);
   font-weight: 600;
+  margin-right: 6px;
 }
 
 .kitchen-action-btn {
@@ -891,16 +893,16 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
   width: 100%;
   letter-spacing: 0.3px;
+  background: transparent;
 }
 
 .kitchen-action-btn:disabled {
@@ -913,30 +915,25 @@
 }
 
 .kitchen-action-btn.btn-start {
-  background: #f28b46;
-  color: white;
-  box-shadow: 0 4px 12px rgba(242,139,70,0.25);
+  border: 1.5px solid #f28b46;
+  color: #f28b46;
 }
 
 .kitchen-action-btn.btn-start:hover:not(:disabled) {
-  background: #e07a35;
-  transform: translateY(-1px);
-}
-
-.kitchen-action-btn.order-card-footer button:hover {
-  background: #e06c22;
-  transform: translateY(-1px);
+  background: #f28b46;
+  color: white;
+  box-shadow: 0 8px 20px rgba(242, 139, 70, 0.2);
 }
 
 .kitchen-action-btn.btn-ready {
-  background: #8b5cf6;
-  color: white;
-  box-shadow: 0 4px 12px rgba(139,92,246,0.25);
+  border: 1.5px solid #8b5cf6;
+  color: #8b5cf6;
 }
 
 .kitchen-action-btn.btn-ready:hover:not(:disabled) {
-  background: #7c3aed;
-  transform: translateY(-1px);
+  background: #8b5cf6;
+  color: white;
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2);
 }
 
 /* Empty column state */

@@ -33,14 +33,18 @@ const AIRecommendations: React.FC = () => {
     else if (hour < 18) setContextLabel('Afternoon snacks ☕');
     else setContextLabel('Dinner tonight 🌙');
 
-    if (!isLoggedIn()) { setNotLoggedIn(true); setLoading(false); return; }
-
     getAIRecommendations()
       .then(res => {
         setItems(res.recommendations.slice(0, 3));
         if (res.weather) setWeather(res.weather);
       })
-      .catch(() => setError(true))
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          setNotLoggedIn(true);
+        } else {
+          setError(true);
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -65,7 +69,13 @@ const AIRecommendations: React.FC = () => {
         </span>
         {weather && (
           <div className="ai-weather-badge">
-            <span className="material-symbols-rounded">cloudy_snowing</span>
+            <span className="material-symbols-rounded">
+              {weather.toLowerCase().includes('sun') || weather.toLowerCase().includes('clear') ? 'wb_sunny' :
+               weather.toLowerCase().includes('rain') ? 'rainy' :
+               weather.toLowerCase().includes('cloud') ? 'cloud' :
+               weather.toLowerCase().includes('snow') ? 'ac_unit' :
+               'partly_cloudy_day'}
+            </span>
             {weather}
           </div>
         )}

@@ -69,12 +69,9 @@
   padding: 28px;
   margin-bottom: 20px;
   box-shadow: 0 2px 12px rgba(200, 132, 26, 0.05);
-  transition: box-shadow 0.3s ease;
 }
 
-.checkout-section:hover {
-  box-shadow: 0 6px 24px rgba(200, 132, 26, 0.09);
-}
+/* Section hover shadow removed */
 
 .checkout-section:last-child {
   margin-bottom: 0;
@@ -166,15 +163,12 @@
   border: 1.5px solid rgba(212, 196, 168, 0.35);
   border-radius: 16px;
   cursor: pointer;
-  transition: all 0.25s ease;
   background: rgba(253, 246, 240, 0.5);
 }
 
 .checkout-payment-option:hover {
   border-color: rgba(242, 139, 70, 0.4);
   background: rgba(242, 139, 70, 0.04);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(242, 139, 70, 0.08);
 }
 
 .checkout-payment-option.selected {
@@ -372,14 +366,12 @@
   gap: 8px;
   margin-top: 22px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   box-shadow: 0 6px 20px rgba(242, 139, 70, 0.3);
   letter-spacing: -0.01em;
 }
 
 .checkout-place-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(242, 139, 70, 0.4);
+  background: #e06c22;
 }
 
 .checkout-place-btn:active:not(:disabled) {

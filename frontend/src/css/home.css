@@ -61,12 +61,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: transform 0.2s, background 0.2s;
   text-decoration: none;
 }
 .home-hero-btn:hover {
   background: #d95e14;
-  transform: translateY(-2px);
 }
 
 .home-hero-img-container {
@@ -359,11 +357,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
 }
-.hf-item:hover img {
-  transform: scale(1.05);
-}
+/* Favorite zoom removed */
 .hf-item-overlay {
   position: absolute;
   inset: 0;
@@ -565,14 +560,12 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.2s;
   font-family: 'Inter', sans-serif;
   box-shadow: 0 4px 16px rgba(198, 130, 51, 0.3);
 }
 
 .address-modal-save:hover:not(:disabled) {
   background: #b5762d;
-  transform: translateY(-1px);
 }
 
 .address-modal-save:disabled {

@@ -203,12 +203,6 @@
   border-radius: 24px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.tracking-detail-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
 .tracking-detail-label {

@@ -86,10 +86,20 @@ const Checkout: React.FC = () => {
         navigate(`/order-tracking/${order.id}`);
       }
     } catch (err: any) {
-      console.error("Khalti error details:", err.response?.data);
-      const errorMessage = err.response?.data?.details 
-        ? `Khalti Error: ${JSON.stringify(err.response.data.details)}`
-        : err.response?.data?.error || "Failed to place order. Please try again.";
+      console.error("Order placement error:", err);
+      let errorMessage = "Failed to place order. Please try again.";
+      
+      if (err.response?.data) {
+        const data = err.response.data;
+        if (data.details) {
+          errorMessage = `Khalti Error: ${JSON.stringify(data.details)}`;
+        } else if (data.error) {
+          errorMessage = data.error;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
     } finally {
       setPlacing(false);
