@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../css/order-tracking.css";
 import Navbar from "../components/Navbar";
@@ -184,6 +184,25 @@ const OrderTracking: React.FC = () => {
           </div>
         )}
 
+        {order.status === "pending_payment" && (
+          <div className="tracking-pending-payment-banner">
+            <div className="tracking-pending-content">
+              <span className="material-symbols-rounded">payments</span>
+              <div>
+                <strong>Payment Required</strong>
+                <p>Please complete your payment to confirm this order.</p>
+              </div>
+            </div>
+            <button
+              className="tracking-pay-btn"
+              onClick={() => navigate(`/checkout?orderId=${order.id}`)}
+            >
+              Pay Now
+              <span className="material-symbols-rounded">arrow_forward</span>
+            </button>
+          </div>
+        )}
+
         {cancelError && (
           <div className="tracking-error">{cancelError}</div>
         )}
@@ -200,11 +219,7 @@ const OrderTracking: React.FC = () => {
               </span>
               {getStatusLabel()}
             </span>
-            {order.status !== "cancelled" && order.status !== "delivered" && (
-              <span className="tracking-eta">
-                <span className="material-symbols-rounded">schedule</span>Est. arrival: 30 min
-              </span>
-            )}
+            {/* Removed hardcoded Est. arrival as per user request */}
           </div>
 
           <div className="tracking-timeline">

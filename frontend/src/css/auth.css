@@ -16,7 +16,8 @@
   padding: 48px 40px;
   max-width: 600px;
   min-height: 100vh;
-  position: relative; /* Added for back button positioning */
+  position: relative;
+  /* Added for back button positioning */
 }
 
 .auth-back-btn {
@@ -34,8 +35,8 @@
   padding: 10px 18px;
   border-radius: 999px;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: 10;
 }
 
@@ -65,6 +66,14 @@
   letter-spacing: -0.02em;
 }
 
+.auth-logo-top {
+  height: 110px;
+  width: auto;
+  margin-bottom: 32px;
+  margin-left: -16px;
+  display: block;
+}
+
 .auth-subtitle {
   font-size: 14px;
   color: #8b7d72;
@@ -74,11 +83,12 @@
 /* Auth Tabs Segmented Control */
 .auth-tabs-modern {
   display: flex;
-  background: #e8e1d7; /* Beige background */
+  background: #e8e1d7;
+  /* Beige background */
   border-radius: 40px;
   padding: 4px;
   margin-bottom: 32px;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .auth-tab-modern {
@@ -100,7 +110,7 @@
 .auth-tab-modern.active {
   background: #fff;
   color: #2a2420;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .auth-promise-badge {
@@ -132,7 +142,7 @@
   gap: 12px;
   padding: 14px 20px;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 30px;
   transition: all 0.2s;
 }
@@ -235,7 +245,7 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: rgba(0,0,0,0.08);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .auth-divider span {
@@ -245,7 +255,8 @@
 }
 
 .auth-google-btn-wrapper {
-  margin-bottom: auto; /* Pushes footer down */
+  margin-bottom: auto;
+  /* Pushes footer down */
 }
 
 .auth-google-override {
@@ -256,7 +267,7 @@
   width: 100%;
   padding: 14px;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 30px;
   font-size: 14px;
   font-weight: 600;
@@ -267,7 +278,7 @@
 
 .auth-google-override:hover {
   background: #f8f6f4;
-  border-color: rgba(0,0,0,0.15);
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .auth-google-override img {
@@ -334,7 +345,7 @@
   border-radius: 40px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
 .auth-image-container img {
@@ -345,12 +356,15 @@
 
 @media (max-width: 900px) {
   .auth-right {
-    display: none; /* Hide image on mobile */
+    display: none;
+    /* Hide image on mobile */
   }
+
   .auth-left {
     max-width: 100%;
     align-items: center;
   }
+
   .auth-logo-top {
     align-self: flex-start;
   }
@@ -362,6 +376,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -396,7 +411,7 @@
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(0,0,0,0.15);
+  border: 2px solid rgba(0, 0, 0, 0.15);
   border-radius: 5px;
   cursor: pointer;
   position: relative;
@@ -491,7 +506,7 @@
   gap: 6px;
   padding: 10px 20px;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 999px;
   font-size: 13px;
   font-weight: 500;
@@ -522,14 +537,14 @@
   background: #fff;
   border-radius: 24px;
   padding: 24px 28px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .rider-stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 .rider-stat-label {
@@ -619,7 +634,7 @@
 }
 
 .rider-section-count {
-  background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
   color: #6b5d52;
   padding: 4px 12px;
   border-radius: 999px;
@@ -638,13 +653,13 @@
   background: #fff;
   border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   transition: all 0.25s;
 }
 
 .rider-order-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px);
 }
 
@@ -764,8 +779,15 @@
 }
 
 @keyframes simPulse {
-  0%, 100% { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
-  50% { box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5); }
+
+  0%,
+  100% {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.5);
+  }
 }
 
 .rider-empty {
@@ -785,7 +807,7 @@
 /* Delivered card faded */
 .rider-order-card.delivered {
   opacity: 0.6;
-  border: 1px dashed rgba(0,0,0,0.08);
+  border: 1px dashed rgba(0, 0, 0, 0.08);
 }
 
 .rider-order-card.delivered:hover {
@@ -810,8 +832,8 @@
   border-radius: 20px;
   padding: 0;
   overflow: hidden;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
-  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .rider-gps-map {
@@ -826,7 +848,7 @@
 
 .rider-gps-info {
   padding: 20px 24px;
-  border-top: 1px solid rgba(0,0,0,0.04);
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .rider-gps-coords {
@@ -865,25 +887,40 @@
 }
 
 @keyframes gpsPulse {
-  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.4); }
-  50% { opacity: 0.8; transform: scale(1.3); box-shadow: 0 0 0 6px rgba(72, 187, 120, 0); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.4);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.3);
+    box-shadow: 0 0 0 6px rgba(72, 187, 120, 0);
+  }
 }
 
 @media (max-width: 768px) {
   .rider-stats {
     grid-template-columns: 1fr;
   }
+
   .rider-orders-grid {
     grid-template-columns: 1fr;
   }
+
   .rider-topbar {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
+
   .rider-gps-map {
     height: 240px;
   }
+
   .rider-gps-coords {
     flex-direction: column;
     gap: 12px;

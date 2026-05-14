@@ -40,7 +40,9 @@ urlpatterns = [
     # ── Orders ────────────────────────────────────────────────
     path('orders/', views.order_list_create, name='order-list-create'),
     path('orders/<int:pk>/', views.order_detail, name='order-detail'),
+    path('orders/<int:pk>/update/', views.update_order_view, name='order-update'),
     path('orders/<int:pk>/cancel/', views.cancel_order, name='order-cancel'),
+    path('orders/<int:pk>/reinitiate-payment/', views.reinitiate_payment_view, name='reinitiate-payment'),
 
     # ── Admin Panel (staff only) ──────────────────────────────
     path('admin/orders/', views.admin_orders_list, name='admin-orders-list'),
@@ -62,4 +64,22 @@ urlpatterns = [
     # ── Rider GPS Tracking ────────────────────────────────────
     path('rider/location/', views.update_rider_location, name='rider-location'),
     path('rider/profile/', views.rider_profile_view, name='rider-profile'),
+
+    # ── Kharcha — Pay Portal (redirect to hosted checkout) ────
+    # Works like Khalti: backend creates session → frontend gets
+    # checkout_url → redirects user → Kharcha redirects back here.
+    path('kharcha/portal/initiate/', views.kharcha_portal_initiate, name='kharcha-portal-initiate'),
+    path('kharcha/portal/callback/', views.kharcha_portal_callback, name='kharcha-portal-callback'),
+
+    # ── Kharcha — Linked Account (OTP checkout) ───────────────
+    # User links once via OAuth; thereafter pays with an OTP sent
+    # to their Kharcha email — no redirect, no re-login.
+    path('kharcha/pay/initiate/', views.kharcha_pay_initiate, name='kharcha-pay-initiate'),
+    path('kharcha/pay/confirm/',  views.kharcha_pay_confirm,  name='kharcha-pay-confirm'),
+
+    # ── Kharcha — Link Account (OAuth) ───────────────────────
+    path('kharcha/link/status/',  views.kharcha_link_status,   name='kharcha-link-status'),
+    path('kharcha/link/start/',   views.kharcha_link_start,    name='kharcha-link-start'),
+    path('kharcha/callback/',     views.kharcha_link_callback, name='kharcha-link-callback'),
+    path('kharcha/link/remove/',  views.kharcha_link_remove,   name='kharcha-link-remove'),
 ]

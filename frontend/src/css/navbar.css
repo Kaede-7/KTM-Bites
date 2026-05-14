@@ -27,14 +27,16 @@
   gap: 0;
   flex-shrink: 0;
   text-decoration: none;
-  transform: translateY(-5px); /* Centers the logo group vertically */
+  transform: translateY(-5px);
+  /* Centers the logo group vertically */
 }
 
 .navbar-logo-icon {
   height: 62px;
   width: auto;
   object-fit: contain;
-  margin: 0 -12px -20px -24px; /* -24px left pulls mascot flush to container edge */
+  margin: 0 -12px -20px -24px;
+  /* -24px left pulls mascot flush to container edge */
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
@@ -50,14 +52,15 @@
   color: #f28b46;
   background: linear-gradient(135deg, #f28b46 0%, #d95e14 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.04em;
   line-height: 1;
   transition: opacity 0.2s ease;
   user-select: none;
   padding-left: 4px;
-  padding-right: 6px; 
-  margin-bottom: 3px; 
+  padding-right: 6px;
+  margin-bottom: 3px;
 }
 
 .navbar-logo-wordmark em {
@@ -176,8 +179,8 @@
   flex-shrink: 0;
 }
 
-.navbar-actions .navbar-cart-btn + .navbar-profile-btn::before,
-.navbar-actions .navbar-cart-btn + a::before {
+.navbar-actions .navbar-cart-btn+.navbar-profile-btn::before,
+.navbar-actions .navbar-cart-btn+a::before {
   content: "";
   display: block;
   width: 1px;
@@ -292,7 +295,8 @@
   padding: 8px;
   border-radius: 10px;
   transition: all 0.2s ease;
-  margin-left: auto; /* always pins hamburger to far right */
+  margin-left: auto;
+  /* always pins hamburger to far right */
   flex-shrink: 0;
 }
 
@@ -319,8 +323,15 @@
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .navbar-mobile-link {

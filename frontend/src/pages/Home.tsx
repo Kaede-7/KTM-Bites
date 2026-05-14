@@ -160,7 +160,7 @@ const Home: React.FC = () => {
         {/* Hero Section */}
         <section className="home-hero">
           <div className="home-hero-text">
-            <h1>Welcome back, <span>{user?.full_name?.split(" ")[0] || "Guest"}</span>.</h1>
+            <h1>Welcome back, <span>{(user?.full_name || user?.email?.split("@")[0] || "Guest").split(" ")[0]}</span>.</h1>
             <p>Your cravings are orbiting. What's on the menu today?</p>
             <Link to="/menu" className="home-hero-btn">
               Explore Menu <span className="material-symbols-rounded" style={{fontSize: '18px'}}>arrow_forward</span>

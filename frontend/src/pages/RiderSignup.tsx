@@ -3,13 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
 import { riderRegister, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
-import AuthCreative from "../components/AuthCreative";
-import { useToast } from "../components/Toast";
-import LoadingAnimation from "../components/LoadingAnimation";
+
+import transparentLogo from "../assets/logo-ktmbites-transparent.png";
+
 
 const RiderSignup: React.FC = () => {
   const navigate = useNavigate();
-  const { addToast } = useToast();
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -87,6 +87,9 @@ const RiderSignup: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
+      <Link to="/">
+        <img src={transparentLogo} alt="KTM Bites" className="auth-logo-top" />
+      </Link>
       <div className="auth-badge-rider">RIDER PORTAL</div>
       <h1>Partner with KTM Bites</h1>
       <p className="auth-subtitle">Deliver joy across Kathmandu and earn on your own schedule.</p>
