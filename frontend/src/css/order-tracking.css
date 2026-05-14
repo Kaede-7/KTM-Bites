@@ -418,3 +418,87 @@
   font-weight: 500;
   margin-bottom: 16px;
 }
+
+/* ── Pending Payment Banner ─────────────────────────────────── */
+.tracking-pending-payment-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  background: #fff8f1;
+  border: 1px solid #ffedd5;
+  border-radius: 24px;
+  margin-bottom: 32px;
+  gap: 20px;
+  box-shadow: 0 4px 15px rgba(242, 139, 70, 0.08);
+}
+
+.tracking-pending-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tracking-pending-content .material-symbols-rounded {
+  font-size: 32px;
+  color: #f28b46;
+  background: #fff;
+  padding: 10px;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.tracking-pending-content div strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  color: #2a2420;
+  margin-bottom: 2px;
+}
+
+.tracking-pending-content div p {
+  font-size: 14px;
+  color: #8b7d72;
+  margin: 0;
+}
+
+.tracking-pay-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: #f28b46;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 8px 20px rgba(242, 139, 70, 0.2);
+}
+
+.tracking-pay-btn:hover {
+  background: #e67a2e;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(242, 139, 70, 0.3);
+}
+
+.tracking-pay-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+@media (max-width: 640px) {
+  .tracking-pending-payment-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  .tracking-pending-content {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .tracking-pay-btn {
+    justify-content: center;
+  }
+}

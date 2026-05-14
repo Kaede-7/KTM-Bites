@@ -57,6 +57,11 @@ API.interceptors.response.use(
       }
 
       // Clear all saved login data
+      const token = localStorage.getItem('ktmbites_token') || sessionStorage.getItem('ktmbites_token');
+      if (token && token.startsWith('RIDER_TOKEN_')) {
+        return Promise.reject(error);
+      }
+
       localStorage.removeItem('ktmbites_token');
       localStorage.removeItem('ktmbites_user');
       sessionStorage.removeItem('ktmbites_token');

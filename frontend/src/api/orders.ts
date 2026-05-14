@@ -100,6 +100,18 @@ export async function cancelOrder(id: number): Promise<{ message: string; order:
   return data;
 }
 
+/** Re-initiate payment for an existing order */
+export async function reinitiatePayment(id: number): Promise<{ pidx?: string; payment_url?: string; checkout_url?: string; order_id: number }> {
+  const { data } = await API.post(`/orders/${id}/reinitiate-payment/`);
+  return data;
+}
+
+/** Update an existing order (only works before payment is completed) */
+export async function updateOrder(id: number, payload: Partial<PlaceOrderPayload>): Promise<OrderData> {
+  const { data } = await API.patch(`/orders/${id}/update/`, payload);
+  return data;
+}
+
 /** Update rider's GPS location (called by riders during delivery) */
 export async function updateRiderLocation(lat: number, lng: number): Promise<void> {
   await API.put('/rider/location/', { lat, lng });

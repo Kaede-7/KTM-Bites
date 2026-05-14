@@ -138,9 +138,21 @@ OPENWEATHER_API_KEY = os.environ.get('OPENWEATHER_API_KEY', '')
 # --- Email Configuration (Gmail SMTP) ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_USE_TLS = False
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'np03cs4a240042@gmail.com').strip()
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '').strip()
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Kharcha integration
+KHARCHA_BASE_URL      = os.environ.get('KHARCHA_BASE_URL',      'https://kharcha-production.up.railway.app')
+KHARCHA_FRONTEND_URL  = os.environ.get('KHARCHA_FRONTEND_URL',  'http://kharcha-omega.vercel.app')
+KHARCHA_REDIRECT_URI  = os.environ.get('KHARCHA_REDIRECT_URI',  'http://localhost:8000/api/kharcha/callback/')
+KHARCHA_CLIENT_ID     = os.environ.get('KHARCHA_CLIENT_ID',     '')
+KHARCHA_CLIENT_SECRET = os.environ.get('KHARCHA_CLIENT_SECRET', '')
+KHARCHA_API_KEY       = os.environ.get('KHARCHA_API_KEY', '')
+KHARCHA_REDIRECT_BASE = os.environ.get('KHARCHA_REDIRECT_BASE', 'http://localhost:8000/api')
+KHARCHA_WEBHOOK_URL   = os.environ.get('KHARCHA_WEBHOOK_URL',   '')
+FRONTEND_BASE_URL     = os.environ.get('FRONTEND_BASE_URL',     'http://localhost:5173')
+BACKEND_BASE_URL      = os.environ.get('BACKEND_BASE_URL',      'http://localhost:8000')

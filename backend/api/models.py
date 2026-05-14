@@ -72,6 +72,7 @@ class CartItem(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = [
+        ('pending_payment', 'Pending Payment'),
         ('placed', 'Order Placed'),
         ('preparing', 'Preparing'),
         ('ready_for_pickup', 'Ready for Pickup'),
@@ -82,7 +83,7 @@ class Order(models.Model):
     PAYMENT_CHOICES = [
         ('esewa', 'eSewa'),
         ('khalti', 'Khalti'),
-        ('cod', 'Cash on Delivery'),
+        ('kharcha', 'Kharcha'),
     ]
     PAYMENT_STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -109,6 +110,7 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     pidx = models.CharField(max_length=255, null=True, blank=True)
     transaction_id = models.CharField(max_length=255, null=True, blank=True)
+    kharcha_payment_id  = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -217,6 +219,29 @@ class PasswordResetToken(models.Model):
         from django.utils import timezone
         return timezone.now() <= self.expires_at
 
+class KharchaLinkedAccount(models.Model):
+    """
+    Stores the Kharcha OAuth link_token for a user who has
+    authorised KTM-Bites to charge their Kharcha wallet.
+ 
+    One user → one linked account (OneToOneField enforces this).
+    The link_token is long-lived — treat it like a password.
+    """
+    user           = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='kharcha_account',
+    )
+    link_token      = models.CharField(max_length=512)       # kh_link_…
+    authorization_id = models.CharField(max_length=255)
+    linked_at       = models.DateTimeField(auto_now_add=True)
+    is_active       = models.BooleanField(default=True)
+ 
+    class Meta:
+        verbose_name = 'Kharcha Linked Account'
+ 
+    def __str__(self):
+        return f"Kharcha link for {self.user.username}"
 
 # Auto-create/save profiles when a User is created
 @receiver(post_save, sender=User)
@@ -242,3 +267,5 @@ def manage_user_profiles(sender, instance, created, **kwargs):
         instance.kitchen_profile.email = instance.email
         instance.kitchen_profile.username = instance.username
         instance.kitchen_profile.save()
+
+

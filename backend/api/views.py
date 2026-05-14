@@ -22,6 +22,7 @@ from django.contrib.auth.models import User
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from groq import Groq
+from django.shortcuts import redirect as django_redirect
 
 from .models import (
     Category, MenuItem, Cart, CartItem,
@@ -78,7 +79,8 @@ def send_password_reset_email(user, token):
     try:
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], html_message=html_message)
         return True
-    except:
+    except Exception as e:
+        print(f"ERROR: Failed to send email to {user.email}: {e}")
         return False
 
 # AUTH
@@ -101,6 +103,7 @@ def register_view(request):
             }
         }, status=201)
 
+    print(f"Registration Error: {serializer.errors}")
     return Response(serializer.errors, status=400)
 
 
@@ -130,7 +133,7 @@ def login_view(request):
                 "user": {
                     "id": user.id,
                     "email": user.email,
-                    "full_name": user.first_name,
+                    "full_name": user.first_name or user.username.split('@')[0].capitalize(),
                     "is_staff": user.is_staff,
                     "is_superuser": user.is_superuser,
                     "role": role,
@@ -156,19 +159,32 @@ def google_login_view(request):
         if credential:
             # Verify the ID token
             idinfo = id_token.verify_oauth2_token(credential, google_requests.Request())
-            email = idinfo.get('email')
-            first_name = idinfo.get('given_name', '')
-            last_name = idinfo.get('family_name', '')
         else:
             # Verify via access token
             res = requests.get('https://www.googleapis.com/oauth2/v3/userinfo', headers={'Authorization': f'Bearer {access_token}'})
             idinfo = res.json()
-            email = idinfo.get('email')
-            first_name = idinfo.get('given_name', '')
-            last_name = idinfo.get('family_name', '')
         
+        email = idinfo.get('email')
         if not email:
             return Response({'error': 'Google token did not contain an email'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Better name extraction
+        # Try given_name, then first part of full name, then first part of email
+        first_name = idinfo.get('given_name')
+        last_name = idinfo.get('family_name')
+        full_name_from_google = idinfo.get('name', '')
+
+        if not first_name:
+            if full_name_from_google:
+                parts = full_name_from_google.split(' ')
+                first_name = parts[0]
+                if len(parts) > 1 and not last_name:
+                    last_name = ' '.join(parts[1:])
+            else:
+                first_name = email.split('@')[0].capitalize()
+
+        if not last_name:
+            last_name = ''
             
         # Get or create user
         user = User.objects.filter(email=email).first()
@@ -193,6 +209,17 @@ def google_login_view(request):
             profile.save()
             Cart.objects.get_or_create(user=user)
         else:
+            # Update name if currently empty
+            updated = False
+            if not user.first_name and first_name:
+                user.first_name = first_name
+                updated = True
+            if not user.last_name and last_name:
+                user.last_name = last_name
+                updated = True
+            if updated:
+                user.save()
+
             # Upgrade existing user role if requested (e.g. USER -> RIDER)
             profile, _ = UserProfile.objects.get_or_create(user=user)
             if profile.role == 'USER' and role in ['RIDER', 'KITCHEN']:
@@ -202,22 +229,45 @@ def google_login_view(request):
         token, _ = Token.objects.get_or_create(user=user)
         Cart.objects.get_or_create(user=user)
         
-        role = "USER"
+        role_response = "USER"
         if hasattr(user, 'profile'):
             try:
-                role = user.profile.role
+                role_response = user.profile.role
             except Exception:
                 pass
+
+        # SPECIAL HANDLING FOR RIDERS
+        # Only return a RIDER_TOKEN if the frontend specifically requested the RIDER role
+        # (e.g. from the Rider Login page). If they are logging in from the main site,
+        # we give them a standard token so they can order food, even if they are a rider.
+        if role == 'RIDER':
+            rider_profile, _ = RiderProfile.objects.get_or_create(
+                email=email,
+                defaults={
+                    'full_name': f"{user.first_name} {user.last_name}".strip() or email.split('@')[0],
+                    'username': email,
+                    'password': make_password(secrets.token_urlsafe(16)),
+                }
+            )
+            return Response({
+                "token": f"RIDER_TOKEN_{rider_profile.id}",
+                "user": {
+                    "id": rider_profile.id,
+                    "email": rider_profile.email,
+                    "full_name": rider_profile.full_name,
+                    "role": "RIDER",
+                }
+            })
 
         return Response({
             "token": token.key,
             "user": {
                 "id": user.id,
                 "email": user.email,
-                "full_name": user.first_name,
+                "full_name": user.first_name or user.username or "User",
                 "is_staff": user.is_staff,
                 "is_superuser": user.is_superuser,
-                "role": role,
+                "role": role_response,
             }
         })
         
@@ -227,6 +277,7 @@ def google_login_view(request):
     except Exception as e:
         print(f"[Google Login] Exception: {type(e).__name__}: {e}")
         return Response({'error': f'Google login error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 # ========================
@@ -242,7 +293,7 @@ def profile_view(request):
         return Response({
             "id": user.id,
             "email": user.email,
-            "full_name": user.first_name,
+            "full_name": user.first_name or user.username.split('@')[0].capitalize(),
             "phone": profile.phone,
             "address": profile.address,
             "city": profile.city,
@@ -324,9 +375,14 @@ class ForgotPasswordView(APIView):
                 )
                 
                 # Send email
-                send_password_reset_email(user, token)
+                sent = send_password_reset_email(user, token)
+                if not sent:
+                    return Response({
+                        "error": "Failed to send reset email. SMTP configuration might be incorrect or blocked."
+                    }, status=500)
                 
             except User.DoesNotExist:
+                print(f"Forgot Password: User with email {email} not found.")
                 return Response({
                     "detail": "No account found with this email address."
                 }, status=404)
@@ -609,7 +665,7 @@ def initiate_payment(request):
         subtotal=subtotal,
         delivery_fee=delivery,
         total=total,
-        status="placed",
+        status="pending_payment",
         payment_method="khalti",
         payment_status="pending",
         full_name=request.data.get("full_name", ""),
@@ -633,9 +689,9 @@ def initiate_payment(request):
     payload = {
         "return_url": request.data.get(
             "return_url",
-            f"http://localhost:8000/api/payments/verify/",
+            f"{settings.BACKEND_BASE_URL}/api/payments/verify/",
         ),
-        "website_url": request.data.get("website_url", "http://localhost:5173"),
+        "website_url": request.data.get("website_url", settings.FRONTEND_BASE_URL),
         "amount": int(total * 100),
         "purchase_order_id": str(order.id),
         "purchase_order_name": f"KTM Bites Order #{order.id}",
@@ -649,17 +705,9 @@ def initiate_payment(request):
 
     try:
         res = requests.post(khalti_url, json=payload, headers=headers, timeout=30)
-        
-        # Safely attempt to parse JSON
-        try:
-            data = res.json()
-        except ValueError:
-            # If Khalti returns HTML (e.g. 404 or 500 error page), res.json() fails
-            print(f"🔥 Khalti Initiation Error: Status {res.status_code}")
-            print(f"📄 Raw Response: {res.text[:500]}") 
-            data = {"error": "Khalti returned an invalid response format", "status": res.status_code}
+        data = res.json()
 
-        if res.status_code == 200 and isinstance(data, dict) and "pidx" in data:
+        if res.status_code == 200 and "pidx" in data:
             order.pidx = data["pidx"]
             order.save(update_fields=["pidx"])
             # Clear cart only after successful initiation
@@ -671,7 +719,7 @@ def initiate_payment(request):
             })
         else:
             # Khalti returned an error — mark order as failed
-            print(f"❌ Khalti Error: Status {res.status_code}, Data: {data}")
+            print(f"Khalti Error: Status {res.status_code}, Data: {data}")
             order.payment_status = "failed"
             order.save(update_fields=["payment_status"])
             return Response(
@@ -679,13 +727,131 @@ def initiate_payment(request):
                 status=400,
             )
     except requests.RequestException as e:
-        print(f"📡 Network Error connecting to Khalti: {str(e)}")
         order.payment_status = "failed"
         order.save(update_fields=["payment_status"])
         return Response(
             {"error": "Could not connect to Khalti", "details": str(e)},
             status=502,
         )
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_order_view(request, pk):
+    """
+    Allows a user to update order details (address, phone, notes, payment method)
+    before they have completed payment.
+    """
+    try:
+        order = Order.objects.get(pk=pk, user=request.user)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=404)
+
+    if order.payment_status == 'completed':
+        return Response({"error": "Cannot update a paid order"}, status=400)
+
+    # Fields allowed to be updated
+    allowed_fields = ['full_name', 'phone', 'address', 'city', 'landmark', 'notes', 'payment_method']
+    updated_fields = []
+
+    for field in allowed_fields:
+        if field in request.data:
+            setattr(order, field, request.data[field])
+            updated_fields.append(field)
+
+    if updated_fields:
+        order.save(update_fields=updated_fields)
+
+    return Response(OrderSerializer(order).data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reinitiate_payment_view(request, pk):
+    """
+    Allows a user to retry payment for an existing order that is stuck in 'pending_payment'.
+    Currently supports Khalti and Kharcha.
+    """
+    try:
+        order = Order.objects.get(pk=pk, user=request.user)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=404)
+
+    if order.status != 'pending_payment' and order.payment_status == 'completed':
+        return Response({"error": "Order is already paid or in progress"}, status=400)
+
+    # ── Khalti Re-initiation ──────────────────────────────────────
+    if order.payment_method == 'khalti':
+        khalti_url = f"{settings.KHALTI_BASE_URL}/epayment/initiate/"
+        payload = {
+            "return_url": request.data.get(
+                "return_url",
+                f"{settings.BACKEND_BASE_URL}/api/payments/verify/",
+            ),
+            "website_url": request.data.get("website_url", settings.FRONTEND_BASE_URL),
+            "amount": int(order.total * 100),
+            "purchase_order_id": f"{order.id}_{int(timezone.now().timestamp())}",
+            "purchase_order_name": f"KTM Bites Order #{order.id} (Retry)",
+            "customer_info": {
+                "name": order.full_name,
+                "email": request.user.email,
+                "phone": order.phone,
+            },
+        }
+        headers = {"Authorization": f"Key {settings.KHALTI_SECRET_KEY}"}
+
+        try:
+            res = requests.post(khalti_url, json=payload, headers=headers, timeout=30)
+            data = res.json()
+
+            if res.status_code == 200 and "pidx" in data:
+                order.pidx = data["pidx"]
+                order.payment_status = "pending" # Reset to pending
+                order.save(update_fields=["pidx", "payment_status"])
+                return Response({
+                    "pidx": data["pidx"],
+                    "payment_url": data["payment_url"],
+                    "order_id": order.id,
+                })
+            else:
+                return Response({"error": "Khalti re-initiation failed", "details": data}, status=400)
+        except Exception as e:
+            return Response({"error": "Connection to Khalti failed", "details": str(e)}, status=502)
+
+    # ── Kharcha Re-initiation ─────────────────────────────────────
+    elif order.payment_method in ['kharcha', 'kharcha_portal', 'kharcha_linked']:
+        backend_base  = getattr(settings, 'BACKEND_BASE_URL', 'http://localhost:8000')
+        return_url    = f"{backend_base}/api/kharcha/portal/callback/"
+        
+        try:
+            res = requests.post(
+                f"{settings.KHARCHA_BASE_URL}/api/pay-portal/sessions/create",
+                headers={
+                    "X-API-Key":    settings.KHARCHA_API_KEY,
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "amount":       float(order.total),
+                    "note":         f"KTM Bites Order #{order.id} (Retry)",
+                    "return_url":   return_url,
+                },
+                timeout=15,
+            )
+            data = res.json()
+            if data.get("success"):
+                order.kharcha_payment_id = data["session_id"]
+                order.payment_status = "pending"
+                order.save(update_fields=["kharcha_payment_id", "payment_status"])
+                return Response({
+                    "checkout_url": data["checkout_url"],
+                    "order_id":     order.id,
+                })
+            else:
+                return Response({"error": "Kharcha re-initiation failed", "details": data}, status=400)
+        except Exception as e:
+            return Response({"error": "Connection to Kharcha failed", "details": str(e)}, status=502)
+
+    return Response({"error": "Unsupported payment method for retry"}, status=400)
 
 
 @api_view(['GET'])
@@ -698,7 +864,7 @@ def verify_payment(request):
     then redirect to the frontend with the result.
     """
     pidx = request.GET.get("pidx")
-    frontend_base = "http://localhost:5173"
+    frontend_base = settings.FRONTEND_BASE_URL
 
     if not pidx:
         return Response({"error": "Missing pidx parameter"}, status=400)
@@ -712,7 +878,7 @@ def verify_payment(request):
     # Already processed — don't double-process
     if order.payment_status == "completed":
         from django.shortcuts import redirect
-        return redirect(f"{frontend_base}/order-success?order_id={order.id}")
+        return django_redirect(f"{frontend_base}/order-success?order_id={order.id}")
 
     # Server-to-server lookup with Khalti
     lookup_url = f"{settings.KHALTI_BASE_URL}/epayment/lookup/"
@@ -720,28 +886,24 @@ def verify_payment(request):
 
     try:
         res = requests.post(lookup_url, json={"pidx": pidx}, headers=headers, timeout=30)
-        try:
-            data = res.json()
-        except ValueError:
-            print(f"🔥 Khalti Lookup Error: Status {res.status_code}")
-            print(f"📄 Raw Response: {res.text[:500]}")
-            data = {"status": "Error", "message": "Invalid response format"}
-    except requests.RequestException as e:
-        print(f"📡 Network Error during Khalti lookup: {str(e)}")
+        data = res.json()
+    except requests.RequestException:
         from django.shortcuts import redirect
-        return redirect(f"{frontend_base}/payment-failed?order_id={order.id}&reason=lookup_error")
+        return django_redirect(f"{frontend_base}/payment-failed?order_id={order.id}&reason=lookup_error")
 
     if data.get("status") == "Completed":
         order.payment_status = "completed"
+        order.status = "placed"  # Mark as placed only after payment
         order.transaction_id = data.get("transaction_id", "")
-        order.save(update_fields=["payment_status", "transaction_id"])
+        order.save(update_fields=["payment_status", "status", "transaction_id"])
         from django.shortcuts import redirect
-        return redirect(f"{frontend_base}/order-tracking/{order.id}")
+        return django_redirect(f"{frontend_base}/order-tracking/{order.id}")
     else:
         order.payment_status = "failed"
-        order.save(update_fields=["payment_status"])
+        order.status = "cancelled"  # Cancel order on failure
+        order.save(update_fields=["payment_status", "status"])
         from django.shortcuts import redirect
-        return redirect(f"{frontend_base}/checkout")
+        return django_redirect(f"{frontend_base}/checkout?payment_failed=1")
 
 
 @api_view(['GET'])
@@ -1374,3 +1536,489 @@ def rider_login_view(request):
         pass
         
     return Response({'error': 'Invalid rider credentials. Please check your email and password.'}, status=401)
+
+# ============================================================
+# KHARCHA VIEWS
+# Add this entire block to KTM-Bites/backend/api/views.py
+# (paste at the end, before any existing admin views)
+# ============================================================
+#
+# Requires these new env vars (see .env additions at the bottom
+# of this file):
+#   KHARCHA_BASE_URL, KHARCHA_CLIENT_ID, KHARCHA_CLIENT_SECRET,
+#   KHARCHA_REDIRECT_URI
+# ============================================================
+
+# ============================================================
+# SERVICE 1 — LINK KHARCHA ACCOUNT (OAuth)
+# ============================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def kharcha_link_status(request):
+    """
+    GET /api/kharcha/link/status/
+    Returns whether the current user has a linked Kharcha account.
+    """
+    try:
+        link = request.user.kharcha_account
+        return Response({
+            "linked": link.is_active,
+            "linked_at": link.linked_at,
+        })
+    except Exception:
+        return Response({"linked": False})
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def kharcha_link_start(request):
+    """
+    GET /api/kharcha/link/start/?token=<auth_token>
+    Called via browser redirect (can't send Authorization header),
+    so the frontend passes the DRF token as a query param instead.
+    """
+    from rest_framework.authtoken.models import Token
+
+    raw_token = request.GET.get('token', '')
+    try:
+        token_obj = Token.objects.select_related('user').get(key=raw_token)
+        user = token_obj.user
+    except Token.DoesNotExist:
+        return Response({"error": "Invalid or missing token."}, status=401)
+
+    state = secrets.token_urlsafe(32)
+    request.session['kharcha_oauth_state']   = state
+    request.session['kharcha_oauth_user_id'] = user.id
+
+    client_id    = settings.KHARCHA_CLIENT_ID
+    redirect_uri = settings.KHARCHA_REDIRECT_URI
+
+    consent_url = (
+        f"{settings.KHARCHA_FRONTEND_URL}/oauth-consent"
+        f"?client_id={client_id}"
+        f"&redirect_uri={redirect_uri}"
+        f"&state={state}"
+    )
+    return django_redirect(consent_url)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def kharcha_link_callback(request):
+    """
+    GET /api/kharcha/callback/
+    Kharcha redirects here after the user approves.
+    Exchanges the one-time code for a link_token and stores it.
+    """
+    code  = request.GET.get('code')
+    state = request.GET.get('state')
+
+    frontend_base = getattr(settings, 'FRONTEND_BASE_URL', 'http://localhost:5173')
+
+    # ── CSRF state check ──────────────────────────────────────
+    saved_state = request.session.get('kharcha_oauth_state')
+    user_id     = request.session.get('kharcha_oauth_user_id')
+
+    if not code or not state:
+        return django_redirect(f"{frontend_base}/profile?kharcha_link=failed&reason=missing_params")
+
+    if state != saved_state:
+        return django_redirect(f"{frontend_base}/profile?kharcha_link=failed&reason=state_mismatch")
+
+    # ── Exchange code for link_token ──────────────────────────
+    import requests as http_requests
+    try:
+        res = http_requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/oauth/token",
+            json={
+                "client_id":     settings.KHARCHA_CLIENT_ID,
+                "client_secret": settings.KHARCHA_CLIENT_SECRET,
+                "code":          code,
+            },
+            timeout=15,
+        )
+        data = res.json()
+    except http_requests.RequestException as e:
+        return django_redirect(
+            f"{frontend_base}/profile?kharcha_link=failed&reason=network_error"
+        )
+
+    if not data.get('success'):
+        return django_redirect(
+            f"{frontend_base}/profile?kharcha_link=failed&reason=token_exchange_failed"
+        )
+
+    link_token       = data['link_token']
+    authorization_id = data['authorization_id']
+
+    # ── Persist the link_token ────────────────────────────────
+    from django.contrib.auth.models import User
+    from .models import KharchaLinkedAccount
+
+    try:
+        user = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return django_redirect(
+            f"{frontend_base}/profile?kharcha_link=failed&reason=user_not_found"
+        )
+
+    KharchaLinkedAccount.objects.update_or_create(
+        user=user,
+        defaults={
+            'link_token':       link_token,
+            'authorization_id': authorization_id,
+            'is_active':        True,
+        },
+    )
+
+    # Clear OAuth session keys
+    request.session.pop('kharcha_oauth_state',   None)
+    request.session.pop('kharcha_oauth_user_id', None)
+
+    return django_redirect(f"{frontend_base}/profile?kharcha_link=success")
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def kharcha_link_remove(request):
+    """
+    DELETE /api/kharcha/link/remove/
+    Unlinks the user's Kharcha account (marks is_active=False).
+    """
+    try:
+        link = request.user.kharcha_account
+        link.is_active = False
+        link.save(update_fields=['is_active'])
+        return Response({"success": True, "message": "Kharcha account unlinked."})
+    except Exception:
+        return Response({"success": False, "message": "No linked Kharcha account found."}, status=404)
+
+
+# ============================================================
+# SERVICE 2 — PAY WITH KHARCHA (OTP checkout)
+# ============================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def kharcha_pay_initiate(request):
+    """
+    POST /api/kharcha/pay/initiate/
+    Creates an order and asks Kharcha to send an OTP to the user's
+    Kharcha-registered email. Returns a payment_id that must be passed
+    to /kharcha/pay/confirm/ with the OTP.
+
+    Body:
+        full_name, phone, address, city, landmark, notes  (order details)
+
+    Requires: user has a linked Kharcha account.
+
+    Returns:
+        { order_id, payment_id, masked_email, amount }
+    """
+    import requests as http_requests
+    from .models import KharchaLinkedAccount, Cart, Order, OrderItem
+
+    # ── 1. Verify user has a linked account ──────────────────
+    try:
+        linked = request.user.kharcha_account
+        if not linked.is_active:
+            raise KharchaLinkedAccount.DoesNotExist
+    except KharchaLinkedAccount.DoesNotExist:
+        return Response(
+            {
+                "error": "No linked Kharcha account found. "
+                         "Please link your Kharcha account first at /api/kharcha/link/start/",
+                "link_url": "/api/kharcha/link/start/",
+            },
+            status=400,
+        )
+
+    # ── 2. Build order from cart ──────────────────────────────
+    try:
+        cart = Cart.objects.get(user=request.user)
+        items = cart.items.all()
+    except Cart.DoesNotExist:
+        return Response({"error": "Cart not found."}, status=404)
+
+    if not items.exists():
+        return Response({"error": "Cart is empty."}, status=400)
+
+    subtotal = sum(i.subtotal for i in items)
+    delivery = 80
+    total    = subtotal + delivery
+
+    order = Order.objects.create(
+        user=request.user,
+        subtotal=subtotal,
+        delivery_fee=delivery,
+        total=total,
+        status="pending_payment",
+        payment_method="kharcha",
+        payment_status="pending",
+        full_name=request.data.get("full_name", ""),
+        phone=request.data.get("phone", ""),
+        address=request.data.get("address", ""),
+        city=request.data.get("city", "Kathmandu"),
+        landmark=request.data.get("landmark", ""),
+        notes=request.data.get("notes", ""),
+    )
+
+    for item in items:
+        OrderItem.objects.create(
+            order=order,
+            menu_item=item.menu_item,
+            quantity=item.quantity,
+            price=item.menu_item.price,
+        )
+
+    # ── 3. Ask Kharcha to send OTP ────────────────────────────
+    try:
+        res = http_requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/oauth/pay/initiate",
+            headers={
+                "X-Client-Id":     settings.KHARCHA_CLIENT_ID,
+                "X-Client-Secret": settings.KHARCHA_CLIENT_SECRET,
+                "Content-Type":    "application/json",
+            },
+            json={
+                "link_token":   linked.link_token,
+                "amount":       float(total),
+                "note":         f"KTM Bites Order #{order.id}",
+                "callback_url": getattr(settings, 'KHARCHA_WEBHOOK_URL', ''),
+            },
+            timeout=15,
+        )
+        data = res.json()
+    except http_requests.RequestException as e:
+        order.payment_status = "failed"
+        order.save(update_fields=["payment_status"])
+        return Response({"error": "Could not reach Kharcha.", "details": str(e)}, status=502)
+
+    if not data.get("success"):
+        order.payment_status = "failed"
+        order.save(update_fields=["payment_status"])
+        return Response({"error": "Kharcha declined to initiate payment.", "details": data}, status=400)
+
+    # ── 4. Store payment_id on the order ─────────────────────
+    payment_id = data["payment_id"]
+    order.kharcha_payment_id = payment_id
+    order.save(update_fields=["kharcha_payment_id"])
+
+    # Clear cart
+    items.delete()
+
+    return Response({
+        "success":      True,
+        "order_id":     order.id,
+        "payment_id":   payment_id,
+        "masked_email": data.get("masked_email"),
+        "amount":       float(total),
+        "message":      "An OTP has been sent to your Kharcha email. "
+                        "Enter it to confirm payment.",
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def kharcha_pay_confirm(request):
+    """
+    POST /api/kharcha/pay/confirm/
+    Confirms the Kharcha payment with the OTP.
+
+    Body:
+        payment_id  — returned by /kharcha/pay/initiate/
+        otp         — 6-digit OTP entered by the user
+
+    Returns:
+        { success, order_id, transaction_id, amount }
+    """
+    import requests as http_requests
+    from .models import Order
+
+    payment_id = request.data.get("payment_id")
+    otp        = request.data.get("otp")
+
+    if not payment_id or not otp:
+        return Response({"error": "payment_id and otp are required."}, status=400)
+
+    # ── Find the order ────────────────────────────────────────
+    try:
+        order = Order.objects.get(
+            kharcha_payment_id=payment_id,
+            user=request.user,
+            payment_status="pending",
+        )
+    except Order.DoesNotExist:
+        return Response({"error": "No pending order found for this payment."}, status=404)
+
+    # ── Confirm with Kharcha ──────────────────────────────────
+    try:
+        res = http_requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/oauth/pay/confirm",
+            headers={"Content-Type": "application/json"},
+            json={"payment_id": payment_id, "otp": str(otp)},
+            timeout=15,
+        )
+        data = res.json()
+    except http_requests.RequestException as e:
+        return Response({"error": "Could not reach Kharcha.", "details": str(e)}, status=502)
+
+    if not data.get("success"):
+        # Surface Kharcha's error (wrong OTP, expired, etc.)
+        return Response(
+            {
+                "success":           False,
+                "error":             data.get("message", "Payment failed."),
+                "attempts_remaining": data.get("attempts_remaining"),
+            },
+            status=res.status_code,
+        )
+
+    # ── Mark order as paid ────────────────────────────────────
+    tx = data.get("transaction", {})
+    order.payment_status  = "completed"
+    order.status          = "placed"
+    order.transaction_id  = tx.get("transaction_id", "")
+    order.save(update_fields=["payment_status", "status", "transaction_id"])
+
+    return Response({
+        "success":        True,
+        "order_id":       order.id,
+        "transaction_id": tx.get("transaction_id"),
+        "amount":         tx.get("amount"),
+        "message":        "Payment successful. Your order is confirmed.",
+    })
+
+# ============================================================
+# KHARCHA — PAY PORTAL VIEWS
+# ============================================================
+
+import requests as _http_requests
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def kharcha_portal_initiate(request):
+    """
+    POST /api/kharcha/portal/initiate/
+    Creates order + Kharcha hosted-checkout session.
+    Returns checkout_url for the frontend to redirect to.
+    """
+    from .models import Cart, Order, OrderItem
+
+    try:
+        cart = Cart.objects.get(user=request.user)
+        items = cart.items.all()
+    except Cart.DoesNotExist:
+        return Response({"error": "Cart not found."}, status=404)
+
+    if not items.exists():
+        return Response({"error": "Cart is empty."}, status=400)
+
+    subtotal = sum(i.subtotal for i in items)
+    delivery = 80
+    total    = subtotal + delivery
+
+    order = Order.objects.create(
+        user=request.user,
+        subtotal=subtotal,
+        delivery_fee=delivery,
+        total=total,
+        status="pending_payment",
+        payment_method="kharcha",
+        payment_status="pending",
+        full_name=request.data.get("full_name", ""),
+        phone=request.data.get("phone", ""),
+        address=request.data.get("address", ""),
+        city=request.data.get("city", "Kathmandu"),
+        landmark=request.data.get("landmark", ""),
+        notes=request.data.get("notes", ""),
+    )
+
+    for item in items:
+        OrderItem.objects.create(
+            order=order,
+            menu_item=item.menu_item,
+            quantity=item.quantity,
+            price=item.menu_item.price,
+        )
+
+    backend_base  = getattr(settings, 'BACKEND_BASE_URL', 'http://localhost:8000')
+    return_url    = f"{backend_base}/api/kharcha/portal/callback/"
+    callback_url  = getattr(settings, 'KHARCHA_WEBHOOK_URL', '')
+
+    try:
+        res = _http_requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/pay-portal/sessions/create",
+            headers={
+                "X-API-Key":    settings.KHARCHA_API_KEY,
+                "Content-Type": "application/json",
+            },
+            json={
+                "amount":       float(total),
+                "note":         f"KTM Bites Order #{order.id}",
+                "return_url":   return_url,
+                "callback_url": callback_url,
+            },
+            timeout=15,
+        )
+        data = res.json()
+    except Exception as e:
+        order.payment_status = "failed"
+        order.save(update_fields=["payment_status"])
+        return Response({"error": "Could not reach Kharcha.", "details": str(e)}, status=502)
+
+    if not data.get("success"):
+        order.payment_status = "failed"
+        order.save(update_fields=["payment_status"])
+        return Response({"error": "Kharcha declined to create session.", "details": data}, status=400)
+
+    session_id   = data["session_id"]
+    checkout_url = data["checkout_url"]
+
+    order.kharcha_payment_id = session_id
+    order.save(update_fields=["kharcha_payment_id"])
+
+    items.delete()
+
+    return Response({
+        "success":      True,
+        "order_id":     order.id,
+        "session_id":   session_id,
+        "checkout_url": checkout_url,
+        "amount":       float(total),
+    })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def kharcha_portal_callback(request):
+    """
+    GET /api/kharcha/portal/callback/
+    Kharcha redirects here after the user pays or cancels.
+    Marks order paid/failed and redirects to the frontend.
+    """
+    from .models import Order
+
+    frontend_base  = settings.FRONTEND_BASE_URL
+    status         = request.GET.get('status')
+    transaction_id = request.GET.get('transaction_id', '')
+    session_id     = request.GET.get('session_id', '')
+
+    if not session_id:
+        return django_redirect(f"{frontend_base}/checkout?kharcha_error=missing_session")
+
+    try:
+        order = Order.objects.get(kharcha_payment_id=session_id, payment_status="pending")
+    except Order.DoesNotExist:
+        return django_redirect(f"{frontend_base}/checkout?kharcha_error=order_not_found")
+
+    if status == "success":
+        order.payment_status = "completed"
+        order.status = "placed"
+        order.transaction_id = transaction_id
+        order.save(update_fields=["payment_status", "status", "transaction_id"])
+        return django_redirect(f"{frontend_base}/order-tracking/{order.id}")
+
+    order.payment_status = "failed"
+    order.save(update_fields=["payment_status"])
+    return django_redirect(f"{frontend_base}/checkout?cancelled=1")

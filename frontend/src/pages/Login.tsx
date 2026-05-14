@@ -4,7 +4,7 @@ import "../css/auth.css";
 import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 import { login, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
-import AuthCreative from "../components/AuthCreative";
+
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +43,9 @@ const Login: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
+      <Link to="/">
+        <img src={transparentLogo} alt="KTM Bites" className="auth-logo-top" />
+      </Link>
       <h1>Welcome Back</h1>
       <p className="auth-subtitle">Enter your details to access your account.</p>
 

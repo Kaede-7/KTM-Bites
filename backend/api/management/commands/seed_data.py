@@ -233,31 +233,20 @@ class Command(BaseCommand):
         # ── Rider Staff ──
         rider_email = os.environ.get('RIDER_USER_EMAIL', 'rider@ktmbites.com')
         rider_password = os.environ.get('RIDER_USER_PASSWORD', 'rider123')
-        rider_user, created = User.objects.get_or_create(
-            username=rider_email,
-            defaults={
-                'email': rider_email,
-                'first_name': 'Express Rider',
-                'is_staff': True,
-            }
-        )
-        if created:
-            rider_user.set_password(rider_password)
-            rider_user.save()
-            self.stdout.write(f'  Rider user created: {rider_email}')
-
-        # Update Rider Profile
-        profile, _ = UserProfile.objects.get_or_create(user=rider_user)
-        profile.role = Role.RIDER
-        profile.save()
+        
+        from django.contrib.auth.hashers import make_password
         RiderProfile.objects.get_or_create(
-            user=rider_user,
+            email=rider_email,
             defaults={
+                'username': 'rider_express',
+                'full_name': 'Express Rider',
+                'password': make_password(rider_password),
                 'vehicle_type': 'Motorcycle',
                 'license_number': 'BA-PA-1234',
-                'is_available': True
+                'is_available': True,
+                'phone': '+977-9800000000'
             }
         )
-        self.stdout.write('  Rider profile details added')
+        self.stdout.write('  Rider profile created independently')
 
         self.stdout.write(self.style.SUCCESS('Database seeded successfully with roles and profile info!'))

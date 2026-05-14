@@ -1,0 +1,476 @@
+/* ================================================================
+   kharcha.css — Kharcha integration styles
+   Matches KTM Bites cream/amber theme (Inter, #fdf6f0 bg)
+   Import in: Checkout.tsx, Profile.tsx
+   ================================================================ */
+
+/* ── Checkout: payment option badge ─────────────────────────── */
+.kharcha-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* ── Checkout: link-account nudge ────────────────────────────── */
+.kharcha-link-nudge {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: rgba(26, 122, 74, 0.07);
+  border: 1px solid rgba(26, 122, 74, 0.18);
+  border-radius: 12px;
+  font-size: 13px;
+  color: #2a5e3a;
+  line-height: 1.5;
+}
+
+.kharcha-link-nudge .material-symbols-rounded {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #1a7a4a;
+  font-variation-settings: 'FILL' 1;
+}
+
+.kharcha-link-nudge-link {
+  color: #1a7a4a;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── OTP Modal overlay ───────────────────────────────────────── */
+.kharcha-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 36, 32, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: kharcha-fade-in 0.2s ease both;
+}
+
+@keyframes kharcha-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.kharcha-modal {
+  background: #fff;
+  border-radius: 24px;
+  padding: 36px 32px 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+  animation: kharcha-modal-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes kharcha-modal-up {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.kharcha-modal-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.kharcha-modal-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #d4edda, #a8dbb5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.kharcha-modal-icon .material-symbols-rounded {
+  font-size: 28px;
+  color: #1a7a4a;
+  font-variation-settings: 'FILL' 1;
+}
+
+.kharcha-modal-header h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #2a2420;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.kharcha-modal-header p {
+  font-size: 13px;
+  color: #8b7d72;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.kharcha-modal-header p strong {
+  color: #2a2420;
+}
+
+.kharcha-modal-amount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fdf6f0;
+  border: 1px solid rgba(212, 196, 168, 0.4);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #8b7d72;
+}
+
+.kharcha-modal-amount strong {
+  font-size: 20px;
+  font-weight: 800;
+  color: #2a2420;
+  letter-spacing: -0.02em;
+}
+
+.kharcha-otp-field {
+  margin-bottom: 16px;
+}
+
+.kharcha-otp-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-align: center;
+  padding: 14px 20px;
+  border: 2px solid rgba(212, 196, 168, 0.5);
+  border-radius: 14px;
+  background: #fdf6f0;
+  color: #2a2420;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  font-family: 'Inter', monospace;
+}
+
+.kharcha-otp-input:focus {
+  border-color: #1a7a4a;
+  box-shadow: 0 0 0 4px rgba(26, 122, 74, 0.1);
+}
+
+.kharcha-modal-error {
+  background: #fff0f0;
+  border: 1px solid rgba(220, 60, 60, 0.2);
+  color: #c0392b;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.kharcha-modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.kharcha-modal-cancel {
+  flex: 1;
+  padding: 13px;
+  border: 1.5px solid rgba(212, 196, 168, 0.5);
+  border-radius: 12px;
+  background: transparent;
+  color: #8b7d72;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.kharcha-modal-cancel:hover:not(:disabled) {
+  background: #fdf6f0;
+  color: #2a2420;
+}
+
+.kharcha-modal-confirm {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a7a4a, #13603a);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.12s;
+}
+
+.kharcha-modal-confirm:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.kharcha-modal-confirm:disabled,
+.kharcha-modal-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kharcha-modal-confirm .material-symbols-rounded {
+  font-size: 18px;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────── */
+.kharcha-spin {
+  animation: kharcha-spin 0.9s linear infinite;
+}
+
+@keyframes kharcha-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Profile: linked accounts tab ────────────────────────────── */
+.kharcha-linked-subtitle {
+  font-size: 13px;
+  color: #8b7d72;
+  margin: -10px 0 24px;
+  line-height: 1.55;
+}
+
+.kharcha-account-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1.5px solid rgba(212, 196, 168, 0.35);
+  border-radius: 18px;
+  padding: 20px 22px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.kharcha-account-card--linked {
+  border-color: rgba(26, 122, 74, 0.3);
+  background: linear-gradient(135deg, rgba(26, 122, 74, 0.04), rgba(255, 255, 255, 0.9));
+  box-shadow: 0 2px 16px rgba(26, 122, 74, 0.07);
+}
+
+.kharcha-account-card-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.kharcha-account-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #1a7a4a, #0f5233);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(26, 122, 74, 0.25);
+}
+
+.kharcha-account-logo-letter {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.kharcha-account-info {
+  min-width: 0;
+}
+
+.kharcha-account-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2a2420;
+  margin-bottom: 4px;
+}
+
+.kharcha-account-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #8b7d72;
+}
+
+.kharcha-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d0c8c0;
+  flex-shrink: 0;
+}
+
+.kharcha-status-dot--active {
+  background: #1a7a4a;
+  box-shadow: 0 0 0 3px rgba(26, 122, 74, 0.18);
+}
+
+.kharcha-account-date {
+  color: #b0a499;
+}
+
+.kharcha-account-card-right {
+  flex-shrink: 0;
+}
+
+.kharcha-link-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #1a7a4a, #13603a);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.12s;
+  white-space: nowrap;
+}
+
+.kharcha-link-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.kharcha-link-btn .material-symbols-rounded {
+  font-size: 17px;
+  font-variation-settings: 'FILL' 1;
+}
+
+.kharcha-unlink-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1.5px solid rgba(200, 60, 60, 0.25);
+  border-radius: 11px;
+  background: #fff;
+  color: #c0392b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.kharcha-unlink-btn:hover:not(:disabled) {
+  background: #fff0f0;
+  border-color: rgba(200, 60, 60, 0.4);
+}
+
+.kharcha-unlink-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kharcha-unlink-btn .material-symbols-rounded {
+  font-size: 17px;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ── Feature info block ──────────────────────────────────────── */
+.kharcha-feature-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: rgba(212, 196, 168, 0.12);
+  border: 1px solid rgba(212, 196, 168, 0.3);
+  border-radius: 14px;
+  font-size: 13px;
+  color: #6b5d55;
+  line-height: 1.55;
+}
+
+.kharcha-feature-info--active {
+  background: rgba(26, 122, 74, 0.06);
+  border-color: rgba(26, 122, 74, 0.2);
+  color: #2a5e3a;
+}
+
+.kharcha-feature-info .material-symbols-rounded {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #8b7d72;
+  font-variation-settings: 'FILL' 1;
+}
+
+.kharcha-feature-info--active .material-symbols-rounded {
+  color: #1a7a4a;
+}
+
+.kharcha-feature-info strong {
+  display: block;
+  font-weight: 700;
+  color: #2a2420;
+  margin-bottom: 3px;
+  font-size: 13.5px;
+}
+
+.kharcha-feature-info--active strong {
+  color: #1a7a4a;
+}
+
+.kharcha-feature-info p {
+  margin: 0;
+}
+
+.kharcha-feature-info em {
+  font-style: normal;
+  font-weight: 600;
+  color: inherit;
+}
+
+/* ── Mobile tweaks ───────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .kharcha-modal {
+    padding: 28px 20px 22px;
+  }
+
+  .kharcha-account-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .kharcha-account-card-right {
+    width: 100%;
+  }
+
+  .kharcha-link-btn,
+  .kharcha-unlink-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

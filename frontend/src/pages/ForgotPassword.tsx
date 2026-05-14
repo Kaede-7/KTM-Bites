@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "../css/auth.css";
 import { forgotPassword } from "../api/auth";
 import { getErrorMessage } from "../utils/errors";
+import transparentLogo from "../assets/logo-ktmbites-transparent.png";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -28,6 +29,9 @@ const ForgotPassword: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
+      <Link to="/">
+        <img src={transparentLogo} alt="KTM Bites" className="auth-logo-top" />
+      </Link>
       <h1>Forgot Password?</h1>
       <p className="auth-subtitle">
         Enter your email address and we'll send you a link to reset your password.
