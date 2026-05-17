@@ -11,6 +11,7 @@ import { isLoggedIn } from "../api/auth";
 import PageTransition from "../components/PageTransition";
 import LottieAnimation from "../components/LottieAnimation";
 import { motion } from "framer-motion";
+import { downloadOrderPDF } from "../utils/pdfGenerator";
 
 const statusSteps = [
   { key: "placed",    title: "Received",  desc: "Order confirmed",          icon: "receipt_long" },
@@ -217,7 +218,37 @@ const OrderTracking: React.FC = () => {
           <div className="header-left-new">
             <h1 className="tracking-title-new">{getStatusLabel()}</h1>
           </div>
-          <div className="header-right-new">
+          <div className="header-right-new" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              onClick={() => downloadOrderPDF(order)}
+              className="download-pdf-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '12px',
+                border: '1px solid #ebdcd0',
+                background: '#fff',
+                color: '#e06c22',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#faf8f5';
+                e.currentTarget.style.borderColor = '#f28b46';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#fff';
+                e.currentTarget.style.borderColor = '#ebdcd0';
+              }}
+            >
+              <span className="material-symbols-rounded" style={{ fontSize: '1.1rem' }}>picture_as_pdf</span>
+              Invoice PDF
+            </button>
             <span className="order-id-badge-new">#{order.order_id}</span>
           </div>
         </div>

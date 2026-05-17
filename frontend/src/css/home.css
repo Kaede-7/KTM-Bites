@@ -624,18 +624,10 @@
   }
   .home-hero-text {
     max-width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 0;
   }
   .home-hero-img-container {
-    position: relative;
-    right: auto;
-    top: auto;
-    transform: none;
-    width: 240px;
-    height: 240px;
-    margin: 0 auto;
-    mask-image: none;
-    -webkit-mask-image: none;
+    display: none !important;
   }
   .home-card {
     padding: 24px 20px;
@@ -661,10 +653,6 @@
   }
   .home-hero-text p {
     font-size: 14px;
-  }
-  .home-hero-img-container {
-    width: 180px;
-    height: 180px;
   }
   .home-card-header h2 {
     font-size: 18px;

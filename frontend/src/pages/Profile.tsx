@@ -14,6 +14,7 @@ import {
 } from "../api/kharcha";
 import PageTransition from "../components/PageTransition";
 import LoadingAnimation from "../components/LoadingAnimation";
+import { downloadOrderPDF } from "../utils/pdfGenerator";
 
 // ── Toast Component ──────────────────────────────────────────
 const Toast: React.FC<{ msg: string; type: "success" | "error"; onClose: () => void }> = ({ msg, type, onClose }) => (
@@ -541,9 +542,41 @@ const Profile: React.FC = () => {
                   ) : (
                     orders.map(order => (
                       <div key={order.id} className="oh-card" onClick={() => navigate(`/order-tracking/${order.id}`)}>
-                        <div className="oh-card-top">
+                        <div className="oh-card-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span className="oh-order-id">Order #{order.order_id}</span>
-                          <span className={`oh-status oh-status-${order.status}`}>{order.status_display || order.status}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                              title="Download PDF Invoice"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadOrderPDF(order as any);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                border: '1px solid #ebdcd0',
+                                background: '#fff',
+                                color: '#e06c22',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#faf8f5';
+                                e.currentTarget.style.borderColor = '#f28b46';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = '#fff';
+                                e.currentTarget.style.borderColor = '#ebdcd0';
+                              }}
+                            >
+                              <span className="material-symbols-rounded" style={{ fontSize: '1.1rem' }}>picture_as_pdf</span>
+                            </button>
+                            <span className={`oh-status oh-status-${order.status}`}>{order.status_display || order.status}</span>
+                          </div>
                         </div>
                         <div className="oh-items">
                           {order.items.length === 0 ? "No items" : order.items.map((i: any) => `${i.name} ×${i.quantity}`).join(' · ')}
