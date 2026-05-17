@@ -80,7 +80,7 @@ const ChatWidget: React.FC = () => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  if (HIDDEN_ROUTES.some(r => location.pathname.startsWith(r))) return null;
+  if (location.pathname === '/' || HIDDEN_ROUTES.some(r => location.pathname.startsWith(r))) return null;
 
   return (
     <>

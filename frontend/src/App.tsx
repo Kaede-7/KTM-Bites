@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import ChatWidget from "./components/ChatWidget";
 import { ToastProvider } from "./components/Toast";
 import AuthLayout from "./components/AuthLayout";
@@ -29,6 +29,9 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 function App() {
+  const location = useLocation();
+  const isLandingPage = location.pathname === "/";
+
   return (
     <ToastProvider>
       <Suspense fallback={<LoadingAnimation message="Entering the kitchen..." />}>
@@ -65,8 +68,8 @@ function App() {
         </Routes>
       </Suspense>
 
-      {/* AI Chat Widget — floating button on every page */}
-      <ChatWidget />
+      {/* AI Chat Widget — floating button on every page except landing page */}
+      {!isLandingPage && <ChatWidget />}
     </ToastProvider>
   );
 }
