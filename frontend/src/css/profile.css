@@ -42,73 +42,130 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 /* ══ RANK THEMES ══════════════════════════════════════════════ */
 
-/* ROOKIE: Matte Earth */
 .profile-rank-card.tier-rookie {
   background: #f8f5f2 !important;
   border: 1px solid #dcd7d2 !important;
 }
-.profile-rank-card.tier-rookie .prc-name { color: #5d544d; }
 
-/* BRONZE: Brushed Copper */
+.profile-rank-card.tier-rookie .prc-name {
+  color: #5d544d;
+}
+
 .profile-rank-card.tier-bronze {
   background: linear-gradient(135deg, #3d2411 0%, #2a180b 100%) !important;
   border: 1px solid #cd7f3240 !important;
 }
-.profile-rank-card.tier-bronze .prc-name { color: #cd7f32; }
-.profile-rank-card.tier-bronze .prc-label { color: rgba(205, 127, 50, 0.5); }
 
-/* SILVER: Polished Chrome */
+.profile-rank-card.tier-bronze .prc-name {
+  color: #cd7f32;
+}
+
+.profile-rank-card.tier-bronze .prc-label {
+  color: rgba(205, 127, 50, 0.5);
+}
+
 .profile-rank-card.tier-silver {
   background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%) !important;
   border: 1px solid #c0c0c040 !important;
 }
+
 .profile-rank-card.tier-silver::before {
   content: '';
   position: absolute;
-  top: 0; left: -100%; width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
   transform: skewX(-20deg);
   animation: silver-shine 8s infinite;
   pointer-events: none;
 }
-@keyframes silver-shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
-.profile-rank-card.tier-silver .prc-name { color: #e0e0e0; }
-.profile-rank-card.tier-silver .prc-label { color: rgba(192, 192, 192, 0.5); }
 
-/* GOLD: Radiant Aurum */
+@keyframes silver-shine {
+  0% {
+    left: -100%;
+  }
+
+  20% {
+    left: 200%;
+  }
+
+  100% {
+    left: 200%;
+  }
+}
+
+.profile-rank-card.tier-silver .prc-name {
+  color: #e0e0e0;
+}
+
+.profile-rank-card.tier-silver .prc-label {
+  color: rgba(192, 192, 192, 0.5);
+}
+
 .profile-rank-card.tier-gold {
   background: linear-gradient(135deg, #2d2400 0%, #1a1500 100%) !important;
   border: 1px solid #ffd70040 !important;
 }
+
 .profile-rank-card.tier-gold::after {
   content: '';
   position: absolute;
-  top: -50%; left: -50%; width: 200%; height: 200%;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
   background: conic-gradient(from 0deg, transparent, rgba(255, 215, 0, 0.03), transparent 30%);
   animation: gold-rotate 10s infinite linear;
   pointer-events: none;
 }
-@keyframes gold-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.profile-rank-card.tier-gold .prc-name { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
-.profile-rank-card.tier-gold .prc-label { color: rgba(255, 215, 0, 0.4); }
 
-/* PLATINUM: Electric Crystal */
+@keyframes gold-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.profile-rank-card.tier-gold .prc-name {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.profile-rank-card.tier-gold .prc-label {
+  color: rgba(255, 215, 0, 0.4);
+}
+
 .profile-rank-card.tier-platinum {
   background: linear-gradient(135deg, #05101a 0%, #0a1a2a 100%) !important;
   border: 1px solid #00d4ff40 !important;
 }
-.profile-rank-card.tier-platinum .prc-name { color: #00d4ff; text-shadow: 0 0 15px rgba(0, 212, 255, 0.3); }
-.profile-rank-card.tier-platinum .prc-label { color: rgba(0, 212, 255, 0.4); }
 
-/* DIAMOND: Gemstone Cyan */
+.profile-rank-card.tier-platinum .prc-name {
+  color: #00d4ff;
+  text-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.profile-rank-card.tier-platinum .prc-label {
+  color: rgba(0, 212, 255, 0.4);
+}
+
 .profile-rank-card.tier-diamond {
   background: linear-gradient(135deg, #001a1a 0%, #000a0a 100%) !important;
   border: 1px solid #b9f2ff40 !important;
 }
+
 .profile-rank-card.tier-diamond::before {
   content: '';
   position: absolute;
@@ -118,10 +175,16 @@
   mix-blend-mode: overlay;
   pointer-events: none;
 }
-.profile-rank-card.tier-diamond .prc-name { color: #b9f2ff; text-shadow: 0 0 20px rgba(185, 242, 255, 0.4); }
-.profile-rank-card.tier-diamond .prc-label { color: rgba(185, 242, 255, 0.4); }
 
-/* MYTHIC CRIMSON: Frosted Matte Obsidian */
+.profile-rank-card.tier-diamond .prc-name {
+  color: #b9f2ff;
+  text-shadow: 0 0 20px rgba(185, 242, 255, 0.4);
+}
+
+.profile-rank-card.tier-diamond .prc-label {
+  color: rgba(185, 242, 255, 0.4);
+}
+
 .profile-rank-card.tier-mythic-crimson {
   background: radial-gradient(circle at 50% 50%, #1a0505 0%, #0d0202 100%) !important;
   border: 1px solid rgba(139, 0, 0, 0.4) !important;
@@ -142,22 +205,20 @@
 }
 
 @keyframes mythic-grain {
-  from { transform: translate(0, 0); }
-  to { transform: translate(5%, 5%); }
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(5%, 5%);
+  }
 }
 
 .profile-rank-card.tier-mythic-crimson::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(255, 0, 0, 0.02) 45%,
-    rgba(255, 0, 0, 0.05) 50%,
-    rgba(255, 0, 0, 0.02) 55%,
-    transparent 100%
-  );
+  background: linear-gradient(to bottom, transparent 0%, rgba(255, 0, 0, 0.02) 45%, rgba(255, 0, 0, 0.05) 50%, rgba(255, 0, 0, 0.02) 55%, transparent 100%);
   top: -100%;
   height: 200%;
   animation: mythic-scan 12s infinite ease-in-out;
@@ -166,9 +227,17 @@
 }
 
 @keyframes mythic-scan {
-  0% { transform: translateY(0%); }
-  50% { transform: translateY(50%); }
-  100% { transform: translateY(0%); }
+  0% {
+    transform: translateY(0%);
+  }
+
+  50% {
+    transform: translateY(50%);
+  }
+
+  100% {
+    transform: translateY(0%);
+  }
 }
 
 .tier-mythic-crimson .prc-badge .material-symbols-rounded {
@@ -176,14 +245,14 @@
   text-shadow: 0 0 12px rgba(255, 0, 0, 0.8);
 }
 
-@keyframes mythic-sweep {
-  0% { left: -150%; }
-  30% { left: 150%; }
-  100% { left: 150%; }
+.profile-rank-card.tier-mythic-crimson .prc-name {
+  color: #ff4d4d;
+  text-shadow: none;
 }
 
-.profile-rank-card.tier-mythic-crimson .prc-name { color: #ff4d4d; text-shadow: none; }
-.profile-rank-card.tier-mythic-crimson .prc-label { color: rgba(255, 255, 255, 0.4); }
+.profile-rank-card.tier-mythic-crimson .prc-label {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .profile-rank-card.tier-mythic-crimson .prc-discount {
   background: rgba(255, 60, 60, 0.1);
@@ -212,6 +281,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .prc-badge {
@@ -222,6 +292,7 @@
   align-items: center;
   justify-content: center;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .prc-badge .material-symbols-rounded {
@@ -231,6 +302,8 @@
 
 .prc-info {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .prc-label {
@@ -246,6 +319,9 @@
   font-size: 18px;
   font-weight: 800;
   color: #2a2420;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .prc-discount {
@@ -257,6 +333,8 @@
   color: rgb(var(--btn-color-rgb, 242, 139, 70));
   border: 1px solid rgba(var(--btn-color-rgb, 242, 139, 70), 0.3);
   box-shadow: 0 2px 10px rgba(var(--btn-color-rgb, 242, 139, 70), 0.1);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .prc-progress-wrap {
@@ -271,6 +349,14 @@
   font-size: 12px;
   font-weight: 600;
   color: #6b5d52;
+  gap: 8px;
+}
+
+.prc-progress-labels span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .profile-rank-card.tier-mythic-crimson .prc-progress-fill {
@@ -280,14 +366,22 @@
 }
 
 @keyframes satin-pulse {
-  0% { opacity: 0.8; }
-  50% { opacity: 1; }
-  100% { opacity: 0.8; }
+  0% {
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.8;
+  }
 }
 
 .prc-progress-bar {
   height: 8px;
-  background: rgba(0, 0, 0, 0.08); /* Much subtler track */
+  background: rgba(0, 0, 0, 0.08);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -298,13 +392,14 @@
 .tier-gold .prc-progress-bar,
 .tier-silver .prc-progress-bar,
 .tier-bronze .prc-progress-bar {
-  background: rgba(0, 0, 0, 0.3); /* Dark track for dark cards */
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .prc-progress-fill {
   height: 100%;
   border-radius: 4px;
   transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  min-width: 2px;
 }
 
 .prc-footer-row {
@@ -312,12 +407,17 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 24px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .prc-hint {
   font-size: 11px;
   color: #8b7d72;
   font-style: italic;
+  word-break: break-word;
+  flex: 1;
+  min-width: 0;
 }
 
 .prc-info-btn {
@@ -338,14 +438,33 @@
   flex-shrink: 0;
 }
 
-/* Tier Specific Button Themes */
-.tier-mythic-crimson { --btn-color-rgb: 255, 77, 77; }
-.tier-diamond { --btn-color-rgb: 185, 242, 255; }
-.tier-platinum { --btn-color-rgb: 0, 212, 255; }
-.tier-gold { --btn-color-rgb: 255, 215, 0; }
-.tier-silver { --btn-color-rgb: 224, 224, 224; }
-.tier-bronze { --btn-color-rgb: 205, 127, 50; }
-.tier-rookie { --btn-color-rgb: 242, 139, 70; }
+.tier-mythic-crimson {
+  --btn-color-rgb: 255, 77, 77;
+}
+
+.tier-diamond {
+  --btn-color-rgb: 185, 242, 255;
+}
+
+.tier-platinum {
+  --btn-color-rgb: 0, 212, 255;
+}
+
+.tier-gold {
+  --btn-color-rgb: 255, 215, 0;
+}
+
+.tier-silver {
+  --btn-color-rgb: 224, 224, 224;
+}
+
+.tier-bronze {
+  --btn-color-rgb: 205, 127, 50;
+}
+
+.tier-rookie {
+  --btn-color-rgb: 242, 139, 70;
+}
 
 .prc-info-btn:hover {
   background: rgba(var(--btn-color-rgb, 242, 139, 70), 0.2);
@@ -360,10 +479,7 @@
 /* ══ RANKS MODAL ══════════════════════════════════════════════ */
 .ranks-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(42, 36, 32, 0.6);
   backdrop-filter: blur(8px);
   z-index: 100000;
@@ -384,15 +500,34 @@
   animation: pm-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes pm-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes pm-slide-up { from { transform: translateY(40px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+@keyframes pm-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pm-slide-up {
+  from {
+    transform: translateY(40px) scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
 
 .rm-header {
   padding: 28px 32px;
   display: flex;
   align-items: center;
   gap: 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   position: relative;
 }
 
@@ -547,17 +682,22 @@
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
 }
 
 @keyframes badge-shine {
-  0% { transform: translate(-100%, -100%) rotate(45deg); }
-  20%, 100% { transform: translate(100%, 100%) rotate(45deg); }
+  0% {
+    transform: translate(-100%, -100%) rotate(45deg);
+  }
+
+  20%,
+  100% {
+    transform: translate(100%, 100%) rotate(45deg);
+  }
 }
 
-/* Shiny Effects only for Gold and above */
 .tier-gold .rtc-badge::after,
 .tier-diamond .rtc-badge::after,
 .tier-mythic-crimson .rtc-badge::after {
@@ -567,14 +707,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    rgba(255, 255, 255, 0.4),
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1), transparent);
   transform: rotate(45deg);
   animation: badge-shine 3s infinite;
 }
@@ -586,16 +719,9 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    rgba(184, 212, 255, 0.6), /* Blue-ish shine for contrast on white */
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), rgba(184, 212, 255, 0.6), rgba(255, 255, 255, 0.2), transparent);
   transform: rotate(45deg);
-  animation: badge-shine 2.5s infinite; /* Slightly faster */
+  animation: badge-shine 2.5s infinite;
 }
 
 .tier-gold .rtc-badge {
@@ -636,14 +762,7 @@
 }
 
 .tier-mythic-crimson .rtc-badge::after {
-  background: linear-gradient(
-    45deg,
-    transparent,
-    rgba(255, 215, 0, 0.1),
-    rgba(255, 215, 0, 0.4),
-    rgba(255, 215, 0, 0.1),
-    transparent
-  );
+  background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.4), rgba(255, 215, 0, 0.1), transparent);
   animation: badge-shine 3s infinite;
 }
 
@@ -683,25 +802,22 @@
   font-variation-settings: 'FILL' 1;
   position: relative;
   z-index: 2;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.4); /* Stronger shadow */
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .tier-platinum .prc-badge .material-symbols-rounded {
-  color: #1e3a8a !important; /* Deep Indigo for visibility on light blue */
+  color: #1e3a8a !important;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .tier-diamond .prc-badge .material-symbols-rounded {
-  color: #0f766e !important; /* Deep Teal for visibility on light cyan */
+  color: #0f766e !important;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.rtc-badge {
-  flex: 1;
 }
 
 .rtc-info {
   flex: 1;
+  min-width: 0;
 }
 
 .rtc-name-row {
@@ -709,12 +825,14 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 2px;
+  flex-wrap: wrap;
 }
 
 .rtc-name-row h4 {
   font-size: 16px;
   font-weight: 800;
   color: #2a2420;
+  word-break: break-word;
 }
 
 .rtc-current-label {
@@ -727,24 +845,11 @@
   font-weight: 800;
 }
 
-.rtc-requirement {
-  font-size: 11px;
-  color: #f28b46;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.rtc-perks {
-  font-size: 13px;
-  color: #6b5d52;
-  line-height: 1.4;
-}
-
 .rtc-discount-badge {
   font-size: 14px;
   font-weight: 900;
-  color: #4a3f35; /* Darkened for better visibility */
-  opacity: 0.4; /* Increased opacity */
+  color: #4a3f35;
+  opacity: 0.4;
   writing-mode: vertical-lr;
   transform: rotate(180deg);
   letter-spacing: 0.05em;
@@ -752,7 +857,7 @@
 
 .rm-footer {
   padding: 24px 32px;
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   justify-content: flex-end;
 }
@@ -769,7 +874,10 @@
   transition: all 0.2s;
 }
 
-.rm-action-btn:hover { background: #000; transform: translateY(-2px); }
+.rm-action-btn:hover {
+  background: #000;
+  transform: translateY(-2px);
+}
 
 /* Sidebar Navigation */
 .profile-nav {
@@ -846,6 +954,8 @@
   padding: 48px;
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.02);
   border: 1px solid rgba(0, 0, 0, 0.03);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pm-header {
@@ -900,6 +1010,8 @@
   border-radius: 20px;
   padding: 20px;
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .profile-avatar-wrap:hover {
@@ -938,12 +1050,18 @@
   object-fit: cover;
 }
 
+.pav-info {
+  min-width: 0;
+  flex: 1;
+}
+
 .pav-info h3 {
   font-size: 18px;
   font-weight: 800;
   color: #2a2420;
   letter-spacing: -0.02em;
   margin: 0 0 4px 0;
+  word-break: break-word;
 }
 
 .pav-info .pav-email {
@@ -952,6 +1070,7 @@
   font-weight: 500;
   display: block;
   margin-bottom: 6px;
+  word-break: break-word;
 }
 
 .pav-badge {
@@ -1006,8 +1125,13 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.wallet-logo.kharcha { background: #1a5d3b; }
-.wallet-logo.khalti  { background: #5d2e8e; }
+.wallet-logo.kharcha {
+  background: #1a5d3b;
+}
+
+.wallet-logo.khalti {
+  background: #5d2e8e;
+}
 
 .wallet-details {
   display: flex;
@@ -1031,7 +1155,6 @@
   font-weight: 600;
 }
 
-/* Wallet Buttons */
 .wallet-btn-primary {
   background: #f28b46;
   color: #fff;
@@ -1071,21 +1194,29 @@
   cursor: default;
 }
 
-/* Form Fields */
+/* ═════════════════════════════════════════════════════════════
+   FORM FIELDS  —  VISIBILITY FIXED
+   ═════════════════════════════════════════════════════════════ */
 .profile-form-modern {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pf-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pf-field {
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pf-label {
@@ -1094,23 +1225,27 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #8b7d72;
+  color: #6b5d52;
   margin-bottom: 8px;
   padding-left: 4px;
 }
 
 .pf-input-group {
   position: relative;
-  background: rgba(255, 255, 255, 0.4);
+  background: #f5f0eb;
   border-radius: 14px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0, 0, 0, 0.07);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .pf-input-group:focus-within {
   background: #fff;
   border-color: #f28b46;
-  box-shadow: 0 4px 20px rgba(242, 139, 70, 0.06);
+  box-shadow: 0 0 0 3px rgba(242, 139, 70, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0);
 }
 
 .pf-input-group input,
@@ -1120,13 +1255,13 @@
   background: transparent;
   border: none;
   padding: 14px 18px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: #2a2420;
   outline: none;
   font-family: inherit;
+  box-sizing: border-box;
 }
-
 
 .pf-eye-btn {
   position: absolute;
@@ -1189,6 +1324,9 @@
   gap: 10px;
   letter-spacing: -0.01em;
   font-family: inherit;
+  position: relative;
+  z-index: 10;
+  box-sizing: border-box;
 }
 
 .pm-update-btn:hover:not(:disabled) {
@@ -1263,12 +1401,29 @@
   color: #fff;
 }
 
-.oh-status-delivered  { background: #10b981; }
-.oh-status-placed     { background: #f28b46; }
-.oh-status-preparing  { background: #f59e0b; }
-.oh-status-picked_up  { background: #3b82f6; }
-.oh-status-cancelled  { background: #ef4444; }
-.oh-status-pending_payment { background: #8b7d72; }
+.oh-status-delivered {
+  background: #10b981;
+}
+
+.oh-status-placed {
+  background: #f28b46;
+}
+
+.oh-status-preparing {
+  background: #f59e0b;
+}
+
+.oh-status-picked_up {
+  background: #3b82f6;
+}
+
+.oh-status-cancelled {
+  background: #ef4444;
+}
+
+.oh-status-pending_payment {
+  background: #8b7d72;
+}
 
 .oh-items {
   font-size: 13px;
@@ -1300,7 +1455,7 @@
   font-weight: 500;
 }
 
-/* Toast (Modern) */
+/* Toast */
 .profile-toast {
   position: fixed;
   top: 88px;
@@ -1318,52 +1473,560 @@
 }
 
 @keyframes toast-in {
-  from { transform: translateX(50px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-.profile-toast-success .material-symbols-rounded { color: #10b981; }
-.profile-toast-error .material-symbols-rounded { color: #ef4444; }
+.profile-toast-success .material-symbols-rounded {
+  color: #10b981;
+}
+
+.profile-toast-error .material-symbols-rounded {
+  color: #ef4444;
+}
 
 /* ══ RESPONSIVE ═══════════════════════════════════════════════ */
+
+/* Tablet */
 @media (max-width: 1024px) {
+  .profile-container {
+    padding: 24px 16px 80px;
+  }
+
   .profile-layout {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 24px;
   }
+
   .profile-sidebar {
     position: relative;
     top: 0;
+    width: 100%;
+    min-width: 0;
     flex-direction: row;
     overflow-x: auto;
     padding-bottom: 8px;
     scrollbar-width: none;
   }
-  .profile-sidebar::-webkit-scrollbar { display: none; }
-  .profile-completion-card {
-    flex-shrink: 0;
-    width: 280px;
+  
+  .profile-sidebar::-webkit-scrollbar {
+    display: none;
   }
+
+  .profile-rank-card {
+    margin-bottom: 16px;
+    width: 100%;
+    min-width: 0;
+  }
+
   .profile-nav {
     flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+
+  .profile-nav::-webkit-scrollbar {
+    display: none;
+  }
+
   .profile-nav-link {
     flex-shrink: 0;
-    width: auto;
-    padding: 12px 16px;
+    padding: 10px 16px;
+    white-space: nowrap;
+    min-height: 44px;
   }
-  .pnl-desc { display: none; }
-}
 
-@media (max-width: 768px) {
+  .pnl-desc {
+    display: none;
+  }
+
+  .pnl-top {
+    margin-bottom: 0;
+  }
+
+  .profile-nav-link.logout {
+    margin-top: 0;
+  }
+
   .profile-main {
     padding: 32px 24px;
+    border-radius: 24px;
   }
-  .pf-row {
-    grid-template-columns: 1fr;
+
+  .pm-header h2 {
+    font-size: 20px;
   }
+
+  /* Dark tier progress track fix */
+  .tier-mythic-crimson .prc-progress-bar,
+  .tier-diamond .prc-progress-bar,
+  .tier-platinum .prc-progress-bar,
+  .tier-gold .prc-progress-bar,
+  .tier-silver .prc-progress-bar,
+  .tier-bronze .prc-progress-bar {
+    background: rgba(255, 255, 255, 0.18) !important;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════
+   MOBILE (≤768px) — COMPACT REDESIGN
+   ═════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 8px 8px 80px;
+  }
+
+  .profile-main {
+    padding: 16px 12px;
+    border-radius: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .pm-header {
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+  }
+
+  .pm-header h2 {
+    font-size: 16px;
+  }
+
+  .pm-header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  .pm-header-icon .material-symbols-rounded {
+    font-size: 16px;
+  }
+
+  /* ══ COMPACT RANK CARD ══ */
+  .profile-rank-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .prc-top {
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+
+  .prc-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .prc-badge .material-symbols-rounded {
+    font-size: 18px;
+  }
+
+  .prc-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .prc-label {
+    font-size: 9px;
+    margin-bottom: 1px;
+    letter-spacing: 0.04em;
+  }
+
+  .prc-name {
+    font-size: 15px;
+    line-height: 1.2;
+  }
+
+  .prc-discount {
+    font-size: 10px;
+    padding: 3px 8px;
+    margin-top: 2px;
+  }
+
+  .prc-progress-wrap {
+    gap: 6px;
+  }
+
+  .prc-progress-labels {
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .prc-progress-bar {
+    height: 6px;
+    border-radius: 3px;
+  }
+
+  .prc-progress-fill {
+    min-width: 2px;
+  }
+
+  .prc-footer-row {
+    margin-top: 10px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .prc-hint {
+    font-size: 10px;
+    width: 100%;
+    line-height: 1.3;
+  }
+
+  .prc-info-btn {
+    padding: 5px 10px;
+    font-size: 10px;
+    width: auto;
+  }
+
+  /* ══ COMPACT AVATAR ══ */
   .profile-avatar-wrap {
     flex-direction: column;
     text-align: center;
+    padding: 14px;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .profile-avatar-circle {
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
+    border-width: 2px;
+  }
+
+  .pav-info h3 {
+    font-size: 16px;
+  }
+
+  .pav-email {
+    font-size: 12px;
+  }
+
+  /* ══ COMPACT FORM FIELDS ══ */
+  .profile-form-modern {
+    gap: 14px;
+  }
+
+  .pf-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .pf-label {
+    font-size: 10px;
+    margin-bottom: 5px;
+    padding-left: 2px;
+  }
+
+  .pf-input-group {
+    border-radius: 10px;
+    border-width: 1px;
+  }
+
+  .pf-input-group input,
+  .pf-input-group select,
+  .pf-input-group textarea {
+    padding: 10px 12px;
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .pf-eye-btn {
+    min-width: 40px;
+    min-height: 40px;
+    right: 6px;
+  }
+
+  .pf-select-arrow {
+    right: 12px;
+    font-size: 16px;
+  }
+
+  /* ══ COMPACT UPDATE BUTTON ══ */
+  .pm-update-btn {
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 10px;
+    min-height: 48px;
+  }
+
+  /* ── Order History ── */
+  .oh-items {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 12px;
+  }
+
+  /* ── Wallet ── */
+  .wallet-account-card {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .wallet-logo {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .wallet-name {
+    font-size: 14px;
+  }
+
+  .wallet-status {
+    font-size: 12px;
+  }
+
+  .wallet-action-right {
+    width: 100%;
+  }
+
+  .wallet-btn-primary,
+  .wallet-btn-secondary {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  /* ── Toast ── */
+  .profile-toast {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    justify-content: flex-start;
+    padding: 12px 14px;
+  }
+
+  /* ── Modal ── */
+  .ranks-modal-content {
+    max-height: 85vh;
+    border-radius: 16px;
+  }
+
+  .rm-header {
+    padding: 14px;
+  }
+
+  .rm-header h2 {
+    font-size: 15px;
+  }
+
+  .rm-body {
+    padding: 14px;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════
+   SMALL PHONES (≤480px) — ULTRA COMPACT
+   ═════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 6px 6px 80px;
+  }
+
+  .profile-main {
+    padding: 12px 10px;
+    border-radius: 12px;
+  }
+
+  .pm-header h2 {
+    font-size: 15px;
+  }
+
+  .pm-header-sub {
+    font-size: 11px;
+  }
+
+  /* Ultra compact rank card */
+  .profile-rank-card {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .prc-top {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .prc-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  .prc-badge .material-symbols-rounded {
+    font-size: 16px;
+  }
+
+  .prc-name {
+    font-size: 14px;
+  }
+
+  .prc-label {
+    font-size: 8px;
+  }
+
+  .prc-discount {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .prc-progress-labels {
+    font-size: 9px;
+  }
+
+  .prc-progress-bar {
+    height: 5px;
+  }
+
+  .prc-footer-row {
+    margin-top: 8px;
+  }
+
+  .prc-hint {
+    font-size: 9px;
+  }
+
+  .prc-info-btn {
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+
+  /* Ultra compact avatar */
+  .profile-avatar-wrap {
+    padding: 10px;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .profile-avatar-circle {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .pav-info h3 {
+    font-size: 14px;
+  }
+
+  .pav-email {
+    font-size: 11px;
+  }
+
+  .pav-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+
+  /* Ultra compact form */
+  .profile-form-modern {
+    gap: 12px;
+  }
+
+  .pf-row {
+    gap: 12px;
+  }
+
+  .pf-label {
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+
+  .pf-input-group {
+    border-radius: 8px;
+  }
+
+  .pf-input-group input,
+  .pf-input-group select,
+  .pf-input-group textarea {
+    padding: 8px 10px;
+    font-size: 16px;
+    min-height: 40px;
+  }
+
+  .pf-eye-btn {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .pm-update-btn {
+    margin-top: 16px;
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 8px;
+    min-height: 44px;
+  }
+
+  /* Ultra compact nav */
+  .profile-nav-link {
+    padding: 6px 10px;
+    border-radius: 10px;
+  }
+
+  .pnl-top .material-symbols-rounded {
+    font-size: 16px;
+  }
+
+  .pnl-top span:not(.material-symbols-rounded) {
+    font-size: 12px;
+  }
+
+  /* Ultra compact modal */
+  .ranks-modal-content {
+    border-radius: 14px;
+  }
+
+  .rm-header {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .rm-header h2 {
+    font-size: 13px;
+  }
+
+  .rm-body {
+    padding: 12px;
+  }
+
+  .rm-footer {
+    padding: 12px;
+  }
+
+  .rm-action-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 12px;
   }
 }

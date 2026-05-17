@@ -181,74 +181,60 @@
   color: #8b7d72;
 }
 
-/* Horizontal Tracker */
-.hip-horizontal-tracker {
-  position: relative;
-  margin-top: 10px;
-}
-
-.tracker-line {
-  position: absolute;
-  top: 20px;
-  left: 10%;
-  right: 10%;
-  height: 4px;
-  background: #f1edea;
-  border-radius: 2px;
-  z-index: 1;
-}
-
-.tracker-line-fill {
-  height: 100%;
-  background: #f28b46;
-  border-radius: 2px;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.tracker-steps {
+/* Horizontal Tracker New */
+.hip-horizontal-tracker-new {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  position: relative;
-  z-index: 2;
+  margin-top: 10px;
+  padding: 0 5px;
 }
 
-.tracker-step-item {
+.hip-step {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  width: 70px;
+  position: relative;
+  z-index: 2;
+  flex: 0 0 60px;
 }
 
-.step-icon-circle {
+.hip-step-icon {
   width: 44px;
   height: 44px;
   border-radius: 50%;
   background: #fdf6f0;
+  border: 1.5px solid rgba(0,0,0,0.04);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #bdbdbd;
   transition: all 0.3s;
-  border: 3px solid white;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.02);
 }
 
-.step-icon-circle .material-symbols-rounded {
+.hip-step-icon .material-symbols-rounded {
   font-size: 20px;
-}
-
-.tracker-step-item span {
-  font-size: 11px;
-  font-weight: 600;
   color: #a3978f;
-  transition: color 0.3s;
 }
 
-/* Status variants */
-.tracker-step-item.completed .step-icon-circle {
-  background: #f28b46;
-  color: white;
+.hip-step-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a3978f;
+}
+
+/* Step Active/Completed */
+.hip-step.completed .hip-step-icon,
+.hip-step.active .hip-step-icon {
+  background: #fff6f0;
+  border-color: #f28b46;
+  box-shadow: 0 6px 15px rgba(242, 139, 70, 0.12);
+}
+
+.hip-step.completed .hip-step-icon .material-symbols-rounded,
+.hip-step.active .hip-step-icon .material-symbols-rounded {
+  color: #f28b46;
 }
 
 .tracker-step-item.completed .step-icon-circle .material-symbols-rounded {
@@ -260,21 +246,24 @@
   color: #2a2420;
 }
 
-.tracker-step-item.active .step-icon-circle {
-  background: white;
-  color: #f28b46;
-  border-color: #f28b46;
-  animation: pulseIconHip 2s infinite;
+.hip-step.completed .hip-step-label,
+.hip-step.active .hip-step-label {
+  color: #2a2420;
 }
 
-@keyframes pulseIconHip {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+.hip-connector {
+  flex: 1;
+  height: 3px;
+  background: rgba(0,0,0,0.06);
+  margin: 0 -15px;
+  margin-top: -20px;
+  position: relative;
+  z-index: 1;
+  transition: background 0.4s ease;
 }
 
-.tracker-step-item.active span {
-  color: #f28b46;
-  font-weight: 700;
+.hip-connector.active {
+  background: #f28b46;
 }
 
 /* === Recent Orders === */
@@ -597,7 +586,7 @@
 }
 
 /* Guest Welcome Card */
-.guest-welcome-card { background: linear-gradient(135deg, #fff 0%, #fdf6f0 100%); border: 1px solid rgba(242, 139, 70, 0.2); text-align: center; padding: 40px 30px; }
+.guest-welcome-card { background: linear-gradient(135deg, #fff 0%, #fdf6f0 100%); border: 1.5px solid rgba(242, 139, 70, 0.2); text-align: center; padding: 40px 30px; }
 .guest-welcome-card h2 { font-size: 24px; color: #2a2420; margin-bottom: 12px; }
 .guest-welcome-card p { color: #6b5d52; line-height: 1.6; margin-bottom: 24px; }
 .guest-actions { display: flex; gap: 12px; justify-content: center; }
@@ -605,3 +594,89 @@
 .guest-btn-primary:hover { background: #e06c22; transform: translateY(-2px); }
 .guest-btn-secondary { background: white; color: #f28b46; padding: 12px 24px; border-radius: 12px; font-weight: 700; text-decoration: none; border: 1.5px solid #f28b46; transition: all 0.2s ease; }
 .guest-btn-secondary:hover { background: rgba(242, 139, 70, 0.05); transform: translateY(-2px); }
+
+/* === Responsive === */
+@media (max-width: 1024px) {
+  .home-layout {
+    flex-direction: column;
+  }
+  .home-col-right {
+    width: 100%;
+  }
+  .home-hero {
+    padding: 40px;
+  }
+  .home-hero-img-container {
+    width: 400px;
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-container {
+    padding: 24px 16px;
+  }
+  .home-hero {
+    padding: 32px 24px;
+    flex-direction: column;
+    text-align: center;
+    overflow: visible;
+  }
+  .home-hero-text {
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+  .home-hero-img-container {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    width: 240px;
+    height: 240px;
+    margin: 0 auto;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .home-card {
+    padding: 24px 20px;
+  }
+  .hip-horizontal-tracker-new {
+    padding: 0;
+  }
+  .hip-step-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .hip-step-label {
+    font-size: 10px;
+  }
+  .hip-connector {
+    margin-top: -24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-hero-text h1 {
+    font-size: 24px;
+  }
+  .home-hero-text p {
+    font-size: 14px;
+  }
+  .home-hero-img-container {
+    width: 180px;
+    height: 180px;
+  }
+  .home-card-header h2 {
+    font-size: 18px;
+  }
+  .hip-step-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .hip-step-label {
+    font-size: 9px;
+  }
+  .hip-connector {
+    margin-top: -22px;
+  }
+}

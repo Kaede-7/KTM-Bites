@@ -335,8 +335,90 @@
   color: #fff;
 }
 
+/* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .menu-container {
+    padding: 24px 16px;
+  }
+
+  .menu-section-title {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
   .trending-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .trending-card {
+    height: 220px;
+    border-radius: 20px;
+  }
+
+  .trending-overlay {
+    padding: 20px;
+  }
+
+  .trending-name {
+    font-size: 20px;
+  }
+
+  .menu-card-modern {
+    border-radius: 20px;
+  }
+
+  .mcm-body {
+    padding: 16px;
+  }
+
+  .mcm-add-btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-container {
+    padding: 16px 12px;
+  }
+
+  .menu-section-title {
+    font-size: 20px;
+  }
+
+  .trending-card {
+    height: 180px;
+    border-radius: 16px;
+  }
+
+  .trending-overlay {
+    padding: 16px;
+  }
+
+  .trending-badge {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .trending-name {
+    font-size: 18px;
+  }
+
+  .menu-card-modern {
+    border-radius: 16px;
+  }
+
+  .mcm-img {
+    height: 160px;
+  }
+
+  .mcm-name {
+    font-size: 15px;
+  }
+
+  .mcm-price-row {
+    font-size: 16px;
   }
 }

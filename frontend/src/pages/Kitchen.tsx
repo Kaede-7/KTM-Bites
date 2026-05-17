@@ -66,6 +66,7 @@ const Kitchen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [mobileTab, setMobileTab] = useState<"new" | "preparing" | "ready">("new");
 
   // Toast state
   const [toast, setToast] = useState<{
@@ -90,7 +91,7 @@ const Kitchen: React.FC = () => {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const data = await fetchKitchenOrders();
+      const data = await fetchKitchenOrders("placed,preparing,ready_for_pickup");
       setOrders(data);
     } catch (err: any) {
       showToast("error", err.message || "Failed to load orders");
@@ -351,11 +352,32 @@ const Kitchen: React.FC = () => {
         </div>
       </div>
 
-      {/* Kanban Board */}
-      {loading ? (
-        <LoadingAnimation message="Loading kitchen dashboard..." />
-      ) : (
-        <div className="kitchen-board">
+      {/* Mobile Tabs */}
+      <div className="kitchen-mobile-tabs">
+        <button 
+          className={mobileTab === 'new' ? 'active' : ''} 
+          onClick={() => setMobileTab('new')}
+        >
+          <span className="material-symbols-rounded">notification_add</span>
+          New ({newOrders.length})
+        </button>
+        <button 
+          className={mobileTab === 'preparing' ? 'active' : ''} 
+          onClick={() => setMobileTab('preparing')}
+        >
+          <span className="material-symbols-rounded">skillet</span>
+          Prep ({preparingOrders.length})
+        </button>
+        <button 
+          className={mobileTab === 'ready' ? 'active' : ''} 
+          onClick={() => setMobileTab('ready')}
+        >
+          <span className="material-symbols-rounded">inventory</span>
+          Ready ({readyOrders.length})
+        </button>
+      </div>
+
+      <div className={`kitchen-board mobile-tab-${mobileTab}`}>
           {/* ── Column: New Orders ── */}
           <div className="kitchen-column col-new">
             <div className="kitchen-column-header">
@@ -433,7 +455,7 @@ const Kitchen: React.FC = () => {
           </div>
 
           {/* ── Column: Ready for Pickup ── */}
-          <div className="kitchen-column" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+          <div className="kitchen-column col-ready" style={{ borderColor: 'rgba(139, 92, 246, 0.3)' }}>
             <div className="kitchen-column-header" style={{ borderBottomColor: '#8b5cf6' }}>
               <div className="kitchen-column-header-left">
                 <span className="material-symbols-rounded" style={{ color: '#8b5cf6' }}>

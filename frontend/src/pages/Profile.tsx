@@ -4,7 +4,7 @@ import "../css/profile.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Skeleton from "../components/Skeleton";
-import { getProfile, updateProfile, logout, changePassword, type ProfileData } from "../api/auth";
+import { getProfile, updateProfile, logout, changePassword, getToken, type ProfileData } from "../api/auth";
 import { getOrders, type OrderData } from "../api/orders";
 import {
   getKharchaLinkStatus,
@@ -12,6 +12,8 @@ import {
   removeKharchaLink,
   type KharchaLinkStatus,
 } from "../api/kharcha";
+import PageTransition from "../components/PageTransition";
+import LoadingAnimation from "../components/LoadingAnimation";
 
 // ── Toast Component ──────────────────────────────────────────
 const Toast: React.FC<{ msg: string; type: "success" | "error"; onClose: () => void }> = ({ msg, type, onClose }) => (
@@ -236,7 +238,8 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <div className="profile-page">
+    <PageTransition>
+      <div className="profile-page">
       <Navbar />
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
@@ -621,6 +624,7 @@ const Profile: React.FC = () => {
       </div>
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 

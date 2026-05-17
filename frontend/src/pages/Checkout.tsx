@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageTransition from "../components/PageTransition";
 import { useNavigate } from "react-router-dom";
 import "../css/checkout.css";
 import "../css/kharcha.css";
@@ -352,7 +353,8 @@ const Checkout: React.FC = () => {
   ];
 
   return (
-    <div className="checkout-page">
+    <PageTransition>
+      <div className="checkout-page">
       <Navbar />
 
       {showOtp && (
@@ -532,6 +534,7 @@ const Checkout: React.FC = () => {
       </div>
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 

@@ -17,31 +17,52 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 8px 28px rgba(242, 139, 70, 0.38), 0 2px 8px rgba(0,0,0,0.1);
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 6px 20px rgba(242, 139, 70, 0.22), 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .chat-trigger:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 14px 36px rgba(242, 139, 70, 0.45), 0 4px 12px rgba(0,0,0,0.12);
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 12px 32px rgba(242, 139, 70, 0.32), 0 4px 12px rgba(242, 139, 70, 0.12);
 }
 
-.chat-trigger:active { transform: scale(0.96); }
-.chat-trigger .material-symbols-rounded { font-size: 26px; transition: transform 0.3s ease; }
-.chat-trigger.open .material-symbols-rounded { transform: rotate(90deg); }
+.chat-trigger:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.chat-trigger .material-symbols-rounded {
+  font-size: 26px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-trigger:hover .material-symbols-rounded {
+  transform: scale(1.08) rotate(-8deg);
+}
+
+.chat-trigger.open .material-symbols-rounded {
+  transform: rotate(90deg);
+}
+
+.chat-trigger.open:hover .material-symbols-rounded {
+  transform: scale(1.08) rotate(98deg);
+}
 
 .chat-trigger::before {
   content: '';
   position: absolute;
-  inset: -4px;
+  inset: 0;
   border-radius: 50%;
-  border: 2px solid rgba(242, 139, 70, 0.3);
-  animation: chat-ring-pulse 2.4s ease-in-out infinite;
+  border: 1px solid rgba(242, 139, 70, 0.5);
+  opacity: 0;
+  transform: scale(1);
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
 }
 
-@keyframes chat-ring-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0; transform: scale(1.3); }
+.chat-trigger:hover::before {
+  opacity: 1;
+  transform: scale(1.22);
+  border-color: rgba(242, 139, 70, 0);
 }
 
 .chat-panel {

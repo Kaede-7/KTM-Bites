@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PageTransition from "../components/PageTransition";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import "../css/item-detail.css";
 import "../css/menu.css";
@@ -66,7 +67,8 @@ const ItemDetail: React.FC = () => {
   }
 
   return (
-    <div className="item-detail-page">
+    <PageTransition>
+      <div className="item-detail-page">
       <Navbar />
       <div className="item-detail-container">
         <button className="item-detail-back" onClick={() => navigate(-1)}>
@@ -146,6 +148,7 @@ const ItemDetail: React.FC = () => {
       </div>
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 

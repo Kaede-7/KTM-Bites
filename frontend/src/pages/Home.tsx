@@ -11,6 +11,7 @@ import { addToCart } from "../api/cart";
 import AIRecommendations from "../components/AIRecommendations";
 import { useToast } from "../components/Toast";
 import Skeleton from "../components/Skeleton";
+import PageTransition from "../components/PageTransition";
 
 const Home: React.FC = () => {
   const [favorites, setFavorites] = useState<MenuItemData[]>([]);
@@ -115,7 +116,8 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="home-page">
+    <PageTransition>
+      <div className="home-page">
       <Navbar />
 
       {/* Address Modal */}
@@ -201,46 +203,44 @@ const Home: React.FC = () => {
                       <span className="hip-badge">#{activeOrder.order_id}</span>
                     )}
                   </div>
-
                   {activeOrder && (
                     <>
-                      <div className="hip-item-preview">
-                        <div className="hip-img-container">
-                          <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
+                        <div className="hip-item-preview">
+                          <div className="hip-img-container">
+                            <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
+                          </div>
+                          <div className="hip-item-info">
+                            <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
+                            <p>KTM Bites Kitchen</p>
+                          </div>
                         </div>
-                        <div className="hip-item-info">
-                          <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
-                          <p>KTM Bites Kitchen</p>
-                        </div>
-                      </div>
 
-                      <div className="hip-horizontal-tracker">
-                        <div className="tracker-line">
-                          <div className="tracker-line-fill" style={{ width: `${(currentStepIndex / 2) * 100}%` }}></div>
+                        <div className="hip-horizontal-tracker-new">
+                          {[
+                            { key: "placed", title: "Received", icon: "receipt_long" },
+                            { key: "preparing", title: "Preparing", icon: "restaurant" },
+                            { key: "on_way", title: "On the way", icon: "pedal_bike" }
+                          ].map((step, i) => {
+                            const status = getStepStatus(i);
+                            const isLast = i === 2;
+                            const nextStatus = !isLast ? getStepStatus(i + 1) : null;
+                            return (
+                              <React.Fragment key={i}>
+                                <div className={`hip-step ${status}`}>
+                                  <div className="hip-step-icon">
+                                    <span className="material-symbols-rounded">{step.icon}</span>
+                                  </div>
+                                  <span className="hip-step-label">{step.title}</span>
+                                </div>
+                                {!isLast && (
+                                  <div className={`hip-connector ${nextStatus === 'completed' || nextStatus === 'active' ? 'active' : ''}`} />
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
                         </div>
-                        <div className="tracker-steps">
-                          <div className={`tracker-step-item ${getStepStatus(0)}`}>
-                            <div className="step-icon-circle">
-                              <span className="material-symbols-rounded">receipt_long</span>
-                            </div>
-                            <span>Received</span>
-                          </div>
-                          <div className={`tracker-step-item ${getStepStatus(1)}`}>
-                            <div className="step-icon-circle">
-                              <span className="material-symbols-rounded">restaurant</span>
-                            </div>
-                            <span>Preparing</span>
-                          </div>
-                          <div className={`tracker-step-item ${getStepStatus(2)}`}>
-                            <div className="step-icon-circle">
-                              <span className="material-symbols-rounded">directions_bike</span>
-                            </div>
-                            <span>On the way</span>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    )}
                 </div>
 
                 {/* Recent Orders */}
@@ -324,6 +324,7 @@ const Home: React.FC = () => {
       
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 

@@ -59,9 +59,10 @@ const handleError = (error: AxiosError<ErrorResponse>) => {
 // KITCHEN API CALLS
 // ═══════════════════════════════════════════
 
-export const fetchKitchenOrders = async (): Promise<KitchenOrder[]> => {
+export const fetchKitchenOrders = async (status?: string): Promise<KitchenOrder[]> => {
   try {
-    const response = await API.get("/admin/orders/");
+    const url = status ? `/admin/orders/?status=${status}` : "/admin/orders/";
+    const response = await API.get(url);
     return response.data;
   } catch (error) {
     handleError(error as AxiosError<ErrorResponse>);

@@ -36,6 +36,7 @@ export interface ProfileData {
   city: string;
   bio: string;
   has_password: boolean;
+  role?: string;
   rank: {
     order_count: number;
     current_rank: string;

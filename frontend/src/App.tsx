@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import ChatWidget from "./components/ChatWidget";
 import { ToastProvider } from "./components/Toast";

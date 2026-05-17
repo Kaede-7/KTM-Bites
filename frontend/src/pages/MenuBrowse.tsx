@@ -9,6 +9,8 @@ import { getMenuItems, getCategories, type MenuItemData, type CategoryData } fro
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
 import { useToast } from "../components/Toast";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import PageTransition from "../components/PageTransition";
 
 const MenuBrowse: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -25,7 +27,7 @@ const MenuBrowse: React.FC = () => {
   // Sync filter state when the URL query params change
   useEffect(() => {
     const cat = searchParams.get("category") || "All";
-    const q   = searchParams.get("search")   || "";
+    const q = searchParams.get("search") || "";
     setActiveCat(cat);
     setSearch(q);
   }, [searchParams]);
@@ -80,113 +82,158 @@ const MenuBrowse: React.FC = () => {
   const allCategories = [{ id: 0, name: "All", icon: "restaurant_menu", count: 0 }, ...categories];
   const displayedItems = items;
 
-  return (
-    <div className="menu-page">
-      <Navbar />
-      <div className="menu-container">
+  // Animation Variants
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08
+      }
+    }
+  };
 
-        {/* Trending Now Section */}
-        {trendingItems.length > 0 && activeCat === "All" && !search && (
-          <>
-            <h2 className="menu-section-title">Trending Now</h2>
-            <div className="trending-grid">
-              {trendingItems.map((item, index) => (
-                <div 
-                  className="trending-card" 
-                  key={`trending-${item.id}`} 
-                  onClick={() => navigate(`/menu/${item.id}`)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <FastImage src={item.image} alt={item.name} />
-                  <div className="trending-overlay">
-                    <span className="trending-badge">{index === 0 ? "CHEF'S SPECIAL" : "NEW ARRIVAL"}</span>
-                    <div className="trending-info">
-                      <h3>{item.name}</h3>
-                      <p>{item.description || "Fresh and hot, highly recommended."}</p>
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }
+    }
+  };
+
+  return (
+    <PageTransition>
+      <div className="menu-page">
+        <Navbar />
+        <div className="menu-container">
+
+          {/* Trending Now Section */}
+          {trendingItems.length > 0 && activeCat === "All" && !search && (
+            <>
+              <h2 className="menu-section-title">Trending Now</h2>
+              <motion.div
+                className="trending-grid"
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+              >
+                {trendingItems.map((item, index) => (
+                  <motion.div
+                    className="trending-card"
+                    key={`trending-${item.id}`}
+                    onClick={() => navigate(`/menu/${item.id}`)}
+                    style={{ cursor: "pointer" }}
+                    variants={itemVariants}
+                    whileHover={{ boxShadow: "0 12px 30px rgba(0,0,0,0.12)" }}
+                  >
+                    <FastImage src={item.image} alt={item.name} />
+                    <div className="trending-overlay">
+                      <span className="trending-badge">{index === 0 ? "CHEF'S SPECIAL" : "NEW ARRIVAL"}</span>
+                      <div className="trending-info">
+                        <h3>{item.name}</h3>
+                        <p>{item.description || "Fresh and hot, highly recommended."}</p>
+                      </div>
                     </div>
-                  </div>
-                  <button className="trending-add-btn" onClick={(e) => handleAddToCart(e, item.id)}>
-                    <span className="material-symbols-rounded">add</span>
-                  </button>
-                </div>
+                    <button className="trending-add-btn" onClick={(e) => handleAddToCart(e, item.id)}>
+                      <span className="material-symbols-rounded">add</span>
+                    </button>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </>
+          )}
+
+          {/* Category Navigation & Search */}
+          <div className="menu-category-nav">
+            <div className="menu-category-pills">
+              {allCategories.map((cat) => (
+                <button
+                  key={cat.name}
+                  className={`menu-pill ${activeCat === cat.name ? "active" : ""}`}
+                  onClick={() => setActiveCat(cat.name)}
+                >
+                  {cat.name}
+                </button>
               ))}
             </div>
-          </>
-        )}
-
-        {/* Category Navigation & Search */}
-        <div className="menu-category-nav">
-          <div className="menu-category-pills">
-            {allCategories.map((cat) => (
-              <button 
-                key={cat.name} 
-                className={`menu-pill ${activeCat === cat.name ? "active" : ""}`} 
-                onClick={() => setActiveCat(cat.name)}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-          <div className="menu-toolbar-right">
-            <div className="menu-search-wrapper">
-              <span className="material-symbols-rounded">search</span>
-              <input 
-                className="menu-search-input" 
-                type="text" 
-                placeholder="Search menu..." 
-                value={search} 
-                onChange={(e) => setSearch(e.target.value)} 
-              />
+            <div className="menu-toolbar-right">
+              <div className="menu-search-wrapper">
+                <span className="material-symbols-rounded">search</span>
+                <input
+                  className="menu-search-input"
+                  type="text"
+                  placeholder="Search menu..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
             </div>
           </div>
+
+          {/* Category Header */}
+          <div className="category-header-wrap">
+            <div className="category-header-info">
+              <h2>{activeCat === "All" ? (search ? "Search Results" : "All Items") : activeCat}</h2>
+              <p>Hand-crafted and prepared fresh to order.</p>
+            </div>
+            <div className="category-count-badge">
+              {displayedItems.length} items
+            </div>
+          </div>
+
+          {/* Menu Grid */}
+          {loading ? (
+            <div className="menu-grid-modern">
+              <Skeleton type="card" count={6} />
+            </div>
+          ) : displayedItems.length > 0 ? (
+            <motion.div
+              className="menu-grid-modern"
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+              key={activeCat + search} // Re-animate when category/search changes
+            >
+              {displayedItems.map((item) => (
+                <motion.div
+                  className="menu-card-modern"
+                  key={item.id}
+                  variants={itemVariants}
+                  whileHover={{ boxShadow: "0 12px 30px rgba(0,0,0,0.12)" }}
+                >
+                  <div className="mcm-img-wrapper" onClick={() => navigate(`/menu/${item.id}`)}>
+                    <FastImage src={item.image} alt={item.name} />
+                    <div className="mcm-price-pill">Rs. {item.price}</div>
+                  </div>
+                  <div className="mcm-body">
+                    <h3 className="mcm-title">{item.name}</h3>
+                    <p className="mcm-desc">{item.description}</p>
+                    <button className="mcm-add-btn" onClick={(e) => handleAddToCart(e, item.id)}>
+                      <span className="material-symbols-rounded">shopping_cart</span>
+                      Add to Order
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <div className="menu-empty" style={{ textAlign: 'center', padding: '64px', color: '#8b7d72' }}>
+              <span className="material-symbols-rounded" style={{ fontSize: '48px', opacity: 0.5 }}>search_off</span>
+              <h3 style={{ marginTop: '16px', color: '#2a2420' }}>No items found</h3>
+              <p>Try a different search or category.</p>
+            </div>
+          )}
+
         </div>
-
-        {/* Category Header */}
-        <div className="category-header-wrap">
-          <div className="category-header-info">
-            <h2>{activeCat === "All" ? (search ? "Search Results" : "All Items") : activeCat}</h2>
-            <p>Hand-crafted and prepared fresh to order.</p>
-          </div>
-          <div className="category-count-badge">
-            {displayedItems.length} items
-          </div>
-        </div>
-
-        {/* Menu Grid */}
-        {loading ? (
-          <div className="menu-grid-modern">
-            <Skeleton type="card" count={6} />
-          </div>
-        ) : displayedItems.length > 0 ? (
-          <div className="menu-grid-modern">
-            {displayedItems.map((item) => (
-              <div className="menu-card-modern" key={item.id}>
-                <div className="mcm-img-wrapper" onClick={() => navigate(`/menu/${item.id}`)}>
-                  <FastImage src={item.image} alt={item.name} />
-                  <div className="mcm-price-pill">Rs. {item.price}</div>
-                </div>
-                <div className="mcm-body">
-                  <h3 className="mcm-title">{item.name}</h3>
-                  <p className="mcm-desc">{item.description}</p>
-                  <button className="mcm-add-btn" onClick={(e) => handleAddToCart(e, item.id)}>
-                    <span className="material-symbols-rounded">shopping_cart</span>
-                    Add to Order
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="menu-empty" style={{ textAlign: 'center', padding: '64px', color: '#8b7d72' }}>
-            <span className="material-symbols-rounded" style={{ fontSize: '48px', opacity: 0.5 }}>search_off</span>
-            <h3 style={{ marginTop: '16px', color: '#2a2420' }}>No items found</h3>
-            <p>Try a different search or category.</p>
-          </div>
-        )}
-
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </PageTransition>
   );
 };
 
