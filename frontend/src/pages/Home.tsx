@@ -195,7 +195,10 @@ const Home: React.FC = () => {
                 {/* In Progress Card */}
                 <div className="home-card home-in-progress">
                   <div className="hip-header">
-                    <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
+                    <div className="hip-header-left">
+                      <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
+                      <p>{activeOrder ? `Arriving in ~25 mins` : "Your recent cravings are satisfied."}</p>
+                    </div>
                     {activeOrder && (
                       <span className="hip-badge">#{activeOrder.order_id}</span>
                     )}

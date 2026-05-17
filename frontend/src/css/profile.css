@@ -1510,6 +1510,14 @@
     top: 0;
     width: 100%;
     min-width: 0;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+  }
+  
+  .profile-sidebar::-webkit-scrollbar {
+    display: none;
   }
 
   .profile-rank-card {

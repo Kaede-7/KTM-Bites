@@ -237,6 +237,15 @@
   color: #f28b46;
 }
 
+.tracker-step-item.completed .step-icon-circle .material-symbols-rounded {
+  color: white;
+  font-variation-settings: 'FILL' 1;
+}
+
+.tracker-step-item.completed span {
+  color: #2a2420;
+}
+
 .hip-step.completed .hip-step-label,
 .hip-step.active .hip-step-label {
   color: #2a2420;
@@ -585,6 +594,7 @@
 .guest-btn-primary:hover { background: #e06c22; transform: translateY(-2px); }
 .guest-btn-secondary { background: white; color: #f28b46; padding: 12px 24px; border-radius: 12px; font-weight: 700; text-decoration: none; border: 1.5px solid #f28b46; transition: all 0.2s ease; }
 .guest-btn-secondary:hover { background: rgba(242, 139, 70, 0.05); transform: translateY(-2px); }
+
 /* === Responsive === */
 @media (max-width: 1024px) {
   .home-layout {
