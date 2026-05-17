@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../css/dashboard.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import FastImage from "../components/FastImage";
 
 const ITEMS = [
   {
@@ -168,7 +169,7 @@ const LandingPage: React.FC = () => {
                       aria-label={`Browse ${f.name}`}
                       title={f.name}
                     >
-                      <img src={f.src} alt={f.name} loading="lazy" />
+                      <FastImage src={f.src} alt={f.name} />
                       <div className="lp-plate-overlay" />
                       <span className="lp-plate-label">
                         <span className="material-symbols-rounded">{f.icon}</span>
@@ -257,7 +258,7 @@ const LandingPage: React.FC = () => {
                   onClick={() => handleCategoryClick(i, item.name)}
                   aria-label={`Browse ${item.name}`}
                 >
-                  <img src={item.src} alt={item.name} loading="lazy" />
+                  <FastImage src={item.src} alt={item.name} />
                   <div className="lp-mobile-card-overlay" />
                   <div className="lp-mobile-card-label">
                     <span className="material-symbols-rounded">{item.icon}</span>
