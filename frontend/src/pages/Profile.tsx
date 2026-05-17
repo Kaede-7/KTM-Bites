@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Skeleton from "../components/Skeleton";
 import { getProfile, updateProfile, logout, changePassword, getToken, type ProfileData } from "../api/auth";
-import { getOrders, rateRider, type OrderData, type RiderInfo } from "../api/orders";
+import { getOrders, rateRider, type OrderData } from "../api/orders";
 import {
   getKharchaLinkStatus,
   getKharchaLinkUrl,
