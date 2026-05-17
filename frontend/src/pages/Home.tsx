@@ -194,53 +194,73 @@ const Home: React.FC = () => {
               <>
                 {/* In Progress Card */}
                 <div className="home-card home-in-progress">
-                  <div className="hip-header">
-                    <div className="hip-header-left">
-                      <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
-                      <p>{activeOrder ? `Arriving in ~25 mins` : "Your recent cravings are satisfied."}</p>
+                  {loading ? (
+                    <div className="hip-skeleton-loading" style={{ width: '100%' }}>
+                      <div className="hip-header" style={{ marginBottom: '16px' }}>
+                        <div className="hip-header-left" style={{ width: '100%' }}>
+                          <Skeleton type="text" style={{ width: '130px', height: '18px', marginBottom: '8px' }} />
+                          <Skeleton type="text" style={{ width: '220px', height: '12px' }} />
+                        </div>
+                      </div>
+                      <div className="hip-item-preview" style={{ background: '#fcf8f4', border: 'none', marginBottom: '16px' }}>
+                        <div className="shimmer" style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#eeeae6' }} />
+                        <div className="hip-item-info" style={{ flex: 1 }}>
+                          <Skeleton type="text" style={{ width: '160px', height: '14px', marginBottom: '6px' }} />
+                          <Skeleton type="text" style={{ width: '100px', height: '10px' }} />
+                        </div>
+                      </div>
                     </div>
-                    {activeOrder && (
-                      <span className="hip-badge">#{activeOrder.order_id}</span>
-                    )}
-                  </div>
-                  {activeOrder && (
+                  ) : (
                     <>
-                        <div className="hip-item-preview">
-                          <div className="hip-img-container">
-                            <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
-                          </div>
-                          <div className="hip-item-info">
-                            <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
-                            <p>KTM Bites Kitchen</p>
-                          </div>
+                      <div className="hip-header">
+                        <div className="hip-header-left">
+                          <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
+                          <p>{activeOrder ? `Arriving in ~25 mins` : "Your recent cravings are satisfied."}</p>
                         </div>
+                        {activeOrder && (
+                          <span className="hip-badge">#{activeOrder.order_id}</span>
+                        )}
+                      </div>
+                      {activeOrder && (
+                        <>
+                          <div className="hip-item-preview">
+                            <div className="hip-img-container">
+                              <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
+                            </div>
+                            <div className="hip-item-info">
+                              <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
+                              <p>KTM Bites Kitchen</p>
+                            </div>
+                          </div>
 
-                        <div className="hip-horizontal-tracker-new">
-                          {[
-                            { key: "placed", title: "Received", icon: "receipt_long" },
-                            { key: "preparing", title: "Preparing", icon: "restaurant" },
-                            { key: "on_way", title: "On the way", icon: "pedal_bike" }
-                          ].map((step, i) => {
-                            const status = getStepStatus(i);
-                            const isLast = i === 2;
-                            const nextStatus = !isLast ? getStepStatus(i + 1) : null;
-                            return (
-                              <React.Fragment key={i}>
-                                <div className={`hip-step ${status}`}>
-                                  <div className="hip-step-icon">
-                                    <span className="material-symbols-rounded">{step.icon}</span>
+                          <div className="hip-horizontal-tracker-new">
+                            {[
+                              { key: "placed", title: "Received", icon: "receipt_long" },
+                              { key: "preparing", title: "Preparing", icon: "restaurant" },
+                              { key: "on_way", title: "On the way", icon: "pedal_bike" }
+                            ].map((step, i) => {
+                              const status = getStepStatus(i);
+                              const isLast = i === 2;
+                              const nextStatus = !isLast ? getStepStatus(i + 1) : null;
+                              return (
+                                <React.Fragment key={i}>
+                                  <div className={`hip-step ${status}`}>
+                                    <div className="hip-step-icon">
+                                      <span className="material-symbols-rounded">{step.icon}</span>
+                                    </div>
+                                    <span className="hip-step-label">{step.title}</span>
                                   </div>
-                                  <span className="hip-step-label">{step.title}</span>
-                                </div>
-                                {!isLast && (
-                                  <div className={`hip-connector ${nextStatus === 'completed' || nextStatus === 'active' ? 'active' : ''}`} />
-                                )}
-                              </React.Fragment>
-                            );
-                          })}
-                        </div>
-                      </>
-                    )}
+                                  {!isLast && (
+                                    <div className={`hip-connector ${nextStatus === 'completed' || nextStatus === 'active' ? 'active' : ''}`} />
+                                  )}
+                                </React.Fragment>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {/* Recent Orders */}
@@ -252,7 +272,21 @@ const Home: React.FC = () => {
                   
                   <div className="hro-list">
                     {loading ? (
-                      <Skeleton type="text" count={3} className="hro-skeleton-row" />
+                      [1, 2, 3].map((k) => (
+                        <div className="hro-item" key={k} style={{ opacity: 0.7 }}>
+                          <div className="hro-item-left" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div className="shimmer" style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#eeeae6', flexShrink: 0 }} />
+                            <div className="hro-item-info" style={{ flex: 1 }}>
+                              <Skeleton type="text" style={{ width: '140px', height: '14px', marginBottom: '8px' }} />
+                              <Skeleton type="text" style={{ width: '90px', height: '10px' }} />
+                            </div>
+                          </div>
+                          <div className="hro-item-right" style={{ flexShrink: 0, textAlign: 'right' }}>
+                            <Skeleton type="text" style={{ width: '60px', height: '14px', marginBottom: '8px', marginLeft: 'auto' }} />
+                            <Skeleton type="text" style={{ width: '80px', height: '10px', marginLeft: 'auto' }} />
+                          </div>
+                        </div>
+                      ))
                     ) : recentOrders.length > 0 ? (
                       recentOrders.map((order) => (
                         <div className="hro-item" key={order.id}>
@@ -298,7 +332,18 @@ const Home: React.FC = () => {
               </div>
               <div className="hf-list">
                 {loading ? (
-                  <Skeleton type="card" count={2} />
+                  [1, 2].map((k) => (
+                    <div className="hf-item shimmer-container" key={k} style={{ background: '#f5efe9', position: 'relative' }}>
+                      <div className="shimmer" style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }} />
+                      <div className="hf-item-overlay" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.1) 0%, transparent 60%)' }}>
+                        <div className="hf-item-info">
+                          <Skeleton type="text" style={{ width: '120px', height: '16px', marginBottom: '8px', background: '#e5ded6' }} />
+                          <Skeleton type="text" style={{ width: '160px', height: '12px', background: '#e5ded6' }} />
+                        </div>
+                        <div className="hf-item-btn shimmer" style={{ background: '#e5ded6', border: 'none' }} />
+                      </div>
+                    </div>
+                  ))
                 ) : (
                   favorites.map((item) => (
                     <Link to={`/menu/${item.id}`} className="hf-item" key={item.id}>
