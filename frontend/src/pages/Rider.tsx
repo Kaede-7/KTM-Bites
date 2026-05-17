@@ -4,7 +4,7 @@ import "../css/auth.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { logout as authLogout, getStoredUser, getToken } from "../api/auth";
+import { getStoredUser, getToken } from "../api/auth";
 import { fetchKitchenOrders, updateOrderStatus, type KitchenOrder } from "../api/kitchen";
 import { updateRiderLocation } from "../api/orders";
 import { fetchRiderProfile } from "../api/rider";
@@ -45,12 +45,13 @@ const Rider: React.FC = () => {
   const [simulationRoute, setSimulationRoute] = useState<[number, number][]>([]);
   const [simulationDest, setSimulationDest] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Restore session and redirect if needed
+  // Restore session and redirect if needed — explicitly check RIDER portal
   useEffect(() => {
-    const token = getToken();
-    const user = getStoredUser() as any;
-    if (!token || !user || (user.role !== 'RIDER' && !user.is_staff)) {
-      authLogout(null);
+    const token = getToken('rider');
+    const user = getStoredUser('rider') as any;
+    if (!token || !user || !token.startsWith('RIDER_TOKEN_')) {
+      // Not a valid rider session — redirect to rider login
+      // Use null to avoid clearing other portal sessions
       navigate("/rider-login");
     } else {
       setRiderUser(user);
@@ -258,8 +259,8 @@ const Rider: React.FC = () => {
   // ══════════════════════════════════════════
   // DASHBOARD VIEW
   // ══════════════════════════════════════════
-  const user = getStoredUser();
-  if (!getToken() || !user) {
+  const user = getStoredUser('rider');
+  if (!getToken('rider') || !user) {
     return <LoadingAnimation message="Redirecting to Rider Login..." />;
   }
 

@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import "../css/auth.css";
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
+
 import { login, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
 
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -15,13 +16,16 @@ const Login: React.FC = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Get the redirect path from location state, default to /home
+  const from = location.state?.from?.pathname || "/home";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await login(email, password, rememberMe);
-      navigate("/home");
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
@@ -32,8 +36,8 @@ const Login: React.FC = () => {
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        await googleLogin(tokenResponse.access_token, true);
-        navigate("/home");
+        await googleLogin(tokenResponse.access_token, true, 'USER', rememberMe);
+        navigate(from, { replace: true });
       } catch (err: any) {
         setError("Google login failed. Please try again.");
       }
@@ -43,9 +47,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
-      <Link to="/">
-        <img src={transparentLogo} alt="KTM Bites" className="auth-logo-top" />
-      </Link>
+
       <h1>Welcome Back</h1>
       <p className="auth-subtitle">Enter your details to access your account.</p>
 

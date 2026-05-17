@@ -10,10 +10,12 @@ import { getStoredUser, isLoggedIn, getProfile, updateProfile } from "../api/aut
 import { addToCart } from "../api/cart";
 import AIRecommendations from "../components/AIRecommendations";
 import { useToast } from "../components/Toast";
+import Skeleton from "../components/Skeleton";
 
 const Home: React.FC = () => {
   const [favorites, setFavorites] = useState<MenuItemData[]>([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
+  const [loading, setLoading] = useState(true);
   const user = getStoredUser();
   const { showToast } = useToast();
 
@@ -31,6 +33,7 @@ const Home: React.FC = () => {
     }
     try {
       await addToCart(itemId, 1);
+      window.dispatchEvent(new Event("cart-updated"));
       showToast("Added to cart!", "success");
     } catch (err) {
       console.error("Failed to add to cart:", err);
@@ -50,6 +53,7 @@ const Home: React.FC = () => {
     }
 
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [items, userOrders] = await Promise.all([
           getMenuItems({ sort: "rating" }),
@@ -63,6 +67,8 @@ const Home: React.FC = () => {
         localStorage.setItem("ktm_home_data", JSON.stringify({ favorites: favs, orders: userOrders }));
       } catch (err) {
         console.error("Failed to fetch home data:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -160,8 +166,8 @@ const Home: React.FC = () => {
         {/* Hero Section */}
         <section className="home-hero">
           <div className="home-hero-text">
-            <h1>Welcome back, <span>{(user?.full_name || user?.email?.split("@")[0] || "Guest").split(" ")[0]}</span>.</h1>
-            <p>Your cravings are orbiting. What's on the menu today?</p>
+            <h1>Welcome {isLoggedIn() ? "back," : "to"} <span>{isLoggedIn() ? (user?.full_name || user?.email?.split("@")[0] || "Guest").split(" ")[0] : "KTM Bites"}</span></h1>
+            <p>{isLoggedIn() ? "Your cravings are orbiting. What's on the menu today?" : "Explore the best bites in town. Prepared fresh, delivered fast."}</p>
             <Link to="/menu" className="home-hero-btn">
               Explore Menu <span className="material-symbols-rounded" style={{fontSize: '18px'}}>arrow_forward</span>
             </Link>
@@ -182,90 +188,105 @@ const Home: React.FC = () => {
           {/* Left Column */}
           <div className="home-col-left">
             
-            {/* In Progress Card */}
-            <div className="home-card home-in-progress">
-              <div className="hip-header">
-                <div className="hip-header-left">
-                  <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
-                  <p>{activeOrder ? `Arriving in ~25 mins` : "Your recent cravings are satisfied."}</p>
+            {isLoggedIn() ? (
+              <>
+                {/* In Progress Card */}
+                <div className="home-card home-in-progress">
+                  <div className="hip-header">
+                    <div className="hip-header-left">
+                      <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
+                      <p>{activeOrder ? `Arriving in ~25 mins` : "Your recent cravings are satisfied."}</p>
+                    </div>
+                    {activeOrder && (
+                      <span className="hip-badge">#{activeOrder.order_id}</span>
+                    )}
+                  </div>
+
+                  {activeOrder && (
+                    <>
+                      <div className="hip-item-preview">
+                        <div className="hip-img-container">
+                          <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
+                        </div>
+                        <div className="hip-item-info">
+                          <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
+                          <p>KTM Bites Kitchen</p>
+                        </div>
+                      </div>
+
+                      <div className="hip-horizontal-tracker">
+                        <div className="tracker-line">
+                          <div className="tracker-line-fill" style={{ width: `${(currentStepIndex / 2) * 100}%` }}></div>
+                        </div>
+                        <div className="tracker-steps">
+                          <div className={`tracker-step-item ${getStepStatus(0)}`}>
+                            <div className="step-icon-circle">
+                              <span className="material-symbols-rounded">receipt_long</span>
+                            </div>
+                            <span>Received</span>
+                          </div>
+                          <div className={`tracker-step-item ${getStepStatus(1)}`}>
+                            <div className="step-icon-circle">
+                              <span className="material-symbols-rounded">restaurant</span>
+                            </div>
+                            <span>Preparing</span>
+                          </div>
+                          <div className={`tracker-step-item ${getStepStatus(2)}`}>
+                            <div className="step-icon-circle">
+                              <span className="material-symbols-rounded">directions_bike</span>
+                            </div>
+                            <span>On the way</span>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-                {activeOrder && (
-                  <span className="hip-badge">#{activeOrder.order_id}</span>
-                )}
-              </div>
 
-              {activeOrder && (
-                <>
-                  <div className="hip-item-preview">
-                    <div className="hip-img-container">
-                      <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
-                    </div>
-                    <div className="hip-item-info">
-                      <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
-                      <p>KTM Bites Kitchen</p>
-                    </div>
+                {/* Recent Orders */}
+                <div className="home-card home-recent-orders">
+                  <div className="hro-header">
+                    <h2>Recent Orders</h2>
+                    <Link to="/profile">View All</Link>
                   </div>
-
-                  <div className="hip-horizontal-tracker">
-                    <div className="tracker-line">
-                      <div className="tracker-line-fill" style={{ width: `${(currentStepIndex / 2) * 100}%` }}></div>
-                    </div>
-                    <div className="tracker-steps">
-                      <div className={`tracker-step-item ${getStepStatus(0)}`}>
-                        <div className="step-icon-circle">
-                          <span className="material-symbols-rounded">receipt_long</span>
+                  
+                  <div className="hro-list">
+                    {loading ? (
+                      <Skeleton type="text" count={3} className="hro-skeleton-row" />
+                    ) : recentOrders.length > 0 ? (
+                      recentOrders.map((order) => (
+                        <div className="hro-item" key={order.id}>
+                          <div className="hro-item-left">
+                            <div className="hro-item-icon">
+                              <span className="material-symbols-rounded">receipt</span>
+                            </div>
+                            <div className="hro-item-info">
+                              <h4>{order.items[0]?.name || "Order"} {order.items.length > 1 ? `+${order.items.length - 1}` : ""}</h4>
+                              <p>KTM Bites • {new Date(order.created_at).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}</p>
+                            </div>
+                          </div>
+                          <div className="hro-item-right">
+                            <div className="hro-item-price">Rs. {order.total}</div>
+                            <div className="hro-item-status">@ {order.status_display}</div>
+                          </div>
                         </div>
-                        <span>Received</span>
-                      </div>
-                      <div className={`tracker-step-item ${getStepStatus(1)}`}>
-                        <div className="step-icon-circle">
-                          <span className="material-symbols-rounded">restaurant</span>
-                        </div>
-                        <span>Preparing</span>
-                      </div>
-                      <div className={`tracker-step-item ${getStepStatus(2)}`}>
-                        <div className="step-icon-circle">
-                          <span className="material-symbols-rounded">directions_bike</span>
-                        </div>
-                        <span>On the way</span>
-                      </div>
-                    </div>
+                      ))
+                    ) : (
+                      <p style={{color: "#8b7d72", fontSize: "14px"}}>You haven't placed any orders yet. Time to explore!</p>
+                    )}
                   </div>
-                </>
-              )}
-            </div>
-
-            {/* Recent Orders */}
-            <div className="home-card home-recent-orders">
-              <div className="hro-header">
-                <h2>Recent Orders</h2>
-                <Link to="/profile">View All</Link>
+                </div>
+              </>
+            ) : (
+              <div className="home-card guest-welcome-card">
+                <h2>Ready to Order? 🍔</h2>
+                <p>Join thousands of food lovers in Kathmandu. Get exclusive discounts, earn points, and track your food in real-time.</p>
+                <div className="guest-actions">
+                  <Link to="/signup" className="guest-btn-primary">Create Account</Link>
+                  <Link to="/login" className="guest-btn-secondary">Sign In</Link>
+                </div>
               </div>
-              
-              <div className="hro-list">
-                {recentOrders.length > 0 ? (
-                  recentOrders.map((order) => (
-                    <div className="hro-item" key={order.id}>
-                      <div className="hro-item-left">
-                        <div className="hro-item-icon">
-                          <span className="material-symbols-rounded">receipt</span>
-                        </div>
-                        <div className="hro-item-info">
-                          <h4>{order.items[0]?.name || "Order"} {order.items.length > 1 ? `+${order.items.length - 1}` : ""}</h4>
-                          <p>KTM Bites • {new Date(order.created_at).toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}</p>
-                        </div>
-                      </div>
-                      <div className="hro-item-right">
-                        <div className="hro-item-price">Rs. {order.total}</div>
-                        <div className="hro-item-status">@ {order.status_display}</div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p style={{color: "#8b7d72", fontSize: "14px"}}>You haven't placed any orders yet. Time to explore!</p>
-                )}
-              </div>
-            </div>
+            )}
 
           </div>
 
@@ -276,20 +297,24 @@ const Home: React.FC = () => {
                 <h2>Your Favorites</h2>
               </div>
               <div className="hf-list">
-                {favorites.map((item) => (
-                  <Link to={`/menu/${item.id}`} className="hf-item" key={item.id}>
-                    <FastImage src={item.image} alt={item.name} />
-                    <div className="hf-item-overlay">
-                      <div className="hf-item-info">
-                        <h4>{item.name}</h4>
-                        <p>{item.category_name} • Rs. {item.price}</p>
+                {loading ? (
+                  <Skeleton type="card" count={2} />
+                ) : (
+                  favorites.map((item) => (
+                    <Link to={`/menu/${item.id}`} className="hf-item" key={item.id}>
+                      <FastImage src={item.image} alt={item.name} />
+                      <div className="hf-item-overlay">
+                        <div className="hf-item-info">
+                          <h4>{item.name}</h4>
+                          <p>{item.category_name} • Rs. {item.price}</p>
+                        </div>
+                        <button className="hf-item-btn" onClick={(e) => handleAddToCart(e, item.id)}>
+                          <span className="material-symbols-rounded" style={{fontSize: '20px'}}>add</span>
+                        </button>
                       </div>
-                      <button className="hf-item-btn" onClick={(e) => handleAddToCart(e, item.id)}>
-                        <span className="material-symbols-rounded" style={{fontSize: '20px'}}>add</span>
-                      </button>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
           </div>

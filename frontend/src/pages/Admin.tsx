@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "../css/admin.css";
 import "../css/auth.css";
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
+
 import * as adminAPI from "../api/admin";
 import * as authAPI from "../api/auth";
+import { clearAllPortals } from "../api/auth";
 import { geocodeAddress, KATHMANDU_CENTER } from "../api/geocode";
 import API from "../api/axios";
 import LoadingAnimation from "../components/LoadingAnimation";
@@ -237,7 +238,7 @@ const Admin: React.FC = () => {
     setPassword("");
     setError("");
     setSuccessMessage("");
-    authAPI.logout(null); // Also clear the backend auth, but don't redirect away from /admin
+    clearAllPortals(); // Also clear the backend auth, but don't redirect away from /admin
   };
 
   const handleAddMenuItem = () => {
@@ -635,11 +636,7 @@ const Admin: React.FC = () => {
     <div className="admin-dashboard">
       <div className="admin-header">
         <div className="admin-header-left">
-          <img
-            src={transparentLogo}
-            alt="KTM Bites"
-            className="admin-header-logo"
-          />
+
           <div className="admin-header-info">
             <h1 className="admin-header-title">KTM Bites</h1>
             <p className="admin-header-subtitle">

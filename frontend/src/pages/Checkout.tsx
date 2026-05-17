@@ -114,6 +114,7 @@ const Checkout: React.FC = () => {
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState("");
   const [kharchaStatus, setKharchaStatus] = useState<KharchaLinkStatus>({ linked: false });
+  const [userRank, setUserRank] = useState<any>(null);
   const [existingOrder, setExistingOrder] = useState<any>(null);
 
   // OTP modal state
@@ -124,17 +125,23 @@ const Checkout: React.FC = () => {
   const [otpConfirming, setOtpConfirming] = useState(false);
   const [otpError, setOtpError] = useState("");
 
+  const [paymentFailed, setPaymentFailed] = useState(false);
+
   useEffect(() => {
     const init = async () => {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const orderIdParam = urlParams.get("orderId");
+        const paymentFailedParam = urlParams.get("payment_failed");
+
+        if (paymentFailedParam === "1") setPaymentFailed(true);
 
         const [profileData, kStatus] = await Promise.all([
           getProfile(),
           getKharchaLinkStatus().catch(() => ({ linked: false })),
         ]);
         setKharchaStatus(kStatus);
+        if (profileData) setUserRank(profileData.rank);
 
         if (orderIdParam) {
           const { getOrder } = await import("../api/orders");
@@ -151,7 +158,31 @@ const Checkout: React.FC = () => {
           });
         } else {
           const cartData = await getCart();
-          setCart(cartData);
+          if (cartData.items.length === 0) {
+            // Cart is empty. Is there a pending payment order we can resume?
+            const { getOrders } = await import("../api/orders");
+            const allOrders = await getOrders();
+            // Look for latest order that is pending payment
+            const pending = allOrders.find(o => o.status === 'pending_payment' || o.payment_status === 'pending');
+            if (pending) {
+              setExistingOrder(pending);
+              setPayment(pending.payment_method);
+              setForm({
+                fullName: pending.full_name,
+                phone: pending.phone,
+                address: pending.address,
+                city: pending.city,
+                landmark: pending.landmark || "",
+                notes: pending.notes || "",
+              });
+              setPaymentFailed(true); // Show the warning banner
+            } else {
+              setCart(cartData);
+            }
+          } else {
+            setCart(cartData);
+          }
+
           if (profileData) {
             setForm((prev) => ({
               ...prev,
@@ -273,8 +304,21 @@ const Checkout: React.FC = () => {
   };
 
   const subtotal = existingOrder ? Number(existingOrder.subtotal) : (cart ? Number(cart.total) : 0);
-  const deliveryFee = existingOrder ? Number(existingOrder.delivery_fee) : (subtotal > 0 ? 80 : 0);
-  const total = existingOrder ? Number(existingOrder.total) : (subtotal + deliveryFee);
+  const isMythic = (existingOrder?.rank_applied === 'Mythic Crimson') || (userRank?.current_rank === 'Mythic Crimson');
+  const deliveryFee = existingOrder ? Number(existingOrder.delivery_fee) : (subtotal > 0 ? (isMythic ? 0 : 80) : 0);
+  
+  // Rank Discount
+  let discountAmount = 0;
+  let rankName = "";
+  if (existingOrder) {
+    discountAmount = Number(existingOrder.discount_amount || 0);
+    rankName = existingOrder.rank_applied || "";
+  } else if (userRank) {
+    discountAmount = (subtotal * userRank.discount) / 100;
+    rankName = userRank.current_rank;
+  }
+
+  const total = existingOrder ? Number(existingOrder.total) : (subtotal + deliveryFee - discountAmount);
 
   const paymentOptions = [
     {
@@ -332,6 +376,16 @@ const Checkout: React.FC = () => {
             {existingOrder ? "Review your order and complete payment" : "Complete your order details below"}
           </p>
         </div>
+
+        {paymentFailed && (
+          <div className="checkout-payment-failed-banner">
+            <span className="material-symbols-rounded">warning</span>
+            <div>
+              <strong>Payment was not completed.</strong>
+              <p>Your order is saved. Please retry payment or choose a different method.</p>
+            </div>
+          </div>
+        )}
 
         {error && <div className="auth-error" style={{ marginBottom: 16 }}>{error}</div>}
 
@@ -445,7 +499,25 @@ const Checkout: React.FC = () => {
                   </div>
                   <div className="checkout-summary-divider" />
                   <div className="checkout-summary-row"><span>Subtotal</span><span>Rs. {subtotal}</span></div>
-                  <div className="checkout-summary-row"><span>Delivery Fee</span><span>Rs. {deliveryFee}</span></div>
+                  <div className="checkout-summary-row">
+                    <span>Delivery Fee {isMythic && <span className="free-badge">(Free)</span>}</span>
+                    <span>
+                      {isMythic ? (
+                        <>
+                          <span className="strikethrough-price">Rs. 80</span>
+                          <span className="free-price">Rs. 0</span>
+                        </>
+                      ) : (
+                        `Rs. ${deliveryFee}`
+                      )}
+                    </span>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="checkout-summary-row discount">
+                      <span>Rank Discount ({rankName})</span>
+                      <span>- Rs. {discountAmount}</span>
+                    </div>
+                  )}
                   <div className="checkout-summary-divider" />
                   <div className="checkout-summary-total"><span>Total</span><span>Rs. {total}</span></div>
                 </>

@@ -513,7 +513,7 @@
 
 .kitchen-logout-btn:hover {
   background: #b83a2d;
-  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(184, 58, 45, 0.3);
 }
 
 .kitchen-logout-btn .material-symbols-rounded {
@@ -715,8 +715,7 @@
 
 .kitchen-order-card:hover {
   border-color: rgba(242, 139, 70, 0.3);
-  box-shadow: 0 12px 30px rgba(242, 139, 70, 0.08);
-  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(242, 139, 70, 0.12);
 }
 
 .kitchen-order-card.card-new {
@@ -922,7 +921,7 @@
 .kitchen-action-btn.btn-start:hover:not(:disabled) {
   background: #f28b46;
   color: white;
-  box-shadow: 0 8px 20px rgba(242, 139, 70, 0.2);
+  box-shadow: 0 10px 24px rgba(242, 139, 70, 0.3);
 }
 
 .kitchen-action-btn.btn-ready {
