@@ -30,10 +30,6 @@
   transform: translateY(-5px);
 }
 
-.navbar-logo:hover {
-  /* Removed scale from parent to keep text static */
-}
-
 .navbar-logo-icon {
   height: 62px;
   width: auto;
