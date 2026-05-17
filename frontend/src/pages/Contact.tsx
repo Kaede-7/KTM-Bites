@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import heraldMap from "../assets/herald_map.png";
 import "../css/contact.css";
+import PageTransition from "../components/PageTransition";
 
 const Contact: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -28,7 +29,8 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="contact-page">
+    <PageTransition>
+      <div className="contact-page">
       <Navbar />
 
       <main className="contact-main">
@@ -90,7 +92,8 @@ const Contact: React.FC = () => {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 

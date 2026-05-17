@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import "../css/auth.css";
 import { riderLogin, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
+
 
 const RiderLogin: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const RiderLogin: React.FC = () => {
     setError("");
     setLoading(true);
     try {
-      await riderLogin(email, password);
+      await riderLogin(email, password, rememberMe);
       navigate("/rider");
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed. Please try again.");
@@ -32,7 +32,7 @@ const RiderLogin: React.FC = () => {
     onSuccess: async (tokenResponse) => {
       try {
         // We pass 'RIDER' role to ensure if they are signing up via login page, they get the right role
-        await googleLogin(tokenResponse.access_token, true, 'RIDER');
+        await googleLogin(tokenResponse.access_token, true, 'RIDER', rememberMe);
         navigate("/rider");
       } catch (err: any) {
         setError("Google login failed. Please try again.");
@@ -43,9 +43,7 @@ const RiderLogin: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
-      <Link to="/">
-        <img src={transparentLogo} alt="KTM Bites" className="auth-logo-top" />
-      </Link>
+
       <div className="auth-badge-rider">RIDER PORTAL</div>
       <h1>Rider Login</h1>
       <p className="auth-subtitle">Access your delivery dashboard and start earning.</p>

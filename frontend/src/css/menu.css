@@ -33,13 +33,24 @@
   height: 320px;
   display: block;
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.trending-card:hover {
+  box-shadow: 0 16px 48px rgba(0,0,0,0.15);
 }
 
 .trending-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
 }
+
+.trending-card:hover img {
+  transform: scale(1.08);
+}
+
 
 /* Trending card zoom removed */
 
@@ -225,6 +236,12 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.02);
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.menu-card-modern:hover {
+  box-shadow: 0 16px 48px rgba(0,0,0,0.1);
+  border-color: rgba(242, 139, 70, 0.1);
 }
 
 /* Menu card hover shadow removed */
@@ -243,7 +260,13 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
 }
+
+.mcm-img-wrapper:hover img {
+  transform: scale(1.1);
+}
+
 
 /* Menu image hover zoom removed */
 
@@ -312,8 +335,90 @@
   color: #fff;
 }
 
+/* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  .menu-container {
+    padding: 24px 16px;
+  }
+
+  .menu-section-title {
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
   .trending-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .trending-card {
+    height: 220px;
+    border-radius: 20px;
+  }
+
+  .trending-overlay {
+    padding: 20px;
+  }
+
+  .trending-name {
+    font-size: 20px;
+  }
+
+  .menu-card-modern {
+    border-radius: 20px;
+  }
+
+  .mcm-body {
+    padding: 16px;
+  }
+
+  .mcm-add-btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-container {
+    padding: 16px 12px;
+  }
+
+  .menu-section-title {
+    font-size: 20px;
+  }
+
+  .trending-card {
+    height: 180px;
+    border-radius: 16px;
+  }
+
+  .trending-overlay {
+    padding: 16px;
+  }
+
+  .trending-badge {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .trending-name {
+    font-size: 18px;
+  }
+
+  .menu-card-modern {
+    border-radius: 16px;
+  }
+
+  .mcm-img {
+    height: 160px;
+  }
+
+  .mcm-name {
+    font-size: 15px;
+  }
+
+  .mcm-price-row {
+    font-size: 16px;
   }
 }

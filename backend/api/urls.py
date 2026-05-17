@@ -82,4 +82,9 @@ urlpatterns = [
     path('kharcha/link/start/',   views.kharcha_link_start,    name='kharcha-link-start'),
     path('kharcha/callback/',     views.kharcha_link_callback, name='kharcha-link-callback'),
     path('kharcha/link/remove/',  views.kharcha_link_remove,   name='kharcha-link-remove'),
+
+    # ── Notifications ────────────────────────────────────────
+    path('notifications/',                    views.notification_list,          name='notification-list'),
+    path('notifications/<int:pk>/read/',      views.notification_mark_read,     name='notification-mark-read'),
+    path('notifications/read-all/',           views.notification_mark_all_read, name='notification-mark-all-read'),
 ]

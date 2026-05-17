@@ -8,13 +8,15 @@ import FastImage from "../components/FastImage";
 import LiveTrackingMap from "../components/LiveTrackingMap";
 import { getOrder, getOrders, cancelOrder, type OrderData } from "../api/orders";
 import { isLoggedIn } from "../api/auth";
+import PageTransition from "../components/PageTransition";
+import LottieAnimation from "../components/LottieAnimation";
+import { motion, AnimatePresence } from "framer-motion";
 
 const statusSteps = [
-  { key: "placed",    title: "Order Placed",  desc: "Your order has been confirmed",          icon: "check_circle" },
-  { key: "preparing", title: "Preparing",     desc: "The restaurant is preparing your food",  icon: "restaurant" },
-  { key: "ready_for_pickup", title: "Ready for Pickup", desc: "Your food is ready, waiting for rider", icon: "inventory" },
-  { key: "on_way",   title: "On the Way",     desc: "Your rider is heading to you",           icon: "local_shipping" },
-  { key: "delivered",title: "Delivered",      desc: "Enjoy your meal!",                       icon: "done_all" },
+  { key: "placed",    title: "Received",  desc: "Order confirmed",          icon: "receipt_long" },
+  { key: "preparing", title: "Preparing",     desc: "In the kitchen",           icon: "restaurant" },
+  { key: "on_way",   title: "On the way",     desc: "Rider is moving",          icon: "pedal_bike" },
+  { key: "delivered",title: "Delivered",      desc: "Enjoy!",                   icon: "done_all" },
 ];
 
 /** Returns seconds remaining in the 5-min cancel window, or 0 if expired */
@@ -134,7 +136,13 @@ const OrderTracking: React.FC = () => {
     </div>
   );
 
-  const currentStepIndex = statusSteps.findIndex(s => s.key === order.status);
+  const currentStepIndex = (() => {
+    const idx = statusSteps.findIndex(s => s.key === order.status);
+    if (idx !== -1) return idx;
+    // Map missing backend statuses to closest frontend step
+    if (order.status === "ready_for_pickup") return 1; // Mark as Preparing (done/active)
+    return 0;
+  })();
   const getStepStatus = (index: number) => {
     if (index < currentStepIndex) return "completed";
     if (index === currentStepIndex) return "active";
@@ -145,11 +153,47 @@ const OrderTracking: React.FC = () => {
   const canCancel = order.status === "placed" && cancelSecs > 0;
 
   return (
-    <div className="tracking-page">
-      <Navbar />
+    <PageTransition>
+      <div className="tracking-page">
+        {order.status === "placed" && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="order-success-celebration"
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 1000,
+              pointerEvents: 'none'
+            }}
+          >
+            <LottieAnimation type="order-success" width={600} height={600} loop={false} />
+          </motion.div>
+        )}
+        <Navbar />
       <div className="tracking-container">
-        <h1 className="tracking-title">Order Tracking</h1>
-        <p className="tracking-order-id">Order #{order.order_id}</p>
+        <div className="tracking-header-new">
+          <div className="header-left-new">
+            <h1 className="tracking-title-new">{getStatusLabel()}</h1>
+          </div>
+          <div className="header-right-new">
+            <span className="order-id-badge-new">#{order.order_id}</span>
+          </div>
+        </div>
+
+        {/* ── Item Summary Card ─────────────────────────── */}
+        <div className="tracking-summary-card">
+          <div className="summary-img-wrapper">
+            <FastImage src={order.items[0]?.image} alt={order.items[0]?.name} />
+          </div>
+          <div className="summary-details">
+            <h3>{order.items[0]?.name} {order.items.length > 1 ? `+${order.items.length - 1} more` : ''}</h3>
+            <p>KTM Bites Kitchen</p>
+          </div>
+        </div>
 
         {/* ── 5-min Cancel Banner ─────────────────────────── */}
         {order.status === "placed" && (
@@ -208,31 +252,30 @@ const OrderTracking: React.FC = () => {
         )}
 
         <div className="tracking-card">
-          <div className="tracking-status-header">
-            <span className={`tracking-status-badge ${order.status.replace("_", "-")}`}>
-              <span className="material-symbols-rounded">
-                {order.status === "delivered" ? "done_all"
-                  : order.status === "preparing" ? "restaurant"
-                  : order.status === "cancelled" ? "cancel"
-                  : order.status === "placed"    ? "check_circle"
-                  : "local_shipping"}
-              </span>
-              {getStatusLabel()}
-            </span>
-            {/* Removed hardcoded Est. arrival as per user request */}
-          </div>
+          {/* Timeline */}
 
-          <div className="tracking-timeline">
-            {statusSteps.map((step, i) => (
-              <div key={i} className={`tracking-step ${getStepStatus(i)}`}>
-                <div className="tracking-step-dot">
-                  {getStepStatus(i) === "completed" && <span className="material-symbols-rounded">check</span>}
-                  {getStepStatus(i) === "active" && <span className="material-symbols-rounded" style={{ color: "var(--amber)", fontSize: 12 }}>circle</span>}
-                </div>
-                <h4 className="tracking-step-title">{step.title}</h4>
-                <p className="tracking-step-desc">{step.desc}</p>
-              </div>
-            ))}
+          <div className="tracking-timeline-horizontal">
+            {statusSteps.map((step, i) => {
+              const status = getStepStatus(i);
+              const isLast = i === statusSteps.length - 1;
+              const nextStatus = !isLast ? getStepStatus(i + 1) : null;
+              
+              return (
+                <React.Fragment key={i}>
+                  <div className={`timeline-step-new ${status}`}>
+                    <div className="step-icon-wrapper">
+                      <span className="material-symbols-rounded">{step.icon}</span>
+                    </div>
+                    <div className="step-text">
+                      <span className="step-label-new">{step.title}</span>
+                    </div>
+                  </div>
+                  {!isLast && (
+                    <div className={`timeline-connector ${nextStatus === 'completed' || nextStatus === 'active' ? 'active' : ''}`} />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
 
@@ -269,20 +312,33 @@ const OrderTracking: React.FC = () => {
           </div>
         </div>
 
-        <div className="tracking-items-card" style={{ marginTop: 24 }}>
-          <h3>Order Items</h3>
-          {order.items.map((item, i) => (
-            <div key={i} className="tracking-item-row">
-              <FastImage src={item.image} alt={item.name} className="tracking-item-img" />
-              <span className="tracking-item-name">{item.name}</span>
-              <span className="tracking-item-qty">x{item.quantity}</span>
-              <span className="tracking-item-price">Rs. {item.subtotal}</span>
-            </div>
-          ))}
+        <div className="tracking-items-section">
+          <div className="tracking-items-header">
+            <h3>Order Items</h3>
+            <span className="tracking-item-count">{order.items.length} {order.items.length === 1 ? 'item' : 'items'}</span>
+          </div>
+          <div className="tracking-items-list">
+            {order.items.map((item, i) => (
+              <div key={i} className="tracking-item-row">
+                <div className="tracking-item-left">
+                  <div className="tracking-item-img-wrapper">
+                    <FastImage src={item.image} alt={item.name} className="tracking-item-img" />
+                    <span className="tracking-item-qty-badge">{item.quantity}</span>
+                  </div>
+                  <div className="tracking-item-info">
+                    <p className="tracking-item-name">{item.name}</p>
+                    <p className="tracking-item-sub">Rs. {item.price} each</p>
+                  </div>
+                </div>
+                <p className="tracking-item-price">Rs. {item.subtotal}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <Footer />
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 

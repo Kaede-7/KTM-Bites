@@ -24,7 +24,7 @@ const RiderProfile: React.FC = () => {
   });
 
   useEffect(() => {
-    const token = getToken();
+    const token = getToken('rider');
     if (!token || !token.startsWith('RIDER_TOKEN_')) {
       console.warn("Unauthorized access to rider profile - redirecting");
       navigate("/rider-login");

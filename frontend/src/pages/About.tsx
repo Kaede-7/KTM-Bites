@@ -1,4 +1,5 @@
 import React from "react";
+import PageTransition from "../components/PageTransition";
 import Navbar from "../components/Navbar";
 import aboutHero from "../assets/about_hero.png";
 import deliveryMap from "../assets/delivery_map.png";
@@ -6,7 +7,8 @@ import "../css/about.css";
 
 const About: React.FC = () => {
   return (
-    <div className="about-page">
+    <PageTransition>
+      <div className="about-page">
       <Navbar />
 
       <main className="about-main">
@@ -97,7 +99,8 @@ const About: React.FC = () => {
           </div>
         </section>
       </main>
-    </div>
+      </div>
+    </PageTransition>
   );
 };
 

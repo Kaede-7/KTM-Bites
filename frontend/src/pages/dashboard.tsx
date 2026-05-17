@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/dashboard.css";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const ITEMS = [
   {
@@ -288,13 +289,7 @@ const LandingPage: React.FC = () => {
         )}
       </section>
 
-      {/* ══ FOOTER ════════════════════════════════════════════════════ */}
-      <footer className="lp-footer">
-        <div className="lp-footer-left">
-          <span className="lp-footer-brand">KTMBites</span>
-          <span className="lp-footer-copy">© 2026 KTMBites. All rights reserved.</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

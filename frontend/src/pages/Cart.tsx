@@ -6,10 +6,11 @@ import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, updateCartItem, removeFromCart, type CartData } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
+import PageTransition from "../components/PageTransition";
+import LottieAnimation from "../components/LottieAnimation";
 
 const Cart: React.FC = () => {
   const [cart, setCart] = useState<CartData | null>(null);
-  const [cartAdded, setCartAdded] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,20 +65,22 @@ const Cart: React.FC = () => {
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="cart-page">
-        <Navbar />
-        <div className="cart-container">
-          <div className="cart-empty">
-            <span className="material-symbols-rounded">shopping_cart</span>
-            <h3>Your cart is empty</h3>
-            <p>Looks like you haven't added anything yet</p>
-            <Link to="/menu" className="cart-empty-btn">
-              Browse Menu
-            </Link>
+      <PageTransition>
+        <div className="cart-page">
+          <Navbar />
+          <div className="cart-container">
+            <div className="cart-empty" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <LottieAnimation type="empty-cart" width={300} height={300} />
+              <h3>Your cart is empty</h3>
+              <p>Looks like you haven't added anything yet</p>
+              <Link to="/menu" className="cart-empty-btn">
+                Browse Menu
+              </Link>
+            </div>
           </div>
+          <Footer />
         </div>
-        <Footer />
-      </div>
+      </PageTransition>
     );
   }
 
@@ -85,7 +88,8 @@ const Cart: React.FC = () => {
   const total = Number(cart.total) + deliveryFee;
 
   return (
-    <div className="cart-page">
+    <PageTransition>
+      <div className="cart-page">
       <Navbar />
       <div className="cart-container">
         <h1 className="cart-title"><span className="material-symbols-rounded">shopping_cart</span>Your Cart</h1>
@@ -136,6 +140,7 @@ const Cart: React.FC = () => {
       </div>
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 
