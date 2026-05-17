@@ -53,6 +53,8 @@ export interface OrderData {
   notes: string;
   subtotal: number;
   delivery_fee: number;
+  discount_amount?: number;
+  rank_applied?: string;
   total: number;
   items: OrderItemData[];  // List of items in this order
   created_at: string;      // When the order was placed (ISO date string)

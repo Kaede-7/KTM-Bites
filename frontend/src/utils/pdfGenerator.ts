@@ -20,6 +20,10 @@ export const downloadOrderPDF = (order: OrderData) => {
     minute: "2-digit",
   });
 
+  const discount = order.discount_amount !== undefined 
+    ? Number(order.discount_amount) 
+    : (Number(order.subtotal) + Number(order.delivery_fee) - Number(order.total));
+
   const itemsHtml = order.items
     .map(
       (item) => `
@@ -342,6 +346,16 @@ export const downloadOrderPDF = (order: OrderData) => {
               <td style="color: #8b7d72; font-weight: 500;">Standard Delivery</td>
               <td style="text-align: right; font-weight: 700; color: #2a2420;">Rs. ${order.delivery_fee}</td>
             </tr>
+            ${
+              discount > 0
+                ? `
+            <tr>
+              <td style="color: #ea580c; font-weight: 600;">Rank Discount ${order.rank_applied ? `(${order.rank_applied})` : ""}</td>
+              <td style="text-align: right; font-weight: 700; color: #ea580c;">- Rs. ${discount.toFixed(2)}</td>
+            </tr>
+            `
+                : ""
+            }
             <tr class="grand-total">
               <td>Grand Total</td>
               <td style="text-align: right;">Rs. ${order.total}</td>
