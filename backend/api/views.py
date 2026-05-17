@@ -693,6 +693,65 @@ def cancel_order(request, pk):
 
 
 # ========================
+# RIDER RATING & REVIEW
+# ========================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rate_rider_view(request, pk):
+    """Allows user to rate and comment on the rider assigned to their order."""
+    from .models import RiderReview
+    try:
+        order = Order.objects.get(pk=pk, user=request.user)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=404)
+
+    if not order.rider:
+        return Response({"error": "No rider is assigned to this order."}, status=400)
+
+    # Check if already reviewed
+    if RiderReview.objects.filter(order=order, user=request.user).exists():
+        return Response({"error": "You have already reviewed the rider for this order."}, status=400)
+
+    rating = request.data.get('rating')
+    comment = request.data.get('comment', '')
+
+    if rating is None:
+        return Response({"error": "Rating is required."}, status=400)
+
+    try:
+        rating_val = float(rating)
+        if not (0.0 <= rating_val <= 5.0):
+            raise ValueError
+    except ValueError:
+        return Response({"error": "Rating must be a number between 0.0 and 5.0."}, status=400)
+
+    # Create review
+    review = RiderReview.objects.create(
+        rider=order.rider,
+        user=request.user,
+        order=order,
+        rating=rating_val,
+        comment=comment
+    )
+
+    # Update rider's average rating and count
+    order.rider.update_rating()
+
+    return Response({
+        "message": "Rider rated successfully!",
+        "has_reviewed_rider": True,
+        "rider_info": {
+            "id": order.rider.id,
+            "name": order.rider.full_name,
+            "phone": order.rider.phone,
+            "vehicle_type": order.rider.vehicle_type,
+            "rating": float(order.rider.rating),
+            "rating_count": order.rider.rating_count
+        }
+    })
+
+
+# ========================
 # KHALTI PAYMENT (TEST)
 # ========================
 @api_view(['POST'])
@@ -1575,7 +1634,9 @@ def rider_profile_view(request):
             "phone": profile.phone,
             "vehicle_type": profile.vehicle_type,
             "license_number": profile.license_number,
-            "is_available": profile.is_available
+            "is_available": profile.is_available,
+            "rating": float(profile.rating),
+            "rating_count": profile.rating_count
         })
 
     if request.method == 'PUT':

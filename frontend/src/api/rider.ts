@@ -7,6 +7,8 @@ export interface RiderProfileData {
   vehicle_type: string;
   license_number: string;
   is_available: boolean;
+  rating?: number;
+  rating_count?: number;
 }
 
 /** Fetch the current rider's profile */

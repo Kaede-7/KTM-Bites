@@ -83,6 +83,41 @@ const RiderProfile: React.FC = () => {
             </button>
           </div>
           
+          {/* Rider Rating Summary Box */}
+          {typeof profile.rating === 'number' && (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              background: "linear-gradient(135deg, rgba(242, 139, 70, 0.08), rgba(242, 139, 70, 0.03))",
+              border: "1px solid rgba(242, 139, 70, 0.2)",
+              borderRadius: "16px",
+              padding: "16px",
+              marginBottom: "24px"
+            }}>
+              <div style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "12px",
+                background: "#f28b46",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                flexShrink: 0
+              }}>
+                <span className="material-symbols-rounded" style={{ fontSize: "24px", fontVariationSettings: "'FILL' 1" }}>star</span>
+              </div>
+              <div>
+                <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", letterSpacing: "0.06em", color: "#8b7d72" }}>My Delivery Rating</div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "2px" }}>
+                  <span style={{ fontSize: "24px", fontWeight: "800", color: "#2a2420" }}>{profile.rating.toFixed(1)}</span>
+                  <span style={{ fontSize: "13px", fontWeight: "600", color: "#8b7d72" }}>({profile.rating_count || 0} reviews)</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-input-wrapper">
               <span className="material-symbols-rounded">person</span>
