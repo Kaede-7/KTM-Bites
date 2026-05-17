@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import "../css/kitchen.css";
 import "../css/auth.css";
 import LoadingAnimation from "../components/LoadingAnimation";
 import AuthCreative from "../components/AuthCreative";
-import { Link } from "react-router-dom";
 
 import { login as authLogin, clearAllPortals } from "../api/auth";
 import {
@@ -49,7 +48,6 @@ function formatTime(date: Date): string {
 // ═══════════════════════════════════════════
 
 const Kitchen: React.FC = () => {
-  const navigate = useNavigate();
 
   // Auth state
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -377,7 +375,12 @@ const Kitchen: React.FC = () => {
         </button>
       </div>
 
-      <div className={`kitchen-board mobile-tab-${mobileTab}`}>
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px", width: "100%" }}>
+          <LoadingAnimation message="Loading orders..." />
+        </div>
+      ) : (
+        <div className={`kitchen-board mobile-tab-${mobileTab}`}>
           {/* ── Column: New Orders ── */}
           <div className="kitchen-column col-new">
             <div className="kitchen-column-header">

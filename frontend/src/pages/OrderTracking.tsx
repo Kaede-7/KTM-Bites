@@ -10,7 +10,7 @@ import { getOrder, getOrders, cancelOrder, type OrderData } from "../api/orders"
 import { isLoggedIn } from "../api/auth";
 import PageTransition from "../components/PageTransition";
 import LottieAnimation from "../components/LottieAnimation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const statusSteps = [
   { key: "placed",    title: "Received",  desc: "Order confirmed",          icon: "receipt_long" },

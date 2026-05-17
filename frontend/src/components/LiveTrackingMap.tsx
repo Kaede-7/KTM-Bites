@@ -15,7 +15,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../css/tracking-map.css';
 import type { RiderLocation, RiderInfo } from '../api/orders';
-import { geocodeAddress, KATHMANDU_CENTER, type LatLng } from '../api/geocode';
+import { geocodeAddress, type LatLng } from '../api/geocode';
 
 // ── Custom Marker Icons ──────────────────────────────────────
 

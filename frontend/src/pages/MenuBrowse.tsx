@@ -9,7 +9,7 @@ import { getMenuItems, getCategories, type MenuItemData, type CategoryData } fro
 import { addToCart } from "../api/cart";
 import { isLoggedIn } from "../api/auth";
 import { useToast } from "../components/Toast";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import PageTransition from "../components/PageTransition";
 
 const MenuBrowse: React.FC = () => {
