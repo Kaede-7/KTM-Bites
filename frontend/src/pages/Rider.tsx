@@ -34,6 +34,7 @@ const Rider: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [hasPhone, setHasPhone] = useState(true);
+  const [riderProfile, setRiderProfile] = useState<any>(null);
 
   // Live GPS state
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -89,6 +90,7 @@ const Rider: React.FC = () => {
     try {
       const profile = await fetchRiderProfile();
       setHasPhone(!!profile.phone);
+      setRiderProfile(profile);
     } catch (err) {
       console.error("Profile check failed:", err);
     }
@@ -333,7 +335,7 @@ const Rider: React.FC = () => {
         )}
 
         {/* Stat Cards */}
-        <div className="rider-stats">
+        <div className="rider-stats" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
           <div className="rider-stat-card">
             <div className="rider-stat-icon orange">
               <span className="material-symbols-rounded">storefront</span>
@@ -358,6 +360,18 @@ const Rider: React.FC = () => {
             <div className="rider-stat-value">{droppedOrders.length}</div>
             <span className="rider-stat-badge green">Completed</span>
           </div>
+          {riderProfile && typeof riderProfile.rating === 'number' && (
+            <div className="rider-stat-card">
+              <div className="rider-stat-icon" style={{ background: '#fdf0e8', color: '#f28b46' }}>
+                <span className="material-symbols-rounded" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+              </div>
+              <div className="rider-stat-label">My Rating</div>
+              <div className="rider-stat-value">{riderProfile.rating.toFixed(1)}</div>
+              <span className="rider-stat-badge" style={{ background: '#fdf0e8', color: '#f28b46' }}>
+                {riderProfile.rating_count || 0} reviews
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Live GPS Location Card */}

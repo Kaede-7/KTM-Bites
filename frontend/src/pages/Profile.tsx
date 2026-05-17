@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Skeleton from "../components/Skeleton";
 import { getProfile, updateProfile, logout, changePassword, getToken, type ProfileData } from "../api/auth";
-import { getOrders, type OrderData } from "../api/orders";
+import { getOrders, rateRider, type OrderData, type RiderInfo } from "../api/orders";
 import {
   getKharchaLinkStatus,
   getKharchaLinkUrl,
@@ -129,6 +129,49 @@ const Profile: React.FC = () => {
   const [pwdData, setPwdData] = useState({ old: "", new: "", confirm: "" });
   const [showPwd, setShowPwd] = useState({ old: false, new: false, confirm: false });
   const [updatingPwd, setUpdatingPwd] = useState(false);
+
+  // Inline Rider Rating States
+  const [activeRatingOrderId, setActiveRatingOrderId] = useState<number | null>(null);
+  const [inlineRating, setInlineRating]             = useState<number>(0);
+  const [inlineHoverRating, setInlineHoverRating]   = useState<number>(0);
+  const [inlineComment, setInlineComment]           = useState<string>("");
+  const [submittingInlineId, setSubmittingInlineId] = useState<number | null>(null);
+  const [inlineError, setInlineError]               = useState<string>("");
+
+  const handleInlineSubmit = async (orderId: number) => {
+    if (inlineRating === 0) {
+      setInlineError("Please select a rating of at least 1 star.");
+      return;
+    }
+    setSubmittingInlineId(orderId);
+    setInlineError("");
+    try {
+      const res = await rateRider(orderId, inlineRating, inlineComment);
+      setOrders(prevOrders => prevOrders.map(o => {
+        if (o.id === orderId) {
+          return {
+            ...o,
+            has_reviewed_rider: true,
+            rider_info: o.rider_info ? {
+              ...o.rider_info,
+              rating: res.rider_info.rating,
+              rating_count: res.rider_info.rating_count
+            } : null
+          };
+        }
+        return o;
+      }));
+      setActiveRatingOrderId(null);
+      setInlineRating(0);
+      setInlineComment("");
+      showToast("Thank you for rating the rider!");
+    } catch (err: any) {
+      console.error("Inline rating failed:", err);
+      setInlineError(err.response?.data?.error || "Failed to submit review.");
+    } finally {
+      setSubmittingInlineId(null);
+    }
+  };
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
@@ -503,12 +546,155 @@ const Profile: React.FC = () => {
                           <span className={`oh-status oh-status-${order.status}`}>{order.status_display || order.status}</span>
                         </div>
                         <div className="oh-items">
-                          {order.items.map((i: any) => `${i.name} ×${i.quantity}`).join(' · ')}
+                          {order.items.length === 0 ? "No items" : order.items.map((i: any) => `${i.name} ×${i.quantity}`).join(' · ')}
                         </div>
-                        <div className="oh-card-bottom">
+                        <div 
+                          className="oh-card-bottom" 
+                          style={{ 
+                            borderBottom: order.rider_info ? '1px dashed rgba(242, 139, 70, 0.15)' : 'none', 
+                            paddingBottom: order.rider_info ? '12px' : '14px', 
+                            marginBottom: order.rider_info ? '12px' : '0' 
+                          }}
+                        >
                           <span className="oh-total">Rs. {order.total}</span>
                           <span className="oh-date">{new Date(order.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                         </div>
+
+                        {/* Inline Rider rating & details block inside order history card */}
+                        {order.rider_info && (
+                          <div className="oh-rider-block" onClick={(e) => e.stopPropagation()} style={{ fontSize: '0.9rem', color: '#5a5047', paddingTop: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span className="material-symbols-rounded" style={{ fontSize: '1.2rem', color: '#f28b46' }}>delivery_dining</span>
+                                <span style={{ fontWeight: 600 }}>Rider: {order.rider_info.name}</span>
+                                <span style={{ color: '#f28b46', display: 'flex', alignItems: 'center', gap: '2px', marginLeft: '6px', fontWeight: 700, fontSize: '0.85rem' }}>
+                                  <span className="material-symbols-rounded" style={{ fontSize: '1rem', fontVariationSettings: "'FILL' 1" }}>star</span>
+                                  {typeof order.rider_info.rating === 'number' ? order.rider_info.rating.toFixed(1) : '0.0'} ({order.rider_info.rating_count || 0})
+                                </span>
+                              </div>
+
+                              {order.status === 'delivered' && (
+                                <>
+                                  {order.has_reviewed_rider ? (
+                                    <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700, fontSize: '0.85rem' }}>
+                                      <span className="material-symbols-rounded" style={{ fontSize: '1.1rem', fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                      Rated
+                                    </span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (activeRatingOrderId === order.id) {
+                                          setActiveRatingOrderId(null);
+                                        } else {
+                                          setActiveRatingOrderId(order.id);
+                                          setInlineRating(0);
+                                          setInlineComment("");
+                                          setInlineError("");
+                                        }
+                                      }}
+                                      style={{
+                                        background: activeRatingOrderId === order.id ? '#f5f0eb' : 'linear-gradient(135deg, #f28b46 0%, #e06c22 100%)',
+                                        color: activeRatingOrderId === order.id ? '#2a2420' : '#fff',
+                                        border: activeRatingOrderId === order.id ? '1px solid rgba(0,0,0,0.1)' : 'none',
+                                        borderRadius: '16px',
+                                        padding: '4px 12px',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: activeRatingOrderId === order.id ? 'none' : '0 2px 8px rgba(242, 139, 70, 0.15)'
+                                      }}
+                                    >
+                                      <span className="material-symbols-rounded" style={{ fontSize: '1rem' }}>
+                                        {activeRatingOrderId === order.id ? 'close' : 'rate_review'}
+                                      </span>
+                                      {activeRatingOrderId === order.id ? 'Cancel' : 'Rate Rider'}
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+
+                            {/* Collapsible inline review form */}
+                            {activeRatingOrderId === order.id && (
+                              <div style={{ marginTop: '12px', background: '#fff', border: '1px solid rgba(242, 139, 70, 0.2)', borderRadius: '12px', padding: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                                <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: '#2a2420' }}>How was your rider's delivery?</p>
+                                
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      type="button"
+                                      onClick={() => setInlineRating(star)}
+                                      onMouseEnter={() => setInlineHoverRating(star)}
+                                      onMouseLeave={() => setInlineHoverRating(0)}
+                                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, outline: 'none' }}
+                                    >
+                                      <span className="material-symbols-rounded" style={{
+                                        fontSize: '28px',
+                                        color: star <= (inlineHoverRating || inlineRating) ? '#f28b46' : '#d2c7bf',
+                                        transition: 'all 0.15s ease',
+                                        transform: star <= (inlineHoverRating || inlineRating) ? 'scale(1.1)' : 'scale(1)'
+                                      }}>
+                                        star
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+
+                                <textarea
+                                  placeholder="Write a comment about your rider... (optional)"
+                                  value={inlineComment}
+                                  onChange={(e) => setInlineComment(e.target.value)}
+                                  style={{
+                                    width: '100%',
+                                    minHeight: '60px',
+                                    padding: '10px',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(0,0,0,0.1)',
+                                    fontFamily: 'inherit',
+                                    fontSize: '0.85rem',
+                                    marginBottom: '10px',
+                                    boxSizing: 'border-box',
+                                    resize: 'none',
+                                    outline: 'none'
+                                  }}
+                                />
+
+                                {inlineError && (
+                                  <p style={{ color: '#d63031', fontSize: '0.8rem', margin: '0 0 8px 0', fontWeight: 600 }}>{inlineError}</p>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleInlineSubmit(order.id)}
+                                  disabled={submittingInlineId === order.id}
+                                  style={{
+                                    background: 'linear-gradient(135deg, #f28b46 0%, #e06c22 100%)',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '8px 16px',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    boxShadow: '0 4px 12px rgba(242, 139, 70, 0.2)'
+                                  }}
+                                >
+                                  {submittingInlineId === order.id ? 'Submitting...' : 'Submit Feedback'}
+                                  <span className="material-symbols-rounded" style={{ fontSize: '1rem' }}>send</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))
                   )}

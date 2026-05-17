@@ -42,6 +42,7 @@ urlpatterns = [
     path('orders/<int:pk>/', views.order_detail, name='order-detail'),
     path('orders/<int:pk>/update/', views.update_order_view, name='order-update'),
     path('orders/<int:pk>/cancel/', views.cancel_order, name='order-cancel'),
+    path('orders/<int:pk>/rate-rider/', views.rate_rider_view, name='rate-rider'),
     path('orders/<int:pk>/reinitiate-payment/', views.reinitiate_payment_view, name='reinitiate-payment'),
 
     # ── Admin Panel (staff only) ──────────────────────────────

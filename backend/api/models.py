@@ -237,9 +237,38 @@ class RiderProfile(models.Model):
     current_lat = models.FloatField(null=True, blank=True)
     current_lng = models.FloatField(null=True, blank=True)
     last_login = models.DateTimeField(auto_now=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
+    rating_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"Rider: {self.full_name} ({self.email})"
+
+    def update_rating(self):
+        reviews = self.rider_reviews.all()
+        count = reviews.count()
+        if count == 0:
+            self.rating = 0.0
+            self.rating_count = 0
+        else:
+            total_rating = sum(r.rating for r in reviews)
+            self.rating = round(total_rating / count, 1)
+            self.rating_count = count
+        self.save(update_fields=['rating', 'rating_count'])
+
+
+class RiderReview(models.Model):
+    rider = models.ForeignKey(RiderProfile, on_delete=models.CASCADE, related_name='rider_reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True, blank=True)
+    rating = models.DecimalField(max_digits=2, decimal_places=1)  # 0.0 to 5.0
+    comment = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Review for {self.rider.full_name} by {self.user.username} ({self.rating}★)"
 
 
 class PasswordResetToken(models.Model):
