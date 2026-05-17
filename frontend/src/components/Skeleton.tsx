@@ -5,16 +5,17 @@ interface SkeletonProps {
   type: 'card' | 'text' | 'circle' | 'profile-card' | 'banner';
   count?: number;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-const Skeleton: React.FC<SkeletonProps> = ({ type, count = 1, className = "" }) => {
+const Skeleton: React.FC<SkeletonProps> = ({ type, count = 1, className = "", style }) => {
   const items = Array.from({ length: count });
 
   const renderSkeleton = () => {
     switch (type) {
       case 'card':
         return (
-          <div className={`skeleton-card ${className}`}>
+          <div className={`skeleton-card ${className}`} style={style}>
             <div className="skeleton-image shimmer" />
             <div className="skeleton-info">
               <div className="skeleton-title shimmer" />
@@ -25,7 +26,7 @@ const Skeleton: React.FC<SkeletonProps> = ({ type, count = 1, className = "" }) 
         );
       case 'profile-card':
         return (
-          <div className={`skeleton-profile-card ${className}`}>
+          <div className={`skeleton-profile-card ${className}`} style={style}>
             <div className="skeleton-header">
               <div className="skeleton-avatar shimmer" />
               <div className="skeleton-header-info">
@@ -40,11 +41,11 @@ const Skeleton: React.FC<SkeletonProps> = ({ type, count = 1, className = "" }) 
           </div>
         );
       case 'text':
-        return <div className={`skeleton-text-line shimmer ${className}`} />;
+        return <div className={`skeleton-text-line shimmer ${className}`} style={style} />;
       case 'circle':
-        return <div className={`skeleton-circle shimmer ${className}`} />;
+        return <div className={`skeleton-circle shimmer ${className}`} style={style} />;
       case 'banner':
-        return <div className={`skeleton-banner shimmer ${className}`} />;
+        return <div className={`skeleton-banner shimmer ${className}`} style={style} />;
       default:
         return null;
     }
