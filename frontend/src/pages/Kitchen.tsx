@@ -5,8 +5,8 @@ import "../css/auth.css";
 import LoadingAnimation from "../components/LoadingAnimation";
 import AuthCreative from "../components/AuthCreative";
 import { Link } from "react-router-dom";
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
-import { login as authLogin, logout as authLogout } from "../api/auth";
+
+import { login as authLogin, clearAllPortals } from "../api/auth";
 import {
   fetchKitchenOrders,
   updateOrderStatus,
@@ -116,7 +116,7 @@ const Kitchen: React.FC = () => {
     try {
       const response = await authLogin(email, password, rememberMe);
       if (!response.user.is_staff && !response.user.is_superuser) {
-        authLogout();
+        clearAllPortals();
         throw new Error("Access denied. Kitchen staff credentials required.");
       }
       setKitchenUser(response.user);
@@ -138,7 +138,7 @@ const Kitchen: React.FC = () => {
     setOrders([]);
     setEmail("");
     setPassword("");
-    authLogout(null);
+    clearAllPortals();
   };
 
   // ── Update order status ──
@@ -286,11 +286,7 @@ const Kitchen: React.FC = () => {
       {/* Header */}
       <header className="kitchen-header">
         <div className="kitchen-header-left">
-          <img
-            src={transparentLogo}
-            alt="KTM Bites"
-            className="kitchen-header-logo"
-          />
+
           <div className="kitchen-header-info">
             <h1 className="kitchen-header-title">Kitchen Display</h1>
             <p className="kitchen-header-subtitle">

@@ -8,6 +8,9 @@
 // 1. Sets the base URL so you don't have to type it every time
 // 2. Automatically attaches the auth token to every request
 // 3. Handles 401 (unauthorized) errors globally
+//
+// Portal-aware: picks the correct token based on current URL path
+// (user, kitchen, admin, or rider portal).
 // ============================================================
 
 import axios from 'axios';
@@ -21,14 +24,23 @@ const API = axios.create({
   },
 });
 
+// ── Helper: resolve the correct token key for the current portal ──
+function getPortalTokenKey(): string {
+  const path = window.location.pathname;
+  if (path.startsWith('/kitchen')) return 'ktmbites_kitchen_token';
+  if (path.startsWith('/admin'))   return 'ktmbites_admin_token';
+  if (path.startsWith('/rider'))   return 'ktmbites_rider_token';
+  return 'ktmbites_token';
+}
+
 // ── REQUEST INTERCEPTOR ──────────────────────────────────────
-// Before every request, check if the user is logged in.
-// If they have a token saved, attach it to the request header.
-// This is how the backend knows WHO is making the request.
+// Before every request, check if the user is logged in on the
+// current portal. Attach the right token to the request header.
 // Rider tokens (RIDER_TOKEN_*) are sent without the "Token " prefix
 // because they use a custom auth scheme, not DRF's TokenAuthentication.
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('ktmbites_token') || sessionStorage.getItem('ktmbites_token');
+  const tokenKey = getPortalTokenKey();
+  const token = localStorage.getItem(tokenKey) || sessionStorage.getItem(tokenKey);
   if (token) {
     if (token.startsWith('RIDER_TOKEN_')) {
       config.headers.Authorization = token;
@@ -42,26 +54,22 @@ API.interceptors.request.use((config) => {
 // ── RESPONSE INTERCEPTOR ─────────────────────────────────────
 // After every response, check if the server returned a 401 error.
 // 401 means "you are not logged in" or "your session expired".
-// If so, clear the saved token and redirect to the login page.
-// Rider pages are excluded — rider auth uses custom tokens that
-// bypass DRF's TokenAuthentication.
+// Kitchen, Admin, and Rider portals manage their own auth state
+// internally, so we only auto-clear tokens for the user portal.
 API.interceptors.response.use(
   (response) => response, // If response is OK, just return it
   (error) => {
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;
 
-      // Don't clear tokens on rider pages — rider uses custom auth
-      if (currentPath.startsWith('/rider')) {
+      // Kitchen, Admin, Rider manage their own auth — don't interfere
+      if (currentPath.startsWith('/rider') ||
+          currentPath.startsWith('/kitchen') ||
+          currentPath.startsWith('/admin')) {
         return Promise.reject(error);
       }
 
-      // Clear all saved login data
-      const token = localStorage.getItem('ktmbites_token') || sessionStorage.getItem('ktmbites_token');
-      if (token && token.startsWith('RIDER_TOKEN_')) {
-        return Promise.reject(error);
-      }
-
+      // Clear user portal token
       localStorage.removeItem('ktmbites_token');
       localStorage.removeItem('ktmbites_user');
       sessionStorage.removeItem('ktmbites_token');
@@ -69,7 +77,7 @@ API.interceptors.response.use(
 
       // Only redirect to login if user is on a protected page
       const protectedPaths = ['/profile', '/checkout', '/order-tracking'];
-      
+
       if (protectedPaths.some(path => currentPath.startsWith(path))) {
         window.location.href = '/login';
       }
@@ -79,4 +87,3 @@ API.interceptors.response.use(
 );
 
 export default API;
-

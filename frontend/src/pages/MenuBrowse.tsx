@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import "../css/menu.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import LoadingAnimation from "../components/LoadingAnimation";
+import Skeleton from "../components/Skeleton";
 import FastImage from "../components/FastImage";
 import { getMenuItems, getCategories, type MenuItemData, type CategoryData } from "../api/menu";
 import { addToCart } from "../api/cart";
@@ -69,6 +69,7 @@ const MenuBrowse: React.FC = () => {
     }
     try {
       await addToCart(itemId, 1);
+      window.dispatchEvent(new Event("cart-updated"));
       showToast("Added to cart!", "success");
     } catch (err) {
       console.error("Failed to add to cart:", err);
@@ -153,7 +154,9 @@ const MenuBrowse: React.FC = () => {
 
         {/* Menu Grid */}
         {loading ? (
-          <LoadingAnimation message="Loading menu..." />
+          <div className="menu-grid-modern">
+            <Skeleton type="card" count={6} />
+          </div>
         ) : displayedItems.length > 0 ? (
           <div className="menu-grid-modern">
             {displayedItems.map((item) => (

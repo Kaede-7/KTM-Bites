@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem, PasswordResetToken, RiderProfile
+from .models import Category, MenuItem, Cart, CartItem, Order, OrderItem, PasswordResetToken, RiderProfile, Notification
 
 
 # ───── Auth Serializers ─────
@@ -206,9 +206,10 @@ class OrderSerializer(serializers.ModelSerializer):
             'payment_method', 'payment_status', 'pidx', 'transaction_id',
             'full_name', 'phone', 'address',
             'city', 'landmark', 'notes', 'subtotal', 'delivery_fee',
+            'discount_amount', 'rank_applied',
             'total', 'items', 'created_at', 'rider_location', 'rider_info',
         ]
-        read_only_fields = ['subtotal', 'delivery_fee', 'total', 'status', 'payment_status', 'pidx', 'transaction_id', 'rider']
+        read_only_fields = ['subtotal', 'delivery_fee', 'discount_amount', 'rank_applied', 'total', 'status', 'payment_status', 'pidx', 'transaction_id', 'rider']
 
     def get_rider_location(self, obj):
         """Return rider's live GPS coordinates if available."""
@@ -235,4 +236,15 @@ class PlaceOrderSerializer(serializers.Serializer):
     city = serializers.CharField(max_length=50, default='Kathmandu')
     landmark = serializers.CharField(max_length=100, required=False, default='')
     notes = serializers.CharField(required=False, default='')
-    payment_method = serializers.ChoiceField(choices=['esewa', 'khalti', 'cod'])
+    payment_method = serializers.ChoiceField(choices=['khalti', 'kharcha'])
+
+
+# ───── Notification Serializers ─────
+
+class NotificationSerializer(serializers.ModelSerializer):
+    order_id = serializers.IntegerField(source='order.id', read_only=True, default=None)
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'type', 'title', 'message', 'order_id', 'is_read', 'created_at']
+        read_only_fields = ['id', 'type', 'title', 'message', 'order_id', 'created_at']

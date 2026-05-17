@@ -4,7 +4,7 @@ import "../css/auth.css";
 import { register, googleLogin } from "../api/auth";
 import { useGoogleLogin } from "@react-oauth/google";
 
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
+
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
@@ -82,9 +82,7 @@ const Signup: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
-      <Link to="/">
-        <img src={transparentLogo} alt="KTM Bites" className="auth-logo-top" />
-      </Link>
+
       <h1>Create Account</h1>
       <p className="auth-subtitle">Join us and start ordering your favorites.</p>
 

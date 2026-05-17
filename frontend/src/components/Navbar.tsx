@@ -1,16 +1,53 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "../css/navbar.css";
 import mascotIcon from "../assets/ktm-bites-transparent-notext.png";
 import { isLoggedIn, logout } from "../api/auth";
 import { getCart } from "../api/cart";
+import NotificationDropdown from "./NotificationDropdown";
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [cartBumping, setCartBumping] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path ? "active" : "";
   const loggedIn = isLoggedIn();
+
+  const updateCartCount = useCallback((shouldBump: boolean = false) => {
+    if (loggedIn) {
+      getCart()
+        .then((cart) => {
+          setCartCount(cart.item_count);
+          if (shouldBump) {
+            setCartBumping(true);
+            setTimeout(() => setCartBumping(false), 300);
+          }
+        })
+        .catch(() => setCartCount(0));
+    }
+  }, [loggedIn]);
+
+  useEffect(() => {
+    // Initial fetch - no bump
+    updateCartCount(false);
+    
+    // Listener for manual updates - trigger bump
+    const handleCartUpdate = () => updateCartCount(true);
+    window.addEventListener("cart-updated", handleCartUpdate);
+    return () => window.removeEventListener("cart-updated", handleCartUpdate);
+  }, [updateCartCount]);
+
+  // Close notification dropdown on route change
+  useEffect(() => {
+    setNotifOpen(false);
+  }, [location.pathname]);
+
+  const handleUnreadChange = useCallback((count: number) => {
+    setUnreadCount(count);
+  }, []);
 
   const handleLogout = () => {
     if (location.pathname.startsWith('/rider')) {
@@ -19,14 +56,6 @@ const Navbar: React.FC = () => {
       logout("/login");
     }
   };
-
-  useEffect(() => {
-    if (loggedIn) {
-      getCart()
-        .then((cart) => setCartCount(cart.item_count))
-        .catch(() => setCartCount(0));
-    }
-  }, [location.pathname, loggedIn]);
 
   const isRiderPath = location.pathname.startsWith('/rider');
 
@@ -77,10 +106,32 @@ const Navbar: React.FC = () => {
         <div className="navbar-actions">
           {!isRiderPath && (
             <>
-              <Link to="/cart" className="navbar-cart-btn">
+              <Link to="/cart" className={`navbar-cart-btn ${cartBumping ? 'bump' : ''}`}>
                 <span className="material-symbols-rounded">shopping_cart</span>
                 {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
               </Link>
+
+              {loggedIn && (
+                <div className="notif-bell-wrap" style={{ position: 'relative' }}>
+                  <button
+                    className="notif-bell-btn"
+                    onClick={() => setNotifOpen((v) => !v)}
+                    title="Notifications"
+                    aria-label="Notifications"
+                  >
+                    <span className="material-symbols-rounded">notifications</span>
+                    {unreadCount > 0 && (
+                      <span className="notif-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                    )}
+                  </button>
+                  <NotificationDropdown
+                    isOpen={notifOpen}
+                    onToggle={() => setNotifOpen(false)}
+                    onUnreadChange={handleUnreadChange}
+                  />
+                </div>
+              )}
+
               <span className="navbar-divider" />
             </>
           )}

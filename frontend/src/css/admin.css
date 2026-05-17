@@ -87,8 +87,7 @@
 .admin-logout-btn:hover {
   background: #ef4444;
   color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
 }
 
 /* ── Main Wrapper ────────────────────────────────────────────── */
@@ -134,7 +133,7 @@
 .admin-nav-item:hover {
   background: rgba(255, 255, 255, 0.6);
   color: #2a2420;
-  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .admin-nav-item.active {
@@ -202,8 +201,7 @@
 }
 
 .admin-stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.06);
 }
 
 .admin-stat-icon {
@@ -371,8 +369,7 @@
 
 .admin-btn-primary:hover {
   background: #e06c22;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(242, 139, 70, 0.3);
+  box-shadow: 0 10px 24px rgba(242, 139, 70, 0.4);
 }
 
 .admin-actions-cell {

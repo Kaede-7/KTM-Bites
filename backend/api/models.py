@@ -81,7 +81,6 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     PAYMENT_CHOICES = [
-        ('esewa', 'eSewa'),
         ('khalti', 'Khalti'),
         ('kharcha', 'Kharcha'),
     ]
@@ -95,7 +94,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     rider = models.ForeignKey('RiderProfile', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='placed')
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='esewa')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='khalti')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     full_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=20)
@@ -105,6 +104,8 @@ class Order(models.Model):
     notes = models.TextField(blank=True)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     delivery_fee = models.DecimalField(max_digits=6, decimal_places=2, default=80)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    rank_applied = models.CharField(max_length=50, blank=True, null=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -154,6 +155,49 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ({self.role})"
+
+    @property
+    def rank_data(self):
+        order_count = self.user.orders.filter(payment_status='completed').count()
+        
+        ranks = [
+            {'name': 'Rookie', 'min': 0, 'max': 1, 'discount': 0, 'color': '#8b7d72'},
+            {'name': 'Bronze', 'min': 2, 'max': 5, 'discount': 2, 'color': '#cd7f32'},
+            {'name': 'Silver', 'min': 6, 'max': 15, 'discount': 4, 'color': '#c0c0c0'},
+            {'name': 'Gold', 'min': 16, 'max': 30, 'discount': 6, 'color': '#ffd700'},
+            {'name': 'Platinum', 'min': 31, 'max': 50, 'discount': 8, 'color': '#e2f0ff'},
+            {'name': 'Diamond', 'min': 51, 'max': 499, 'discount': 10, 'color': '#b9f2ff'},
+            {'name': 'Mythic Crimson', 'min': 500, 'max': 99999, 'discount': 25, 'color': '#8b0000'},
+        ]
+        
+        current_rank = ranks[0]
+        next_rank = ranks[1] if len(ranks) > 1 else None
+        
+        for i, r in enumerate(ranks):
+            if order_count >= r['min']:
+                current_rank = r
+                if i + 1 < len(ranks):
+                    next_rank = ranks[i+1]
+                else:
+                    next_rank = None
+        
+        progress = 0
+        if next_rank:
+            range_total = next_rank['min'] - current_rank['min']
+            range_current = order_count - current_rank['min']
+            progress = min(100, (range_current / range_total) * 100)
+        else:
+            progress = 100
+
+        return {
+            'order_count': order_count,
+            'current_rank': current_rank['name'],
+            'discount': current_rank['discount'],
+            'color': current_rank['color'],
+            'next_rank': next_rank['name'] if next_rank else 'Max',
+            'progress': round(progress, 1),
+            'orders_to_next': (next_rank['min'] - order_count) if next_rank else 0
+        }
 
 
 class AdminProfile(models.Model):
@@ -242,6 +286,35 @@ class KharchaLinkedAccount(models.Model):
  
     def __str__(self):
         return f"Kharcha link for {self.user.username}"
+
+class Notification(models.Model):
+    """User notifications for order updates, promos, and reminders."""
+    TYPE_CHOICES = [
+        ('order_placed', 'Order Placed'),
+        ('order_preparing', 'Preparing'),
+        ('order_ready', 'Ready for Pickup'),
+        ('order_on_way', 'On the Way'),
+        ('order_delivered', 'Delivered'),
+        ('order_cancelled', 'Order Cancelled'),
+        ('promo', 'Promotion'),
+        ('reminder', 'Reminder'),
+        ('system', 'System'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=30, choices=TYPE_CHOICES, default='system')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='notifications')
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.type}: {self.title} → {self.user.username}"
+
 
 # Auto-create/save profiles when a User is created
 @receiver(post_save, sender=User)

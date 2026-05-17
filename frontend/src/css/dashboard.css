@@ -172,8 +172,7 @@
 .lp-chip:hover {
   background: rgba(242, 139, 70, 0.1);
   border-color: #f28b46;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(242, 139, 70, 0.14);
+  box-shadow: 0 8px 24px rgba(242, 139, 70, 0.15);
 }
 .lp-chip:hover .lp-chip-arrow { opacity: 0.7; transform: translateX(0); }
 .lp-chip.active {
@@ -423,7 +422,9 @@
   transform: translateY(-4px);
 }
 .lp-mobile-card.active img { filter: brightness(0.9); transform: scale(1.05); }
-.lp-mobile-card:hover:not(.active) { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); }
+.lp-mobile-card:hover:not(.active) { 
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18); 
+}
 
 /* Mobile dot controls */
 .lp-mobile-dots {
@@ -451,29 +452,7 @@
   transform: scale(1.08);
 }
 
-/* ══ FOOTER ══════════════════════════════════════════════════════ */
-.lp-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 48px;
-  position: relative;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-top: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 -2px 32px rgba(0, 0, 0, 0.05);
-}
-.lp-footer-left { display: flex; align-items: center; justify-content: center; gap: 16px; }
-.lp-footer-brand { font-weight: 700; color: #2a2420; font-size: 14px; }
-.lp-footer-copy  { color: #8b7d72; font-size: 12px; }
-.lp-footer-right { display: flex; gap: 24px; }
-.lp-footer-right a {
-  color: #8b7d72; font-size: 13px; text-decoration: none;
-  transition: color 0.2s; font-weight: 500;
-}
-.lp-footer-right a:hover { color: #f28b46; }
+/* Footer removed - now using global Footer component */
 
 /* ══ RESPONSIVE ══════════════════════════════════════════════════ */
 

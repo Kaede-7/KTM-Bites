@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "../css/auth.css";
 import { resetPassword } from "../api/auth";
 import { getErrorMessage } from "../utils/errors";
-import transparentLogo from "../assets/logo-ktmbites-transparent.png";
+
 
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -69,9 +69,7 @@ const ResetPassword: React.FC = () => {
 
   return (
     <div className="auth-form-container auth-fade-in">
-      <Link to="/">
-        <img src={transparentLogo} alt="KTM Bites" className="auth-logo-top" />
-      </Link>
+
       <h1>Reset Password</h1>
       <p className="auth-subtitle">
         Enter your new password below.

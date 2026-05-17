@@ -4,6 +4,7 @@ import ChatWidget from "./components/ChatWidget";
 import { ToastProvider } from "./components/Toast";
 import AuthLayout from "./components/AuthLayout";
 import LoadingAnimation from "./components/LoadingAnimation";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy load pages
 const LandingPage = lazy(() => import("./pages/dashboard"));
@@ -34,6 +35,9 @@ function App() {
         <Routes>
           {/* === Public routes (anyone can see) === */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/menu" element={<MenuBrowse />} />
+          <Route path="/menu/:id" element={<ItemDetail />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
 
@@ -54,13 +58,10 @@ function App() {
           <Route path="/rider/profile" element={<RiderProfile />} />
 
           {/* === Routes that require login === */}
-          <Route path="/home" element={<Home />} />
-          <Route path="/menu" element={<MenuBrowse />} />
-          <Route path="/menu/:id" element={<ItemDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/order-tracking/:id" element={<OrderTracking />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route path="/order-tracking/:id" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         </Routes>
       </Suspense>
 

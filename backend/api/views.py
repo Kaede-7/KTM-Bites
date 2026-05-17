@@ -26,7 +26,8 @@ from django.shortcuts import redirect as django_redirect
 
 from .models import (
     Category, MenuItem, Cart, CartItem,
-    Order, OrderItem, UserProfile, PasswordResetToken, RiderProfile
+    Order, OrderItem, UserProfile, PasswordResetToken, RiderProfile,
+    Notification,
 )
 
 from .serializers import (
@@ -35,6 +36,7 @@ from .serializers import (
     CategorySerializer, MenuItemSerializer, MenuItemDetailSerializer,
     CartSerializer, AddToCartSerializer, UpdateCartItemSerializer,
     OrderSerializer, PlaceOrderSerializer, RiderProfileSerializer,
+    NotificationSerializer,
 )
 
 # ========================
@@ -72,10 +74,44 @@ class ForgotPasswordThrottle(UserRateThrottle):
 # EMAIL UTILITIES
 # ========================
 def send_password_reset_email(user, token):
-    reset_url = f"http://localhost:5173/reset-password?token={token}"
-    subject = "Password Reset Request - KTM Bites"
-    message = f"""Hello {user.first_name or user.email}, we received a request to reset your password."""
-    html_message = f"""<html><body><a href='{reset_url}'>Reset Password</a></body></html>"""
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    reset_url = f"{frontend_url}/reset-password?token={token}"
+    subject = "Password Reset Request — KTM Bites"
+    
+    name = user.first_name or "there"
+    
+    # Professional Plain Text version
+    message = (
+        f"Hello {name},\n\n"
+        f"We received a request to reset the password for your KTM Bites account.\n\n"
+        f"To choose a new password, please use the following link:\n"
+        f"{reset_url}\n\n"
+        f"This link will expire in 60 minutes. If you did not request this change, you can safely ignore this email.\n\n"
+        f"Best regards,\n"
+        f"The KTM Bites Team"
+    )
+    
+    # Premium HTML version
+    html_message = f"""
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 40px auto; padding: 30px; border: 1px solid #eef0f2; border-radius: 16px; color: #2d3436; line-height: 1.6;">
+        <h2 style="color: #2a2420; font-size: 22px; margin-bottom: 20px; font-weight: 800;">Password Reset Request</h2>
+        <p style="margin-bottom: 24px;">Hello <strong>{name}</strong>,</p>
+        <p style="margin-bottom: 24px;">We received a request to reset the password for your KTM Bites account. Click the button below to choose a new password and regain access:</p>
+        
+        <div style="text-align: center; margin: 36px 0;">
+            <a href='{reset_url}' style="background: linear-gradient(135deg, #f28b46 0%, #e06c22 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 700; display: inline-block; box-shadow: 0 4px 12px rgba(242, 139, 70, 0.2);">Reset Password</a>
+        </div>
+        
+        <p style="font-size: 13px; color: #636e72; margin-top: 32px; border-top: 1px solid #f1f3f5; padding-top: 20px;">
+            <strong>Security Note:</strong> This link will expire in 60 minutes. If you did not request this change, you can safely ignore this email; no changes will be made to your account.
+        </p>
+        
+        <p style="margin-top: 24px; font-size: 14px; font-weight: 600; color: #2a2420;">
+            Best regards,<br>
+            <span style="color: #f28b46;">The KTM Bites Team</span>
+        </p>
+    </div>
+    """
     try:
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], html_message=html_message)
         return True
@@ -201,8 +237,9 @@ def google_login_view(request):
                 email=email,
                 first_name=first_name,
                 last_name=last_name,
-                password=User.objects.make_random_password()
             )
+            user.set_unusable_password()
+            user.save()
             # Create profile and set the role
             profile, _ = UserProfile.objects.get_or_create(user=user)
             profile.role = role
@@ -298,6 +335,8 @@ def profile_view(request):
             "address": profile.address,
             "city": profile.city,
             "bio": profile.bio,
+            "has_password": user.has_usable_password(),
+            "rank": profile.rank_data,
         })
 
     user.first_name = request.data.get('full_name', user.first_name)
@@ -565,13 +604,23 @@ def order_list_create(request):
         return Response({"error": "Cart empty"}, status=400)
 
     subtotal = sum(i.subtotal for i in items)
+    
+    # Apply Rank Discount
+    rank_info = request.user.profile.rank_data
+    discount_amount = (subtotal * rank_info['discount']) / 100
+
     delivery = 80
-    total = subtotal + delivery
+    if rank_info['current_rank'] == 'Mythic Crimson':
+        delivery = 0
+
+    total = (subtotal - discount_amount) + delivery
 
     order = Order.objects.create(
         user=request.user,
         subtotal=subtotal,
         delivery_fee=delivery,
+        discount_amount=discount_amount,
+        rank_applied=rank_info['current_rank'],
         total=total,
         status="placed",
         payment_method="cod",
@@ -593,6 +642,14 @@ def order_list_create(request):
         )
 
     items.delete()
+
+    # Create notification for order placement
+    create_notification(
+        request.user, 'order_placed',
+        'Order Placed! 🎉',
+        f'Your order #{order.order_id} has been placed successfully. We\'re getting it ready!',
+        order=order,
+    )
 
     return Response(OrderSerializer(order).data, status=201)
 
@@ -657,13 +714,24 @@ def initiate_payment(request):
 
     subtotal = sum(i.subtotal for i in items)
     delivery = 80
-    total = subtotal + delivery
+
+    # Apply Rank Discount
+    rank_info = request.user.profile.rank_data
+    discount_amount = (subtotal * rank_info['discount']) / 100
+    
+    delivery = 80
+    if rank_info['current_rank'] == 'Mythic Crimson':
+        delivery = 0
+        
+    total = (subtotal - discount_amount) + delivery
 
     # Create the order in 'pending' payment state
     order = Order.objects.create(
         user=request.user,
         subtotal=subtotal,
         delivery_fee=delivery,
+        discount_amount=discount_amount,
+        rank_applied=rank_info['current_rank'],
         total=total,
         status="pending_payment",
         payment_method="khalti",
@@ -896,14 +964,23 @@ def verify_payment(request):
         order.status = "placed"  # Mark as placed only after payment
         order.transaction_id = data.get("transaction_id", "")
         order.save(update_fields=["payment_status", "status", "transaction_id"])
+
+        # Notify user
+        create_notification(
+            order.user, 'order_placed',
+            'Order Placed! 🎉',
+            f'Your order #{order.order_id} has been placed successfully. We\'re getting it ready!',
+            order=order,
+        )
+
         from django.shortcuts import redirect
         return django_redirect(f"{frontend_base}/order-tracking/{order.id}")
     else:
         order.payment_status = "failed"
-        order.status = "cancelled"  # Cancel order on failure
-        order.save(update_fields=["payment_status", "status"])
+        # Keep order in pending_payment so user can retry — do NOT cancel
+        order.save(update_fields=["payment_status"])
         from django.shortcuts import redirect
-        return django_redirect(f"{frontend_base}/checkout?payment_failed=1")
+        return django_redirect(f"{frontend_base}/checkout?payment_failed=1&orderId={order.id}")
 
 
 @api_view(['GET'])
@@ -985,6 +1062,24 @@ def admin_order_detail(request, pk):
                 pass
                 
         order.save()
+
+        # Create notification for user about status change
+        STATUS_NOTIF_MAP = {
+            'preparing': ('order_preparing', 'Being Prepared 👨‍🍳', 'Your order #{oid} is now being prepared by our chefs!'),
+            'ready_for_pickup': ('order_ready', 'Ready for Pickup! 📦', 'Your order #{oid} is ready and waiting for a rider.'),
+            'on_way': ('order_on_way', 'On the Way! 🚗', 'Your order #{oid} is on the way to you. Track it live!'),
+            'delivered': ('order_delivered', 'Delivered! ✅', 'Your order #{oid} has been delivered. Enjoy your meal!'),
+            'cancelled': ('order_cancelled', 'Order Cancelled', 'Your order #{oid} has been cancelled.'),
+        }
+        if new_status in STATUS_NOTIF_MAP:
+            ntype, ntitle, nmsg = STATUS_NOTIF_MAP[new_status]
+            create_notification(
+                order.user, ntype,
+                ntitle,
+                nmsg.replace('#{oid}', f'#{order.order_id}'),
+                order=order,
+            )
+
         return Response(OrderSerializer(order).data)
 
     return Response({"error": "Invalid status"}, status=400)
@@ -1745,12 +1840,18 @@ def kharcha_pay_initiate(request):
 
     subtotal = sum(i.subtotal for i in items)
     delivery = 80
-    total    = subtotal + delivery
+    if request.user.profile.rank_data['current_rank'] == 'Mythic Crimson':
+        delivery = 0
+        # Apply Rank Discount
+    rank_info = request.user.profile.rank_data
+    discount_amount = (subtotal * rank_info['discount']) / 100
+    total = (subtotal - discount_amount) + delivery
 
     order = Order.objects.create(
         user=request.user,
         subtotal=subtotal,
         delivery_fee=delivery,
+        rank_applied=rank_info['current_rank'],
         total=total,
         status="pending_payment",
         payment_method="kharcha",
@@ -1881,6 +1982,14 @@ def kharcha_pay_confirm(request):
     order.transaction_id  = tx.get("transaction_id", "")
     order.save(update_fields=["payment_status", "status", "transaction_id"])
 
+    # Notify user
+    create_notification(
+        order.user, 'order_placed',
+        'Order Placed! 🎉',
+        f'Your order #{order.order_id} has been placed successfully. We\'re getting it ready!',
+        order=order,
+    )
+
     return Response({
         "success":        True,
         "order_id":       order.id,
@@ -1916,12 +2025,18 @@ def kharcha_portal_initiate(request):
 
     subtotal = sum(i.subtotal for i in items)
     delivery = 80
-    total    = subtotal + delivery
+    if request.user.profile.rank_data['current_rank'] == 'Mythic Crimson':
+        delivery = 0
+        # Apply Rank Discount
+    rank_info = request.user.profile.rank_data
+    discount_amount = (subtotal * rank_info['discount']) / 100
+    total = (subtotal - discount_amount) + delivery
 
     order = Order.objects.create(
         user=request.user,
         subtotal=subtotal,
         delivery_fee=delivery,
+        rank_applied=rank_info['current_rank'],
         total=total,
         status="pending_payment",
         payment_method="kharcha",
@@ -2017,8 +2132,91 @@ def kharcha_portal_callback(request):
         order.status = "placed"
         order.transaction_id = transaction_id
         order.save(update_fields=["payment_status", "status", "transaction_id"])
+
+        # Notify user
+        create_notification(
+            order.user, 'order_placed',
+            'Order Placed! 🎉',
+            f'Your order #{order.order_id} has been placed successfully. We\'re getting it ready!',
+            order=order,
+        )
+
         return django_redirect(f"{frontend_base}/order-tracking/{order.id}")
 
     order.payment_status = "failed"
     order.save(update_fields=["payment_status"])
-    return django_redirect(f"{frontend_base}/checkout?cancelled=1")
+    return django_redirect(f"{frontend_base}/checkout?cancelled=1&orderId={order.id}")
+
+
+# ════════════════════════════════════════════════════════════════
+# NOTIFICATIONS
+# ════════════════════════════════════════════════════════════════
+
+def create_notification(user, notif_type, title, message, order=None):
+    """Helper to create a notification for a user."""
+    Notification.objects.create(
+        user=user,
+        type=notif_type,
+        title=title,
+        message=message,
+        order=order,
+    )
+
+
+DAILY_REMINDERS = [
+    {"title": "Hungry? 🍕", "message": "It's been a while! Treat yourself to something delicious from KTM Bites today."},
+    {"title": "Craving something? 🔥", "message": "Our chefs are ready! Browse the menu and discover today's specials."},
+    {"title": "Lunchtime deal! 🎉", "message": "Don't miss out — fresh momos, burgers, and more are just a tap away."},
+    {"title": "Your favorites miss you 💛", "message": "Come back and enjoy your top-rated picks with free delivery vibes."},
+    {"title": "New items alert! 🆕", "message": "We've got fresh additions to the menu. Come see what's cooking!"},
+    {"title": "Fuel your day! ☕", "message": "A great meal makes a great day. Order now and taste the difference."},
+    {"title": "Weekend treat 🎊", "message": "You deserve a break! Explore our curated picks for the perfect weekend bite."},
+]
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def notification_list(request):
+    """List user notifications (last 30). Auto-generates a daily reminder if none exists today."""
+    user = request.user
+    today = timezone.now().date()
+
+    # Auto-generate daily reminder if user hasn't received one today
+    has_today_reminder = Notification.objects.filter(
+        user=user, type='reminder', created_at__date=today
+    ).exists()
+
+    if not has_today_reminder:
+        import random
+        reminder = random.choice(DAILY_REMINDERS)
+        create_notification(user, 'reminder', reminder['title'], reminder['message'])
+
+    notifications = Notification.objects.filter(user=user)[:30]
+    serializer = NotificationSerializer(notifications, many=True)
+    unread_count = Notification.objects.filter(user=user, is_read=False).count()
+
+    return Response({
+        'notifications': serializer.data,
+        'unread_count': unread_count,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def notification_mark_read(request, pk):
+    """Mark a single notification as read."""
+    try:
+        notif = Notification.objects.get(pk=pk, user=request.user)
+        notif.is_read = True
+        notif.save(update_fields=['is_read'])
+        return Response({'status': 'ok'})
+    except Notification.DoesNotExist:
+        return Response({'error': 'Not found'}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def notification_mark_all_read(request):
+    """Mark all notifications as read."""
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return Response({'status': 'ok'})

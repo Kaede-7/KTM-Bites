@@ -42,8 +42,7 @@
 
 .auth-back-btn:hover {
   color: #f28b46;
-  transform: translateX(-4px);
-  box-shadow: 0 8px 20px rgba(242, 139, 70, 0.12);
+  box-shadow: 0 8px 24px rgba(242, 139, 70, 0.15);
 }
 
 .auth-back-btn .material-symbols-rounded {
@@ -224,7 +223,7 @@
 
 .auth-submit-btn:hover {
   background: #d95e14;
-  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(242, 139, 70, 0.4);
 }
 
 .auth-submit-btn:disabled {
@@ -279,6 +278,7 @@
 .auth-google-override:hover {
   background: #f8f6f4;
   border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
 .auth-google-override img {

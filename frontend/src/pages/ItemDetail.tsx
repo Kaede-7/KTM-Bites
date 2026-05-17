@@ -4,7 +4,7 @@ import "../css/item-detail.css";
 import "../css/menu.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import LoadingAnimation from "../components/LoadingAnimation";
+import Skeleton from "../components/Skeleton";
 import FastImage from "../components/FastImage";
 import { getMenuItem, type MenuItemDetailData } from "../api/menu";
 import { addToCart } from "../api/cart";
@@ -44,6 +44,7 @@ const ItemDetail: React.FC = () => {
     setAdding(true);
     try {
       await addToCart(item.id, qty);
+      window.dispatchEvent(new Event("cart-updated"));
       showToast(`${qty}× ${item.name} added to cart!`, "success");
     } catch (err) {
       showToast("Failed to add to cart. Please try again.", "error");
@@ -57,7 +58,7 @@ const ItemDetail: React.FC = () => {
       <div className="item-detail-page">
         <Navbar />
         <div className="item-detail-container">
-          <LoadingAnimation message="Loading items..." />
+          <Skeleton type="card" />
         </div>
         <Footer />
       </div>

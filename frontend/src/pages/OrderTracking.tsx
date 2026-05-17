@@ -269,16 +269,28 @@ const OrderTracking: React.FC = () => {
           </div>
         </div>
 
-        <div className="tracking-items-card" style={{ marginTop: 24 }}>
-          <h3>Order Items</h3>
-          {order.items.map((item, i) => (
-            <div key={i} className="tracking-item-row">
-              <FastImage src={item.image} alt={item.name} className="tracking-item-img" />
-              <span className="tracking-item-name">{item.name}</span>
-              <span className="tracking-item-qty">x{item.quantity}</span>
-              <span className="tracking-item-price">Rs. {item.subtotal}</span>
-            </div>
-          ))}
+        <div className="tracking-items-section">
+          <div className="tracking-items-header">
+            <h3>Order Items</h3>
+            <span className="tracking-item-count">{order.items.length} {order.items.length === 1 ? 'item' : 'items'}</span>
+          </div>
+          <div className="tracking-items-list">
+            {order.items.map((item, i) => (
+              <div key={i} className="tracking-item-row">
+                <div className="tracking-item-left">
+                  <div className="tracking-item-img-wrapper">
+                    <FastImage src={item.image} alt={item.name} className="tracking-item-img" />
+                    <span className="tracking-item-qty-badge">{item.quantity}</span>
+                  </div>
+                  <div className="tracking-item-info">
+                    <p className="tracking-item-name">{item.name}</p>
+                    <p className="tracking-item-sub">Rs. {item.price} each</p>
+                  </div>
+                </div>
+                <p className="tracking-item-price">Rs. {item.subtotal}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <Footer />

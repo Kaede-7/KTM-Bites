@@ -1,11 +1,25 @@
 import API from "./axios";
 
+// ── Portal Types ──
+// Each portal (User, Kitchen, Admin, Rider) gets its own scoped
+// localStorage keys so sessions never bleed across portals.
+
+export type Portal = 'user' | 'kitchen' | 'admin' | 'rider';
+
+const PORTAL_KEYS: Record<Portal, { token: string; user: string }> = {
+  user:    { token: 'ktmbites_token',         user: 'ktmbites_user' },
+  kitchen: { token: 'ktmbites_kitchen_token', user: 'ktmbites_kitchen_user' },
+  admin:   { token: 'ktmbites_admin_token',   user: 'ktmbites_admin_user' },
+  rider:   { token: 'ktmbites_rider_token',   user: 'ktmbites_rider_user' },
+};
+
 export interface AuthUser {
   id: number;
   email: string;
   full_name: string;
   is_staff?: boolean;
   is_superuser?: boolean;
+  role?: string;
 }
 
 export interface AuthResponse {
@@ -21,49 +35,92 @@ export interface ProfileData {
   address: string;
   city: string;
   bio: string;
+  has_password: boolean;
+  rank: {
+    order_count: number;
+    current_rank: string;
+    discount: number;
+    color: string;
+    next_rank: string;
+    progress: number;
+    orders_to_next: number;
+  };
 }
 
-// ── Helpers ──
+// ── Portal Detection ──
 
-export function saveAuth(data: AuthResponse, rememberMe: boolean = true) {
-  if (rememberMe) {
-    localStorage.setItem("ktmbites_token", data.token);
-    localStorage.setItem("ktmbites_user", JSON.stringify(data.user));
-    sessionStorage.removeItem("ktmbites_token");
-    sessionStorage.removeItem("ktmbites_user");
-  } else {
-    sessionStorage.setItem("ktmbites_token", data.token);
-    sessionStorage.setItem("ktmbites_user", JSON.stringify(data.user));
-    localStorage.removeItem("ktmbites_token");
-    localStorage.removeItem("ktmbites_user");
+/** Detect the current portal based on the URL path */
+export function detectPortal(): Portal {
+  const path = window.location.pathname;
+  if (path.startsWith('/kitchen')) return 'kitchen';
+  if (path.startsWith('/admin')) return 'admin';
+  if (path.startsWith('/rider')) return 'rider';
+  return 'user';
+}
+
+function clearPortal(portal: Portal) {
+  const keys = PORTAL_KEYS[portal];
+  localStorage.removeItem(keys.token);
+  localStorage.removeItem(keys.user);
+  sessionStorage.removeItem(keys.token);
+  sessionStorage.removeItem(keys.user);
+}
+
+/** Clear ALL portal sessions */
+export function clearAllPortals() {
+  for (const p of Object.keys(PORTAL_KEYS) as Portal[]) {
+    clearPortal(p);
   }
 }
 
-export function getStoredUser(): AuthUser | null {
-  const raw = localStorage.getItem("ktmbites_user") || sessionStorage.getItem("ktmbites_user");
+// ── Storage Helpers ──
+
+export function saveAuth(data: AuthResponse, rememberMe: boolean = false, portal?: Portal) {
+  const p = portal || detectPortal();
+  const keys = PORTAL_KEYS[p];
+
+  // Clear ALL other portal sessions to prevent cross-portal bleed
+  for (const other of Object.keys(PORTAL_KEYS) as Portal[]) {
+    if (other !== p) clearPortal(other);
+  }
+
+  if (rememberMe) {
+    localStorage.setItem(keys.token, data.token);
+    localStorage.setItem(keys.user, JSON.stringify(data.user));
+    sessionStorage.removeItem(keys.token);
+    sessionStorage.removeItem(keys.user);
+  } else {
+    sessionStorage.setItem(keys.token, data.token);
+    sessionStorage.setItem(keys.user, JSON.stringify(data.user));
+    localStorage.removeItem(keys.token);
+    localStorage.removeItem(keys.user);
+  }
+}
+
+export function getStoredUser(portal?: Portal): AuthUser | null {
+  const keys = PORTAL_KEYS[portal || detectPortal()];
+  const raw = localStorage.getItem(keys.user) || sessionStorage.getItem(keys.user);
   return raw ? JSON.parse(raw) : null;
 }
 
-export function getToken(): string | null {
-  return localStorage.getItem("ktmbites_token") || sessionStorage.getItem("ktmbites_token");
+export function getToken(portal?: Portal): string | null {
+  const keys = PORTAL_KEYS[portal || detectPortal()];
+  return localStorage.getItem(keys.token) || sessionStorage.getItem(keys.token);
 }
 
-export function isLoggedIn(): boolean {
-  return !!getToken();
+export function isLoggedIn(portal?: Portal): boolean {
+  return !!getToken(portal);
 }
 
 export function logout(redirectUrl: string | null = "/login") {
-  localStorage.removeItem("ktmbites_token");
-  localStorage.removeItem("ktmbites_user");
-  sessionStorage.removeItem("ktmbites_token");
-  sessionStorage.removeItem("ktmbites_user");
-  
+  clearAllPortals();
+
   // Ignore React SyntheticEvent objects passed by mistake when used directly in onClick
-  let url = typeof redirectUrl === 'string' ? redirectUrl : "/login";
+  let url: string | null = typeof redirectUrl === 'string' ? redirectUrl : "/login";
   if (redirectUrl === null) {
-      url = null;
+    url = null;
   }
-  
+
   if (url) {
     window.location.href = url;
   }
@@ -74,19 +131,19 @@ export function logout(redirectUrl: string | null = "/login") {
 export async function login(
   email: string,
   password: string,
-  rememberMe: boolean = true
+  rememberMe: boolean = false
 ): Promise<AuthResponse> {
   const { data } = await API.post("/auth/login/", { email, password });
   saveAuth(data, rememberMe);
   return data;
 }
 
-export async function googleLogin(token: string, isAccessToken: boolean = false, role: string = 'USER'): Promise<AuthResponse> {
-  const payload = isAccessToken 
-    ? { access_token: token, role } 
+export async function googleLogin(token: string, isAccessToken: boolean = false, role: string = 'USER', rememberMe: boolean = false): Promise<AuthResponse> {
+  const payload = isAccessToken
+    ? { access_token: token, role }
     : { credential: token, role };
   const { data } = await API.post("/auth/google/", payload);
-  saveAuth(data);
+  saveAuth(data, rememberMe);
   return data;
 }
 
@@ -99,9 +156,9 @@ export interface RegisterData {
   role?: string;
 }
 
-export async function register(payload: RegisterData): Promise<AuthResponse> {
+export async function register(payload: RegisterData, rememberMe: boolean = false): Promise<AuthResponse> {
   const { data } = await API.post("/auth/register/", payload);
-  saveAuth(data);
+  saveAuth(data, rememberMe);
   return data;
 }
 
@@ -125,8 +182,13 @@ export async function changePassword(
     current_password: currentPassword,
     new_password: newPassword,
   });
-  // Update stored token since the old one is invalidated
-  localStorage.setItem("ktmbites_token", data.token);
+  // Update stored token in the same storage it was originally in
+  const keys = PORTAL_KEYS[detectPortal()];
+  if (localStorage.getItem(keys.token)) {
+    localStorage.setItem(keys.token, data.token);
+  } else {
+    sessionStorage.setItem(keys.token, data.token);
+  }
   return data;
 }
 
@@ -140,14 +202,14 @@ export async function resetPassword(token: string, new_password: string): Promis
   return data;
 }
 
-export async function riderRegister(payload: RegisterData): Promise<AuthResponse> {
+export async function riderRegister(payload: RegisterData, rememberMe: boolean = false): Promise<AuthResponse> {
   const { data } = await API.post("/rider/register/", payload);
-  saveAuth(data);
+  saveAuth(data, rememberMe);
   return data;
 }
 
-export async function riderLogin(email: string, password: string): Promise<AuthResponse> {
+export async function riderLogin(email: string, password: string, rememberMe: boolean = false): Promise<AuthResponse> {
   const { data } = await API.post("/rider/login/", { email, password });
-  saveAuth(data);
+  saveAuth(data, rememberMe);
   return data;
 }
