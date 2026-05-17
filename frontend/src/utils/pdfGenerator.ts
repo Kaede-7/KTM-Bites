@@ -3,12 +3,12 @@ import mascotIcon from "../assets/ktm-bites-transparent-notext.png";
 
 /**
  * Generates and downloads a beautifully structured, premium PDF order report for a KTM Bites order.
- * Uses native high-fidelity printing to allow "Save as PDF" with perfect vector layouts.
+ * Opens a full-fidelity preview page first and gives the user an action button to trigger high-fidelity PDF printing.
  */
 export const downloadOrderPDF = (order: OrderData) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
-    alert("Please allow popups to download your order report PDF.");
+    alert("Please allow popups to preview your order report.");
     return;
   }
 
@@ -54,7 +54,8 @@ export const downloadOrderPDF = (order: OrderData) => {
     <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <title>KTM Bites Order Report - ${order.order_id}</title>
+      <title>Order Report Preview - ${order.order_id}</title>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
         
@@ -62,16 +63,21 @@ export const downloadOrderPDF = (order: OrderData) => {
           font-family: 'Plus Jakarta Sans', 'Segoe UI', -apple-system, sans-serif;
           color: #2a2420;
           margin: 0;
-          padding: 40px;
+          padding: 0;
+          background-color: #f5f3f0;
           line-height: 1.5;
-          background-color: #fff;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
 
         .invoice-card {
           max-width: 800px;
-          margin: 0 auto;
+          margin: 40px auto;
+          background-color: #fff;
+          padding: 40px;
+          border-radius: 24px;
+          border: 1px solid #ebdcd0;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.03);
         }
 
         .header {
@@ -250,15 +256,39 @@ export const downloadOrderPDF = (order: OrderData) => {
           size: portrait;
           margin: 0; /* completely hides browser header & footer like 'about:blank' */
         }
+
         @media print {
+          .no-print {
+            display: none !important;
+          }
           body {
             padding: 2cm;
             background-color: #fff;
+          }
+          .invoice-card {
+            margin: 0;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            max-width: 100%;
           }
         }
       </style>
     </head>
     <body>
+      <!-- Sticky Preview Header Actions -->
+      <div class="no-print" style="position: sticky; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #ebdcd0; padding: 12px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.02); font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="material-symbols-rounded" style="color: #e06c22; font-size: 20px;">visibility</span>
+          <span style="font-size: 14px; color: #4a4035; font-weight: 700; letter-spacing: 0.2px;">Report Preview Mode</span>
+        </div>
+        <button onclick="window.print()" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #f28b46 0%, #e06c22 100%); color: white; border: none; padding: 10px 20px; border-radius: 14px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(242, 139, 70, 0.22); outline: none;">
+          <span class="material-symbols-rounded" style="font-size: 18px; font-weight: 800;">download</span>
+          Download PDF
+        </button>
+      </div>
+
       <div class="invoice-card">
         <div class="header">
           <div class="logo">
@@ -335,16 +365,6 @@ export const downloadOrderPDF = (order: OrderData) => {
           <p><strong>KTM Bites Pvt. Ltd.</strong> — Kathmandu, Nepal</p>
         </div>
       </div>
-
-      <script>
-        window.onload = function() {
-          window.print();
-          // Gracefully close tab once printed or cancelled
-          setTimeout(function() {
-            window.close();
-          }, 300);
-        };
-      </script>
     </body>
     </html>
   `;
