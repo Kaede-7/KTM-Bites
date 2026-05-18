@@ -72,6 +72,8 @@ interface Rider {
   license_number?: string;
   is_available?: boolean;
   password?: string;
+  rating?: number;
+  rating_count?: number;
 }
 
 const Admin: React.FC = () => {
@@ -1444,7 +1446,10 @@ const Admin: React.FC = () => {
                   <div className="admin-empty-state">
                     <span className="material-symbols-rounded">
                       delivery_dining
-                            ) : (
+                    </span>
+                    <p>No riders found</p>
+                  </div>
+                ) : (
                   <table className="admin-table">
                     <thead>
                       <tr>
