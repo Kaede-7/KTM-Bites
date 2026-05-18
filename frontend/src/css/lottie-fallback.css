@@ -1,0 +1,343 @@
+/* Premium Fallback Animations for KTM-Bites */
+
+.lottie-fallback-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  user-select: none;
+}
+
+/* --- EMPTY CART FALLBACK --- */
+.lottie-fallback-empty-cart {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.lottie-empty-cart-glow {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(242, 139, 70, 0.15) 0%, rgba(242, 139, 70, 0) 70%);
+  animation: lottie-pulse 3s infinite ease-in-out;
+}
+
+.lottie-empty-cart-svg {
+  width: 100px;
+  height: 100px;
+  color: #f28b46;
+  filter: drop-shadow(0 8px 16px rgba(242, 139, 70, 0.15));
+  animation: lottie-float 4s infinite ease-in-out;
+  z-index: 2;
+}
+
+.lottie-empty-cart-item {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0;
+  z-index: 1;
+}
+
+.lottie-empty-cart-item.pizza {
+  left: 25%;
+  top: 25%;
+  animation: lottie-float-item-1 5s infinite ease-in-out;
+  animation-delay: 0.5s;
+}
+
+.lottie-empty-cart-item.burger {
+  right: 25%;
+  top: 20%;
+  animation: lottie-float-item-2 6s infinite ease-in-out;
+  animation-delay: 1.2s;
+}
+
+.lottie-empty-cart-item.cookie {
+  left: 30%;
+  bottom: 25%;
+  animation: lottie-float-item-3 5.5s infinite ease-in-out;
+  animation-delay: 0.2s;
+}
+
+.lottie-empty-cart-item.donut {
+  right: 28%;
+  bottom: 30%;
+  animation: lottie-float-item-4 4.8s infinite ease-in-out;
+  animation-delay: 1.8s;
+}
+
+
+/* --- ORDER SUCCESS FALLBACK --- */
+.lottie-fallback-success {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.lottie-success-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.1);
+  border: 4px solid #10b981;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+  animation: lottie-scale-up 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.lottie-success-checkmark {
+  width: 55px;
+  height: 55px;
+  stroke: #10b981;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+  animation: lottie-draw-check 0.6s cubic-bezier(0.65, 0, 0.45, 1) 0.4s forwards;
+}
+
+/* Confetti Burst */
+.lottie-success-confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.lottie-success-confetti.c1  { background: #f28b46; animation: lottie-burst-1 1.2s ease-out both; }
+.lottie-success-confetti.c2  { background: #10b981; animation: lottie-burst-2 1.2s ease-out 0.1s both; }
+.lottie-success-confetti.c3  { background: #3b82f6; animation: lottie-burst-3 1.2s ease-out 0.05s both; }
+.lottie-success-confetti.c4  { background: #f59e0b; animation: lottie-burst-4 1.2s ease-out 0.15s both; }
+.lottie-success-confetti.c5  { background: #ec4899; animation: lottie-burst-5 1.2s ease-out 0.08s both; }
+.lottie-success-confetti.c6  { background: #8b5cf6; animation: lottie-burst-6 1.2s ease-out 0.12s both; }
+
+
+/* --- LOADING FALLBACK --- */
+.lottie-fallback-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.lottie-loader-spinner {
+  width: 80px;
+  height: 80px;
+  border: 4px solid rgba(242, 139, 70, 0.15);
+  border-left-color: #f28b46;
+  border-radius: 50%;
+  animation: lottie-spin 1s linear infinite;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lottie-loader-inner {
+  font-size: 1.8rem;
+  animation: lottie-tilt 2s infinite ease-in-out;
+}
+
+
+/* --- DELIVERY FALLBACK --- */
+.lottie-fallback-delivery {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.lottie-delivery-wrapper {
+  position: relative;
+  width: 180px;
+  height: 110px;
+  animation: lottie-bobbing 1.6s infinite ease-in-out;
+}
+
+.lottie-delivery-scooter {
+  width: 100%;
+  height: 100%;
+  color: #f28b46;
+  filter: drop-shadow(0 6px 12px rgba(242, 139, 70, 0.15));
+}
+
+.lottie-delivery-wheel {
+  transform-origin: center;
+  animation: lottie-spin 0.5s linear infinite;
+}
+
+.lottie-delivery-cloud {
+  position: absolute;
+  background: rgba(210, 199, 191, 0.25);
+  border-radius: 50%;
+  filter: blur(2px);
+  animation: lottie-smoke 1.5s infinite ease-out;
+}
+
+.lottie-delivery-cloud.s1 {
+  width: 12px;
+  height: 12px;
+  left: 20px;
+  bottom: 25px;
+  animation-delay: 0s;
+}
+
+.lottie-delivery-cloud.s2 {
+  width: 8px;
+  height: 8px;
+  left: 15px;
+  bottom: 22px;
+  animation-delay: 0.5s;
+}
+
+.lottie-delivery-road {
+  width: 160px;
+  height: 4px;
+  background: repeating-linear-gradient(90deg, #ebdcd0, #ebdcd0 8px, transparent 8px, transparent 16px);
+  margin-top: 10px;
+  border-radius: 2px;
+  animation: lottie-road-scroll 0.6s linear infinite;
+}
+
+.lottie-delivery-speed-line {
+  position: absolute;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(242, 139, 70, 0.3), rgba(242, 139, 70, 0));
+  border-radius: 1px;
+  animation: lottie-speed-pass 1.8s infinite linear;
+}
+
+.lottie-delivery-speed-line.l1 { width: 50px; top: 20px; right: -20px; animation-delay: 0s; }
+.lottie-delivery-speed-line.l2 { width: 35px; top: 50px; right: -30px; animation-delay: 0.6s; }
+.lottie-delivery-speed-line.l3 { width: 40px; top: 75px; right: -15px; animation-delay: 1.2s; }
+
+
+/* --- CSS KEYFRAMES --- */
+
+@keyframes lottie-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+@keyframes lottie-pulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes lottie-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes lottie-tilt {
+  0%, 100% { transform: rotate(-8deg) scale(0.95); }
+  50% { transform: rotate(8deg) scale(1.05); }
+}
+
+@keyframes lottie-scale-up {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+@keyframes lottie-draw-check {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes lottie-bobbing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes lottie-smoke {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0.8; }
+  100% { transform: translate(-30px, -15px) scale(1.5); opacity: 0; }
+}
+
+@keyframes lottie-road-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: -16px 0; }
+}
+
+@keyframes lottie-speed-pass {
+  0% { transform: translateX(50px); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.8; }
+  100% { transform: translateX(-220px); opacity: 0; }
+}
+
+/* Floating Cart Items */
+@keyframes lottie-float-item-1 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  20%, 80% { opacity: 0.85; }
+  50% { transform: translate(-15px, -25px) rotate(-15deg); }
+}
+
+@keyframes lottie-float-item-2 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  25%, 75% { opacity: 0.9; }
+  50% { transform: translate(18px, -22px) rotate(12deg); }
+}
+
+@keyframes lottie-float-item-3 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  30%, 70% { opacity: 0.8; }
+  50% { transform: translate(-12px, 20px) rotate(-10deg); }
+}
+
+@keyframes lottie-float-item-4 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  15%, 85% { opacity: 0.85; }
+  50% { transform: translate(14px, 18px) rotate(18deg); }
+}
+
+/* Success Confetti Bursts */
+@keyframes lottie-burst-1 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-65px, -55px) scale(0.3); opacity: 0; }
+}
+
+@keyframes lottie-burst-2 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(70px, -45px) scale(0.3); opacity: 0; }
+}
+
+@keyframes lottie-burst-3 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-25px, -85px) scale(0.3); opacity: 0; }
+}
+
+@keyframes lottie-burst-4 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(45px, -75px) scale(0.3); opacity: 0; }
+}
+
+@keyframes lottie-burst-5 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(-75px, 20px) scale(0.3); opacity: 0; }
+}
+
+@keyframes lottie-burst-6 {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(80px, 15px) scale(0.3); opacity: 0; }
+}
