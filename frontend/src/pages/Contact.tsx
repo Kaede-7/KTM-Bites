@@ -25,10 +25,6 @@ const Contact: React.FC = () => {
     setIsOpen(open);
   }, []);
 
-  const handleCall = () => {
-    alert("Call us at: 980000000");
-  };
-
   return (
     <PageTransition>
       <div className="contact-page">
@@ -42,15 +38,6 @@ const Contact: React.FC = () => {
 
           <div className="contact-content">
             <div className="contact-left">
-              <div className="contact-card support-card">
-                <h2>Order Support</h2>
-                <p>Have an active order? Give us a call directly to the restaurant for the fastest resolution.</p>
-                <button className="contact-btn" onClick={handleCall}>
-                  <span className="material-symbols-rounded">call</span>
-                  Call Restaurant
-                </button>
-              </div>
-
               <div className="contact-card hours-card">
                 <div className="hours-header">
                   <h2>Hours</h2>
