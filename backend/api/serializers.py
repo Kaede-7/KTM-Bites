@@ -60,7 +60,7 @@ class RiderProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'full_name', 'email', 'username', 'phone', 
             'vehicle_type', 'license_number', 'is_available', 
-            'last_login'
+            'last_login', 'rating', 'rating_count'
         ]
         read_only_fields = ['last_login']
 

@@ -2239,3 +2239,26 @@ def notification_mark_all_read(request):
     """Mark all notifications as read."""
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return Response({'status': 'ok'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdmin])
+def admin_rider_reviews(request, pk):
+    """Fetch all reviews/comments for a specific rider (admin only)."""
+    try:
+        rider = RiderProfile.objects.get(pk=pk)
+    except RiderProfile.DoesNotExist:
+        return Response({"error": "Rider not found"}, status=404)
+        
+    reviews = rider.rider_reviews.all().order_by('-created_at')
+    data = []
+    for r in reviews:
+        data.append({
+            'id': r.id,
+            'user_name': r.user.first_name or r.user.username,
+            'rating': float(r.rating),
+            'comment': r.comment,
+            'created_at': r.created_at.isoformat(),
+            'order_id': r.order.order_id if r.order else None
+        })
+    return Response(data)

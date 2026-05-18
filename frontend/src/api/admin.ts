@@ -232,3 +232,12 @@ export const deleteRider = async (id: number) => {
     handleError(error as AxiosError<ErrorResponse>);
   }
 };
+
+export const fetchRiderReviews = async (riderId: number) => {
+  try {
+    const response = await API.get(`/admin/riders/${riderId}/reviews/`);
+    return response.data;
+  } catch (error) {
+    handleError(error as AxiosError<ErrorResponse>);
+  }
+};
