@@ -69,6 +69,7 @@ const ChatWidget: React.FC = () => {
     if (!isLoggedIn()) { window.location.href = '/login'; return; }
     try {
       await addToCart(item.id, 1);
+      window.dispatchEvent(new Event("cart-updated"));
       setAddedItems(prev => new Set(prev).add(item.id));
       setTimeout(() => setAddedItems(prev => {
         const next = new Set(prev); next.delete(item.id); return next;
