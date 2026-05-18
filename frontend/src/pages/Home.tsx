@@ -145,7 +145,7 @@ const Home: React.FC = () => {
               <span className="material-symbols-rounded">location_on</span>
               <input
                 type="text"
-                placeholder="Delivery Address (e.g. Thamel, Kathmandu)"
+                placeholder="Delivery Address (e.g. Thamel)"
                 value={addressInput}
                 onChange={(e) => setAddressInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSaveAddress()}

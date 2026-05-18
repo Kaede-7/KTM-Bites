@@ -230,9 +230,14 @@ const Admin: React.FC = () => {
       setCurrentSection("dashboard");
       setSuccessMessage("Admin login successful! Welcome to Admin Panel.");
     } catch (err: any) {
-      setError(
-        err.message || "Invalid email or password. Admin access denied.",
-      );
+      const errMsg = err.response?.data?.error || err.response?.data?.detail;
+      if (err.response?.status === 401) {
+        setError("Invalid email or password. Admin access denied.");
+      } else {
+        setError(
+          errMsg || err.message || "Invalid email or password. Admin access denied."
+        );
+      }
     } finally {
       setActionLoading(false);
     }
