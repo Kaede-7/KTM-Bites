@@ -121,7 +121,7 @@ class Order(models.Model):
 
     @property
     def order_id(self):
-        return f"KTM-2024-{str(self.id).zfill(3)}"
+        return f"KTM-2026-{str(self.id).zfill(3)}"
 
 
 class OrderItem(models.Model):
