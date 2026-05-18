@@ -597,61 +597,11 @@ def order_list_create(request):
         orders = Order.objects.prefetch_related('items', 'items__menu_item').filter(user=request.user)
         return Response(OrderSerializer(orders, many=True).data)
 
-    cart = Cart.objects.get(user=request.user)
-    items = cart.items.all()
-
-    if not items.exists():
-        return Response({"error": "Cart empty"}, status=400)
-
-    subtotal = sum(i.subtotal for i in items)
-    
-    # Apply Rank Discount
-    rank_info = request.user.profile.rank_data
-    discount_amount = (subtotal * rank_info['discount']) / 100
-
-    delivery = 80
-    if rank_info['current_rank'] == 'Mythic Crimson':
-        delivery = 0
-
-    total = (subtotal - discount_amount) + delivery
-
-    order = Order.objects.create(
-        user=request.user,
-        subtotal=subtotal,
-        delivery_fee=delivery,
-        discount_amount=discount_amount,
-        rank_applied=rank_info['current_rank'],
-        total=total,
-        status="placed",
-        payment_method="cod",
-        payment_status="completed",
-        full_name=request.data.get("full_name", ""),
-        phone=request.data.get("phone", ""),
-        address=request.data.get("address", ""),
-        city=request.data.get("city", "Kathmandu"),
-        landmark=request.data.get("landmark", ""),
-        notes=request.data.get("notes", ""),
+    # Cash on Delivery (COD) is completely disabled.
+    return Response(
+        {"error": "Cash on Delivery is not supported. Please place your order using digital payment methods (Khalti or Kharcha)."},
+        status=status.HTTP_400_BAD_REQUEST
     )
-
-    for i in items:
-        OrderItem.objects.create(
-            order=order,
-            menu_item=i.menu_item,
-            quantity=i.quantity,
-            price=i.menu_item.price
-        )
-
-    items.delete()
-
-    # Create notification for order placement
-    create_notification(
-        request.user, 'order_placed',
-        'Order Placed! 🎉',
-        f'Your order #{order.order_id} has been placed successfully. We\'re getting it ready!',
-        order=order,
-    )
-
-    return Response(OrderSerializer(order).data, status=201)
 
 
 # ========================

@@ -7,7 +7,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, type CartData } from "../api/cart";
-import { placeOrder, initiatePayment } from "../api/orders";
+import { initiatePayment } from "../api/orders";
 import { getProfile } from "../api/auth";
 import {
   getKharchaLinkStatus,
@@ -260,8 +260,7 @@ const Checkout: React.FC = () => {
         setShowOtp(true);
 
       } else {
-        const order = await placeOrder({ ...orderPayload, payment_method: payment });
-        navigate(`/order-tracking/${order.id}`);
+        setError("Please choose a valid digital payment option to complete your checkout.");
       }
     } catch (err: any) {
       let msg = "Failed to place order. Please try again.";

@@ -508,7 +508,15 @@ const OrderTracking: React.FC = () => {
           <div className="tracking-detail-card">
             <p className="tracking-detail-label">Payment</p>
             <p className="tracking-detail-value">
-              Khalti
+              {order.payment_method === "cod"
+                ? "Cash on Delivery"
+                : order.payment_method?.toLowerCase().startsWith("kharcha")
+                  ? "Kharcha"
+                  : order.payment_method?.toLowerCase() === "khalti"
+                    ? "Khalti"
+                    : order.payment_method
+                      ? order.payment_method.charAt(0).toUpperCase() + order.payment_method.slice(1)
+                      : "Khalti"}
             </p>
             <p className="tracking-detail-sub">Total — Rs. {order.total}</p>
           </div>
