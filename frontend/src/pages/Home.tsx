@@ -313,7 +313,7 @@ const Home: React.FC = () => {
               </>
             ) : (
               <div className="home-card guest-welcome-card">
-                <h2>Ready to Order? 🍔</h2>
+                <h2>Ready to Order? <span className="material-symbols-rounded" style={{ verticalAlign: 'middle', marginLeft: '6px', fontSize: '28px', color: '#f28b46' }}>lunch_dining</span></h2>
                 <p>Join thousands of food lovers in Kathmandu. Get exclusive discounts, earn points, and track your food in real-time.</p>
                 <div className="guest-actions">
                   <Link to="/signup" className="guest-btn-primary">Create Account</Link>

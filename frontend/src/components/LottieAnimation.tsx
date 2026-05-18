@@ -60,7 +60,7 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({ type, width = 200, he
           <div className="lottie-fallback-empty-cart">
             <div className="lottie-empty-cart-glow" />
             <span className="lottie-empty-cart-item pizza">🍕</span>
-            <span className="lottie-empty-cart-item burger">🍔</span>
+            <span className="lottie-empty-cart-item burger"><span className="material-symbols-rounded" style={{ color: '#f28b46', fontSize: 'inherit' }}>lunch_dining</span></span>
             <span className="lottie-empty-cart-item cookie">🍪</span>
             <span className="lottie-empty-cart-item donut">🍩</span>
             <svg className="lottie-empty-cart-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
