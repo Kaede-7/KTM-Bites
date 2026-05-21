@@ -121,6 +121,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_PREFLIGHT_MAX_AGE = 600
 
+# --- Security Headers ---
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+
 # --- Khalti Payment Gateway (TEST) ---
 KHALTI_SECRET_KEY = os.environ.get('KHALTI_SECRET_KEY', '')
 KHALTI_PUBLIC_KEY = os.environ.get('KHALTI_PUBLIC_KEY', '')
