@@ -57,36 +57,6 @@
   font-weight: 600;
 }
 
-/* Support Card */
-.support-card p {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-}
-
-.contact-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--primary);
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: 50px;
-  border: none;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.contact-btn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-2px);
-}
-
-.contact-btn .material-symbols-rounded {
-  font-size: 1.2rem;
-}
 
 /* Hours Card */
 .hours-header {

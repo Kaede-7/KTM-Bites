@@ -60,7 +60,7 @@ class RiderProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'full_name', 'email', 'username', 'phone', 
             'vehicle_type', 'license_number', 'is_available', 
-            'last_login'
+            'last_login', 'rating', 'rating_count'
         ]
         read_only_fields = ['last_login']
 
@@ -198,6 +198,7 @@ class OrderSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     rider_location = serializers.SerializerMethodField()
     rider_info = serializers.SerializerMethodField()
+    has_reviewed_rider = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -208,6 +209,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'city', 'landmark', 'notes', 'subtotal', 'delivery_fee',
             'discount_amount', 'rank_applied',
             'total', 'items', 'created_at', 'rider_location', 'rider_info',
+            'has_reviewed_rider',
         ]
         read_only_fields = ['subtotal', 'delivery_fee', 'discount_amount', 'rank_applied', 'total', 'status', 'payment_status', 'pidx', 'transaction_id', 'rider']
 
@@ -222,11 +224,20 @@ class OrderSerializer(serializers.ModelSerializer):
         """Return rider's name and phone for the driver card."""
         if obj.rider:
             return {
+                'id': obj.rider.id,
                 'name': obj.rider.full_name,
                 'phone': obj.rider.phone,
-                'vehicle_type': obj.rider.vehicle_type
+                'vehicle_type': obj.rider.vehicle_type,
+                'rating': float(obj.rider.rating),
+                'rating_count': obj.rider.rating_count
             }
         return None
+
+    def get_has_reviewed_rider(self, obj):
+        from .models import RiderReview
+        if obj.rider and obj.user:
+            return RiderReview.objects.filter(order=obj, user=obj.user).exists()
+        return False
 
 
 class PlaceOrderSerializer(serializers.Serializer):

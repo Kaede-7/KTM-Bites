@@ -72,6 +72,8 @@ interface Rider {
   license_number?: string;
   is_available?: boolean;
   password?: string;
+  rating?: number;
+  rating_count?: number;
 }
 
 const Admin: React.FC = () => {
@@ -135,6 +137,12 @@ const Admin: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [simulatingOrderId, setSimulatingOrderId] = useState<number | null>(null);
   const simulationIntervalRef = useRef<any>(null);
+
+  // Rider Reviews State
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [selectedRiderReviews, setSelectedRiderReviews] = useState<any[]>([]);
+  const [selectedRiderName, setSelectedRiderName] = useState("");
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -222,9 +230,14 @@ const Admin: React.FC = () => {
       setCurrentSection("dashboard");
       setSuccessMessage("Admin login successful! Welcome to Admin Panel.");
     } catch (err: any) {
-      setError(
-        err.message || "Invalid email or password. Admin access denied.",
-      );
+      const errMsg = err.response?.data?.error || err.response?.data?.detail;
+      if (err.response?.status === 401) {
+        setError("Invalid email or password. Admin access denied.");
+      } else {
+        setError(
+          errMsg || err.message || "Invalid email or password. Admin access denied."
+        );
+      }
     } finally {
       setActionLoading(false);
     }
@@ -436,6 +449,21 @@ const Admin: React.FC = () => {
       setError(err.message || "Failed to delete rider");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleViewRiderReviews = async (riderId: number, riderName: string) => {
+    setReviewsLoading(true);
+    setSelectedRiderName(riderName);
+    setSelectedRiderReviews([]);
+    setShowReviewsModal(true);
+    try {
+      const reviews = await adminAPI.fetchRiderReviews(riderId);
+      setSelectedRiderReviews(reviews || []);
+    } catch (err: any) {
+      showToast(err.message || "Failed to load rider reviews.", "error");
+    } finally {
+      setReviewsLoading(false);
     }
   };
 
@@ -1431,10 +1459,11 @@ const Admin: React.FC = () => {
                     <thead>
                       <tr>
                         <th>Rider Profile</th>
-                        <th style={{ width: '200px', textAlign: 'center' }}>Contact</th>
-                        <th style={{ width: '150px' }}>Vehicle</th>
-                        <th style={{ width: '140px' }}>Status</th>
-                        <th style={{ width: '120px', textAlign: 'right', paddingRight: '24px' }}>Actions</th>
+                        <th style={{ width: '180px', textAlign: 'center' }}>Contact</th>
+                        <th style={{ width: '130px' }}>Vehicle</th>
+                        <th style={{ width: '130px' }}>Rating</th>
+                        <th style={{ width: '120px' }}>Status</th>
+                        <th style={{ width: '160px', textAlign: 'right', paddingRight: '24px' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1469,6 +1498,13 @@ const Admin: React.FC = () => {
                             </div>
                           </td>
                           <td>
+                            <div className="admin-table-rating" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f28b46', fontWeight: 600 }}>
+                              <span className="material-symbols-rounded" style={{ fontSize: '18px', fontVariationSettings: "'FILL' 1" }}>star</span>
+                              <span>{rider.rating ? parseFloat(rider.rating as any).toFixed(1) : "0.0"}</span>
+                              <span style={{ color: '#8b7d72', fontSize: '0.8rem', fontWeight: 400 }}>({rider.rating_count || 0})</span>
+                            </div>
+                          </td>
+                          <td>
                             <span
                               className={`admin-badge ${rider.is_available ? "available" : "unavailable"}`}
                             >
@@ -1477,6 +1513,14 @@ const Admin: React.FC = () => {
                           </td>
                           <td className="admin-actions-cell" style={{ textAlign: 'right', paddingRight: '24px' }}>
                             <div className="admin-actions" style={{ justifyContent: 'flex-end' }}>
+                              <button
+                                className="admin-btn-icon admin-btn-view"
+                                onClick={() => handleViewRiderReviews(rider.id!, rider.full_name)}
+                                title="View rider reviews"
+                                style={{ background: '#fcf1e8', color: '#e06c22' }}
+                              >
+                                <span className="material-symbols-rounded">rate_review</span>
+                              </button>
                               <button
                                 className="admin-btn-icon admin-btn-edit"
                                 onClick={() => handleEditRider(rider)}
@@ -1505,6 +1549,118 @@ const Admin: React.FC = () => {
               </div>
             </div>
           )}
+
+          {showReviewsModal && (
+            <div className="admin-modal-overlay">
+              <div className="admin-modal admin-modal-wide">
+                <div className="admin-modal-header">
+                  <h3>Reviews for {selectedRiderName}</h3>
+                  <button
+                    className="admin-modal-close"
+                    onClick={() => setShowReviewsModal(false)}
+                  >
+                    <span className="material-symbols-rounded">close</span>
+                  </button>
+                </div>
+                <div className="admin-modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                  {reviewsLoading ? (
+                    <LoadingAnimation message="Loading rider reviews..." />
+                  ) : selectedRiderReviews.length === 0 ? (
+                    <div className="admin-empty-state" style={{ padding: '40px 0' }}>
+                      <span className="material-symbols-rounded" style={{ fontSize: '48px', color: '#d2c2b6' }}>rate_review</span>
+                      <p style={{ marginTop: '12px', fontSize: '1.1rem', fontWeight: 600, color: '#7a7067' }}>
+                        No reviews found for this rider yet.
+                      </p>
+                      <p style={{ fontSize: '0.9rem', color: '#b8a99e', margin: '4px 0 0 0' }}>
+                        Customers can submit ratings and comments after their order is delivered.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="admin-reviews-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {selectedRiderReviews.map((review) => (
+                        <div key={review.id} className="admin-review-card" style={{
+                          background: '#faf8f5',
+                          borderRadius: '16px',
+                          padding: '16px 20px',
+                          border: '1px solid #ebdcd0',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span className="material-symbols-rounded" style={{ color: '#f28b46', fontSize: '20px' }}>person</span>
+                              <strong style={{ color: '#2a2420', fontSize: '1rem' }}>{review.user_name}</strong>
+                              {review.order_id && (
+                                <span style={{
+                                  background: '#fcf1e8',
+                                  color: '#e06c22',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  border: '1px solid #f8dfce'
+                                }}>
+                                  #{review.order_id}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              {Array.from({ length: 5 }).map((_, starIdx) => {
+                                const fill = starIdx < Math.round(review.rating);
+                                return (
+                                  <span key={starIdx} className="material-symbols-rounded" style={{
+                                    color: fill ? '#f28b46' : '#d2c2b6',
+                                    fontSize: '18px',
+                                    fontVariationSettings: fill ? "'FILL' 1" : "'FILL' 0"
+                                  }}>
+                                    star
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          
+                          {review.comment ? (
+                            <p style={{
+                              margin: '0',
+                              fontSize: '0.95rem',
+                              color: '#4b5563',
+                              lineHeight: '1.5',
+                              fontStyle: 'italic',
+                              background: '#fff',
+                              padding: '12px 16px',
+                              borderRadius: '10px',
+                              borderLeft: '4px solid #f28b46'
+                            }}>
+                              "{review.comment}"
+                            </p>
+                          ) : (
+                            <p style={{ margin: '0', fontSize: '0.9rem', color: '#9ca3af', fontStyle: 'italic' }}>
+                              No written comment provided.
+                            </p>
+                          )}
+
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '0.8rem', color: '#8b7d72' }}>
+                            <span>Reviewed on: {new Date(review.created_at).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="admin-modal-footer">
+                  <button
+                    className="admin-btn-secondary"
+                    onClick={() => setShowReviewsModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
 
           {showOrderModal && selectedOrder && (
             <div className="admin-modal-overlay">

@@ -12,5 +12,8 @@ export default defineConfig({
       host: 'localhost',
       port: 5173,
     },
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+    },
   },
 })

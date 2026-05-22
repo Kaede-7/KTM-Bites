@@ -236,7 +236,13 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
               <span className="material-symbols-rounded">person</span>
             </div>
             <div className="tracking-driver-details">
-              <div className="tracking-driver-name">{riderInfo.name}</div>
+              <div className="tracking-driver-name" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '8px' }}>
+                <span>{riderInfo.name}</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f28b46', display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}>
+                  <span className="material-symbols-rounded" style={{ fontSize: '1rem', color: '#f28b46' }}>star</span>
+                  {typeof riderInfo.rating === 'number' ? riderInfo.rating.toFixed(1) : '0.0'} ({riderInfo.rating_count || 0})
+                </span>
+              </div>
               <div className="tracking-driver-meta">
                 {riderInfo.vehicle_type && (
                   <span className="driver-bike">

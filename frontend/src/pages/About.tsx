@@ -81,6 +81,11 @@ const About: React.FC = () => {
                 <strong>Khalti Digital Wallet</strong>
                 <span className="pill-sub">Secure, one-tap payments.</span>
               </div>
+              <div className="payment-pill">
+                <span className="pill-dot kharcha"></span>
+                <strong>Kharcha Wallet</strong>
+                <span className="pill-sub">Fast & secure linked payments.</span>
+              </div>
             </div>
           </div>
 
