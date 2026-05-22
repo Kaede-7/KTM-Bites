@@ -28,9 +28,12 @@ export interface RiderLocation {
 
 // Rider's contact info for the driver card
 export interface RiderInfo {
+  id?: number;
   name: string;
   phone: string;
   vehicle_type: string;
+  rating?: number;
+  rating_count?: number;
 }
 
 // A complete order with all its details
@@ -50,11 +53,14 @@ export interface OrderData {
   notes: string;
   subtotal: number;
   delivery_fee: number;
+  discount_amount?: number;
+  rank_applied?: string;
   total: number;
   items: OrderItemData[];  // List of items in this order
   created_at: string;      // When the order was placed (ISO date string)
   rider_location?: RiderLocation | null;  // Live GPS coordinates of rider
   rider_info?: RiderInfo | null;          // Rider name and phone
+  has_reviewed_rider?: boolean;           // True if user has rated this rider for this order
 }
 
 // Data needed to place a new order
@@ -69,12 +75,6 @@ export interface PlaceOrderPayload {
 }
 
 // --- API Functions ---
-
-/** Place a new order (moves cart items into an order) */
-export async function placeOrder(payload: PlaceOrderPayload): Promise<OrderData> {
-  const { data } = await API.post('/orders/', payload);
-  return data;
-}
 
 /** Initiate Khalti payment (creates order and gets payment URL) */
 export async function initiatePayment(payload: PlaceOrderPayload & { return_url?: string; website_url?: string }): Promise<{ pidx: string; payment_url: string; order_id: number }> {
@@ -115,5 +115,11 @@ export async function updateOrder(id: number, payload: Partial<PlaceOrderPayload
 /** Update rider's GPS location (called by riders during delivery) */
 export async function updateRiderLocation(lat: number, lng: number): Promise<void> {
   await API.put('/rider/location/', { lat, lng });
+}
+
+/** Rate and review a rider for a delivered order */
+export async function rateRider(orderId: number, rating: number, comment: string = ""): Promise<{ message: string; has_reviewed_rider: boolean; rider_info: RiderInfo }> {
+  const { data } = await API.post(`/orders/${orderId}/rate-rider/`, { rating, comment });
+  return data;
 }
 

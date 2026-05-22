@@ -145,7 +145,7 @@ const Home: React.FC = () => {
               <span className="material-symbols-rounded">location_on</span>
               <input
                 type="text"
-                placeholder="Delivery Address (e.g. Thamel, Kathmandu)"
+                placeholder="Delivery Address"
                 value={addressInput}
                 onChange={(e) => setAddressInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSaveAddress()}
@@ -252,7 +252,21 @@ const Home: React.FC = () => {
                   
                   <div className="hro-list">
                     {loading ? (
-                      <Skeleton type="text" count={3} className="hro-skeleton-row" />
+                      [1, 2, 3].map((k) => (
+                        <div className="hro-item" key={k} style={{ opacity: 0.7 }}>
+                          <div className="hro-item-left" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div className="shimmer" style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#eeeae6', flexShrink: 0 }} />
+                            <div className="hro-item-info" style={{ flex: 1 }}>
+                              <Skeleton type="text" style={{ width: '140px', height: '14px', marginBottom: '8px' }} />
+                              <Skeleton type="text" style={{ width: '90px', height: '10px' }} />
+                            </div>
+                          </div>
+                          <div className="hro-item-right" style={{ flexShrink: 0, textAlign: 'right' }}>
+                            <Skeleton type="text" style={{ width: '60px', height: '14px', marginBottom: '8px', marginLeft: 'auto' }} />
+                            <Skeleton type="text" style={{ width: '80px', height: '10px', marginLeft: 'auto' }} />
+                          </div>
+                        </div>
+                      ))
                     ) : recentOrders.length > 0 ? (
                       recentOrders.map((order) => (
                         <div className="hro-item" key={order.id}>
@@ -279,7 +293,7 @@ const Home: React.FC = () => {
               </>
             ) : (
               <div className="home-card guest-welcome-card">
-                <h2>Ready to Order? 🍔</h2>
+                <h2>Ready to Order? <span className="material-symbols-rounded" style={{ verticalAlign: 'middle', marginLeft: '6px', fontSize: '28px', color: '#f28b46' }}>lunch_dining</span></h2>
                 <p>Join thousands of food lovers in Kathmandu. Get exclusive discounts, earn points, and track your food in real-time.</p>
                 <div className="guest-actions">
                   <Link to="/signup" className="guest-btn-primary">Create Account</Link>
@@ -298,7 +312,18 @@ const Home: React.FC = () => {
               </div>
               <div className="hf-list">
                 {loading ? (
-                  <Skeleton type="card" count={2} />
+                  [1, 2].map((k) => (
+                    <div className="hf-item shimmer-container" key={k} style={{ background: '#f5efe9', position: 'relative' }}>
+                      <div className="shimmer" style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }} />
+                      <div className="hf-item-overlay" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.1) 0%, transparent 60%)' }}>
+                        <div className="hf-item-info">
+                          <Skeleton type="text" style={{ width: '120px', height: '16px', marginBottom: '8px', background: '#e5ded6' }} />
+                          <Skeleton type="text" style={{ width: '160px', height: '12px', background: '#e5ded6' }} />
+                        </div>
+                        <div className="hf-item-btn shimmer" style={{ background: '#e5ded6', border: 'none' }} />
+                      </div>
+                    </div>
+                  ))
                 ) : (
                   favorites.map((item) => (
                     <Link to={`/menu/${item.id}`} className="hf-item" key={item.id}>

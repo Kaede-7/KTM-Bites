@@ -42,6 +42,7 @@ urlpatterns = [
     path('orders/<int:pk>/', views.order_detail, name='order-detail'),
     path('orders/<int:pk>/update/', views.update_order_view, name='order-update'),
     path('orders/<int:pk>/cancel/', views.cancel_order, name='order-cancel'),
+    path('orders/<int:pk>/rate-rider/', views.rate_rider_view, name='rate-rider'),
     path('orders/<int:pk>/reinitiate-payment/', views.reinitiate_payment_view, name='reinitiate-payment'),
 
     # ── Admin Panel (staff only) ──────────────────────────────
@@ -49,6 +50,7 @@ urlpatterns = [
     path('admin/orders/<int:pk>/', views.admin_order_detail, name='admin-order-detail'),
     path('admin/users/', views.admin_users_list, name='admin-users-list'),
     path('admin/riders/', views.admin_riders_list, name='admin-riders-list'),
+    path('admin/riders/<int:pk>/reviews/', views.admin_rider_reviews, name='admin-rider-reviews'),
     path('admin/menu/', views.admin_menu_items, name='admin-menu-items'),
     path('admin/categories/', views.admin_categories, name='admin-categories'),
 

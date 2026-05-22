@@ -597,61 +597,11 @@ def order_list_create(request):
         orders = Order.objects.prefetch_related('items', 'items__menu_item').filter(user=request.user)
         return Response(OrderSerializer(orders, many=True).data)
 
-    cart = Cart.objects.get(user=request.user)
-    items = cart.items.all()
-
-    if not items.exists():
-        return Response({"error": "Cart empty"}, status=400)
-
-    subtotal = sum(i.subtotal for i in items)
-    
-    # Apply Rank Discount
-    rank_info = request.user.profile.rank_data
-    discount_amount = (subtotal * rank_info['discount']) / 100
-
-    delivery = 80
-    if rank_info['current_rank'] == 'Mythic Crimson':
-        delivery = 0
-
-    total = (subtotal - discount_amount) + delivery
-
-    order = Order.objects.create(
-        user=request.user,
-        subtotal=subtotal,
-        delivery_fee=delivery,
-        discount_amount=discount_amount,
-        rank_applied=rank_info['current_rank'],
-        total=total,
-        status="placed",
-        payment_method="cod",
-        payment_status="completed",
-        full_name=request.data.get("full_name", ""),
-        phone=request.data.get("phone", ""),
-        address=request.data.get("address", ""),
-        city=request.data.get("city", "Kathmandu"),
-        landmark=request.data.get("landmark", ""),
-        notes=request.data.get("notes", ""),
+    # Cash on Delivery (COD) is completely disabled.
+    return Response(
+        {"error": "Cash on Delivery is not supported. Please place your order using digital payment methods (Khalti or Kharcha)."},
+        status=status.HTTP_400_BAD_REQUEST
     )
-
-    for i in items:
-        OrderItem.objects.create(
-            order=order,
-            menu_item=i.menu_item,
-            quantity=i.quantity,
-            price=i.menu_item.price
-        )
-
-    items.delete()
-
-    # Create notification for order placement
-    create_notification(
-        request.user, 'order_placed',
-        'Order Placed! 🎉',
-        f'Your order #{order.order_id} has been placed successfully. We\'re getting it ready!',
-        order=order,
-    )
-
-    return Response(OrderSerializer(order).data, status=201)
 
 
 # ========================
@@ -690,6 +640,65 @@ def cancel_order(request, pk):
     order.status = 'cancelled'
     order.save(update_fields=['status'])
     return Response({"message": "Order cancelled successfully.", "order": OrderSerializer(order).data})
+
+
+# ========================
+# RIDER RATING & REVIEW
+# ========================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rate_rider_view(request, pk):
+    """Allows user to rate and comment on the rider assigned to their order."""
+    from .models import RiderReview
+    try:
+        order = Order.objects.get(pk=pk, user=request.user)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=404)
+
+    if not order.rider:
+        return Response({"error": "No rider is assigned to this order."}, status=400)
+
+    # Check if already reviewed
+    if RiderReview.objects.filter(order=order, user=request.user).exists():
+        return Response({"error": "You have already reviewed the rider for this order."}, status=400)
+
+    rating = request.data.get('rating')
+    comment = request.data.get('comment', '')
+
+    if rating is None:
+        return Response({"error": "Rating is required."}, status=400)
+
+    try:
+        rating_val = float(rating)
+        if not (0.0 <= rating_val <= 5.0):
+            raise ValueError
+    except ValueError:
+        return Response({"error": "Rating must be a number between 0.0 and 5.0."}, status=400)
+
+    # Create review
+    review = RiderReview.objects.create(
+        rider=order.rider,
+        user=request.user,
+        order=order,
+        rating=rating_val,
+        comment=comment
+    )
+
+    # Update rider's average rating and count
+    order.rider.update_rating()
+
+    return Response({
+        "message": "Rider rated successfully!",
+        "has_reviewed_rider": True,
+        "rider_info": {
+            "id": order.rider.id,
+            "name": order.rider.full_name,
+            "phone": order.rider.phone,
+            "vehicle_type": order.rider.vehicle_type,
+            "rating": float(order.rider.rating),
+            "rating_count": order.rider.rating_count
+        }
+    })
 
 
 # ========================
@@ -1575,7 +1584,9 @@ def rider_profile_view(request):
             "phone": profile.phone,
             "vehicle_type": profile.vehicle_type,
             "license_number": profile.license_number,
-            "is_available": profile.is_available
+            "is_available": profile.is_available,
+            "rating": float(profile.rating),
+            "rating_count": profile.rating_count
         })
 
     if request.method == 'PUT':
@@ -2228,3 +2239,26 @@ def notification_mark_all_read(request):
     """Mark all notifications as read."""
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return Response({'status': 'ok'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdmin])
+def admin_rider_reviews(request, pk):
+    """Fetch all reviews/comments for a specific rider (admin only)."""
+    try:
+        rider = RiderProfile.objects.get(pk=pk)
+    except RiderProfile.DoesNotExist:
+        return Response({"error": "Rider not found"}, status=404)
+        
+    reviews = rider.rider_reviews.all().order_by('-created_at')
+    data = []
+    for r in reviews:
+        data.append({
+            'id': r.id,
+            'user_name': r.user.first_name or r.user.username,
+            'rating': float(r.rating),
+            'comment': r.comment,
+            'created_at': r.created_at.isoformat(),
+            'order_id': r.order.order_id if r.order else None
+        })
+    return Response(data)
