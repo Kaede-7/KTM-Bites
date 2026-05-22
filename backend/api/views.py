@@ -44,9 +44,14 @@ from .serializers import (
 # ========================
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated and (
-            request.user.is_staff or request.user.is_superuser
-        )
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profile.role == 'ADMIN'
+        except Exception:
+            return False
 
 class IsStaffOrAuthorizedRole(BasePermission):
     def has_permission(self, request, view):

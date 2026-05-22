@@ -220,8 +220,8 @@ const Admin: React.FC = () => {
       // Authenticate with backend using the provided credentials
       const response = await authAPI.login(email, password, rememberMe);
 
-      // Check if user is admin (superuser or staff)
-      if (!response.user.is_superuser && !response.user.is_staff) {
+      // Check if user is admin (superuser or role is ADMIN)
+      if (!response.user.is_superuser && response.user.role !== "ADMIN") {
         throw new Error("Admin access denied. User is not an administrator.");
       }
 
