@@ -17,6 +17,49 @@ import { restoreSessionFromRedirect } from "./api/auth";
 import App from "./App";
 import "./index.css";
 
+// --- Handle chunk/module loading errors after new deployments ---
+window.addEventListener("error", (event) => {
+  const msg = event.message || "";
+  const target = event.target as HTMLElement;
+  const isScriptError = target && target.tagName === "SCRIPT";
+  
+  if (
+    msg.includes("Failed to fetch dynamically imported module") ||
+    msg.includes("MIME type") ||
+    isScriptError
+  ) {
+    const RELOAD_KEY = "ktmbites_reload_chunk_fail";
+    const lastReload = sessionStorage.getItem(RELOAD_KEY);
+    const now = Date.now();
+
+    // Prevent infinite reload loops (only reload if last was > 10 seconds ago)
+    if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+      sessionStorage.setItem(RELOAD_KEY, now.toString());
+      window.location.reload();
+    }
+  }
+}, true);
+
+window.addEventListener("unhandledrejection", (event) => {
+  const reason = event.reason || {};
+  const msg = reason.message || "";
+  const stack = reason.stack || "";
+
+  if (
+    msg.includes("Failed to fetch dynamically imported module") ||
+    stack.includes("Failed to fetch dynamically imported module")
+  ) {
+    const RELOAD_KEY = "ktmbites_reload_chunk_fail";
+    const lastReload = sessionStorage.getItem(RELOAD_KEY);
+    const now = Date.now();
+
+    if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+      sessionStorage.setItem(RELOAD_KEY, now.toString());
+      window.location.reload();
+    }
+  }
+});
+
 // Restore redirect-persisted session if any exists
 restoreSessionFromRedirect();
 
