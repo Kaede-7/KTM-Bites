@@ -136,8 +136,38 @@ export function persistSessionForRedirect(portal?: Portal) {
   // Copy from sessionStorage → localStorage
   const token = sessionStorage.getItem(keys.token);
   const user  = sessionStorage.getItem(keys.user);
-  if (token) localStorage.setItem(keys.token, token);
-  if (user)  localStorage.setItem(keys.user, user);
+  if (token) {
+    localStorage.setItem(keys.token, token);
+    localStorage.setItem(`ktmbites_session_is_temporary_${p}`, 'true');
+  }
+  if (user) {
+    localStorage.setItem(keys.user, user);
+  }
+}
+
+/**
+ * Restore temporary session credentials from localStorage back to sessionStorage.
+ * This runs when the app starts up so that redirect-saved sessions are not kept
+ * permanently in localStorage.
+ */
+export function restoreSessionFromRedirect() {
+  for (const p of Object.keys(PORTAL_KEYS) as Portal[]) {
+    const tempKey = `ktmbites_session_is_temporary_${p}`;
+    if (localStorage.getItem(tempKey) === 'true') {
+      const keys = PORTAL_KEYS[p];
+      const token = localStorage.getItem(keys.token);
+      const user  = localStorage.getItem(keys.user);
+      if (token) {
+        sessionStorage.setItem(keys.token, token);
+        localStorage.removeItem(keys.token);
+      }
+      if (user) {
+        sessionStorage.setItem(keys.user, user);
+        localStorage.removeItem(keys.user);
+      }
+      localStorage.removeItem(tempKey);
+    }
+  }
 }
 
 export function logout(redirectUrl: string | null = "/login") {

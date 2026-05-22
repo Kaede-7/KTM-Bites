@@ -13,8 +13,12 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { restoreSessionFromRedirect } from "./api/auth";
 import App from "./App";
 import "./index.css";
+
+// Restore redirect-persisted session if any exists
+restoreSessionFromRedirect();
 
 // Google OAuth client ID (from .env file or fallback)
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
