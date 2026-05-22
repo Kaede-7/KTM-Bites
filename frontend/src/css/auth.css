@@ -834,12 +834,17 @@
   overflow: hidden;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .rider-gps-map {
   width: 100%;
   height: 320px;
   position: relative;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .rider-gps-map .leaflet-container {

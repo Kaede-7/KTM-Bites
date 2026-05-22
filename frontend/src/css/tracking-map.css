@@ -7,12 +7,16 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   position: relative;
   background: #fff;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .tracking-map-container {
   width: 100%;
   height: 400px;
   position: relative;
+  z-index: 0;
+  isolation: isolate;
 }
 
 /* Override Leaflet default styles to match theme */
