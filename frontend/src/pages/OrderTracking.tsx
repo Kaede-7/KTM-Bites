@@ -41,6 +41,17 @@ const OrderTracking: React.FC = () => {
   const [submittingReview, setSubmittingReview] = useState<boolean>(false);
   const [reviewSuccess, setReviewSuccess] = useState<boolean>(false);
   const [reviewError, setReviewError]     = useState<string>("");
+  const [showCelebration, setShowCelebration] = useState(true);
+
+  // Auto-hide celebration animation after 5 seconds
+  useEffect(() => {
+    if (order && order.status === "placed") {
+      const timer = setTimeout(() => {
+        setShowCelebration(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [order?.status]);
 
   const submitRiderReview = async () => {
     if (!order) return;
@@ -194,7 +205,7 @@ const OrderTracking: React.FC = () => {
   return (
     <PageTransition>
       <div className="tracking-page">
-        {order.status === "placed" && (
+        {order.status === "placed" && showCelebration && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
