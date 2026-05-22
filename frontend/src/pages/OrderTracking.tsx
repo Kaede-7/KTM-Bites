@@ -9,8 +9,6 @@ import LiveTrackingMap from "../components/LiveTrackingMap";
 import { getOrder, getOrders, cancelOrder, rateRider, type OrderData } from "../api/orders";
 import { isLoggedIn } from "../api/auth";
 import PageTransition from "../components/PageTransition";
-import LottieAnimation from "../components/LottieAnimation";
-import { motion } from "framer-motion";
 import { downloadOrderPDF } from "../utils/pdfGenerator";
 
 const statusSteps = [
@@ -41,17 +39,6 @@ const OrderTracking: React.FC = () => {
   const [submittingReview, setSubmittingReview] = useState<boolean>(false);
   const [reviewSuccess, setReviewSuccess] = useState<boolean>(false);
   const [reviewError, setReviewError]     = useState<string>("");
-  const [showCelebration, setShowCelebration] = useState(true);
-
-  // Auto-hide celebration animation after 5 seconds
-  useEffect(() => {
-    if (order && order.status === "placed") {
-      const timer = setTimeout(() => {
-        setShowCelebration(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [order?.status]);
 
   const submitRiderReview = async () => {
     if (!order) return;
@@ -205,24 +192,7 @@ const OrderTracking: React.FC = () => {
   return (
     <PageTransition>
       <div className="tracking-page">
-        {order.status === "placed" && showCelebration && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="order-success-celebration"
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 1000,
-              pointerEvents: 'none'
-            }}
-          >
-            <LottieAnimation type="order-success" width={600} height={600} loop={false} />
-          </motion.div>
-        )}
+
         <Navbar />
       <div className="tracking-container">
         <div className="tracking-header-new">
