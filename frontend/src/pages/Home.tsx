@@ -194,71 +194,51 @@ const Home: React.FC = () => {
               <>
                 {/* In Progress Card */}
                 <div className="home-card home-in-progress">
-                  {loading ? (
-                    <div className="hip-skeleton-loading" style={{ width: '100%' }}>
-                      <div className="hip-header" style={{ marginBottom: '16px' }}>
-                        <div className="hip-header-left" style={{ width: '100%' }}>
-                          <Skeleton type="text" style={{ width: '130px', height: '18px', marginBottom: '8px' }} />
-                          <Skeleton type="text" style={{ width: '220px', height: '12px' }} />
-                        </div>
-                      </div>
-                      <div className="hip-item-preview" style={{ background: '#fcf8f4', border: 'none', marginBottom: '16px' }}>
-                        <div className="shimmer" style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#eeeae6' }} />
-                        <div className="hip-item-info" style={{ flex: 1 }}>
-                          <Skeleton type="text" style={{ width: '160px', height: '14px', marginBottom: '6px' }} />
-                          <Skeleton type="text" style={{ width: '100px', height: '10px' }} />
-                        </div>
-                      </div>
+                  <div className="hip-header">
+                    <div className="hip-header-left">
+                      <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
+                      {!activeOrder && <p>Your recent cravings are satisfied.</p>}
                     </div>
-                  ) : (
+                    {activeOrder && (
+                      <span className="hip-badge">#{activeOrder.order_id}</span>
+                    )}
+                  </div>
+                  {activeOrder && (
                     <>
-                      <div className="hip-header">
-                        <div className="hip-header-left">
-                          <h2>{activeOrder ? "In Progress" : "No Active Orders"}</h2>
-                          <p>{activeOrder ? `Arriving in ~25 mins` : "Your recent cravings are satisfied."}</p>
+                      <div className="hip-item-preview">
+                        <div className="hip-img-container">
+                          <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
                         </div>
-                        {activeOrder && (
-                          <span className="hip-badge">#{activeOrder.order_id}</span>
-                        )}
+                        <div className="hip-item-info">
+                          <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
+                          <p>KTM Bites Kitchen</p>
+                        </div>
                       </div>
-                      {activeOrder && (
-                        <>
-                          <div className="hip-item-preview">
-                            <div className="hip-img-container">
-                              <FastImage src={activeOrder.items[0]?.image || "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop"} alt="Item" />
-                            </div>
-                            <div className="hip-item-info">
-                              <h3>{activeOrder.items[0]?.name || "Custom Order"} {activeOrder.items.length > 1 ? `+${activeOrder.items.length - 1} more` : ""}</h3>
-                              <p>KTM Bites Kitchen</p>
-                            </div>
-                          </div>
 
-                          <div className="hip-horizontal-tracker-new">
-                            {[
-                              { key: "placed", title: "Received", icon: "receipt_long" },
-                              { key: "preparing", title: "Preparing", icon: "restaurant" },
-                              { key: "on_way", title: "On the way", icon: "pedal_bike" }
-                            ].map((step, i) => {
-                              const status = getStepStatus(i);
-                              const isLast = i === 2;
-                              const nextStatus = !isLast ? getStepStatus(i + 1) : null;
-                              return (
-                                <React.Fragment key={i}>
-                                  <div className={`hip-step ${status}`}>
-                                    <div className="hip-step-icon">
-                                      <span className="material-symbols-rounded">{step.icon}</span>
-                                    </div>
-                                    <span className="hip-step-label">{step.title}</span>
-                                  </div>
-                                  {!isLast && (
-                                    <div className={`hip-connector ${nextStatus === 'completed' || nextStatus === 'active' ? 'active' : ''}`} />
-                                  )}
-                                </React.Fragment>
-                              );
-                            })}
-                          </div>
-                        </>
-                      )}
+                      <div className="hip-horizontal-tracker-new">
+                        {[
+                          { key: "placed", title: "Received", icon: "receipt_long" },
+                          { key: "preparing", title: "Preparing", icon: "restaurant" },
+                          { key: "on_way", title: "On the way", icon: "pedal_bike" }
+                        ].map((step, i) => {
+                          const status = getStepStatus(i);
+                          const isLast = i === 2;
+                          const nextStatus = !isLast ? getStepStatus(i + 1) : null;
+                          return (
+                            <React.Fragment key={i}>
+                              <div className={`hip-step ${status}`}>
+                                <div className="hip-step-icon">
+                                  <span className="material-symbols-rounded">{step.icon}</span>
+                                </div>
+                                <span className="hip-step-label">{step.title}</span>
+                              </div>
+                              {!isLast && (
+                                <div className={`hip-connector ${nextStatus === 'completed' || nextStatus === 'active' ? 'active' : ''}`} />
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
                     </>
                   )}
                 </div>
