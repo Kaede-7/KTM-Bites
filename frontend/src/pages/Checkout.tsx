@@ -8,7 +8,7 @@ import Footer from "../components/Footer";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, type CartData } from "../api/cart";
 import { initiatePayment } from "../api/orders";
-import { getProfile } from "../api/auth";
+import { getProfile, persistSessionForRedirect } from "../api/auth";
 import {
   getKharchaLinkStatus,
   initiateKharchaLinkedPayment,
@@ -235,7 +235,7 @@ const Checkout: React.FC = () => {
         
         const res = await reinitiatePayment(existingOrder.id);
         const url = res.payment_url || res.checkout_url;
-        if (url) window.location.href = url;
+        if (url) { persistSessionForRedirect(); window.location.href = url; }
         else navigate(`/order-tracking/${existingOrder.id}`);
         return;
       }
@@ -246,10 +246,12 @@ const Checkout: React.FC = () => {
           payment_method: payment,
           website_url: window.location.origin,
         });
+        persistSessionForRedirect();
         window.location.href = result.payment_url;
 
       } else if (payment === "kharcha_portal") {
         const result = await initiateKharchaPortalPayment(orderPayload);
+        persistSessionForRedirect();
         window.location.href = result.checkout_url;
 
       } else if (payment === "kharcha_linked") {

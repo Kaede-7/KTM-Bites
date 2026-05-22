@@ -113,6 +113,33 @@ export function isLoggedIn(portal?: Portal): boolean {
   return !!getToken(portal);
 }
 
+/**
+ * Persist the current session to localStorage before navigating to an
+ * external payment gateway (Khalti, Kharcha, etc.).
+ *
+ * Problem: When "Remember Me" is unchecked, the token lives only in
+ * sessionStorage. Some browsers lose sessionStorage during cross-origin
+ * redirect chains (Frontend → Khalti → Backend → Frontend), causing the
+ * user to be logged out after a successful payment.
+ *
+ * Solution: Copy the session to localStorage before the redirect so it
+ * survives the round-trip. This is safe because the user is actively
+ * completing a purchase — not closing the tab.
+ */
+export function persistSessionForRedirect(portal?: Portal) {
+  const p = portal || detectPortal();
+  const keys = PORTAL_KEYS[p];
+
+  // If data is already in localStorage, nothing to do
+  if (localStorage.getItem(keys.token)) return;
+
+  // Copy from sessionStorage → localStorage
+  const token = sessionStorage.getItem(keys.token);
+  const user  = sessionStorage.getItem(keys.user);
+  if (token) localStorage.setItem(keys.token, token);
+  if (user)  localStorage.setItem(keys.user, user);
+}
+
 export function logout(redirectUrl: string | null = "/login") {
   clearAllPortals();
 
