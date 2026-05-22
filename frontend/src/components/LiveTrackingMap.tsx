@@ -19,7 +19,14 @@ import { geocodeAddress, type LatLng } from '../api/geocode';
 
 // ── Custom Marker Icons ──────────────────────────────────────
 
-// Note: riderIcon is now defined dynamically inside the component to support bearing rotation.
+const riderIcon = L.divIcon({
+  className: 'tracking-marker-rider',
+  html: `<div class="marker-icon-rider">
+    <span class="material-symbols-rounded">two_wheeler</span>
+  </div>`,
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+});
 
 
 const customerIcon = L.divIcon({
@@ -128,49 +135,8 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
   const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
   const [eta, setEta] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [bearing, setBearing] = useState<number>(90); // Default to pointing North (bearing 0 + 90deg offset = 90)
 
-  const prevRiderPosRef = useRef<LatLng | null>(null);
   const riderPos: LatLng = { lat: riderLocation.lat, lng: riderLocation.lng };
-
-  // Calculate and update bearing angle smoothly on rider position changes
-  useEffect(() => {
-    if (prevRiderPosRef.current) {
-      const lat1 = prevRiderPosRef.current.lat;
-      const lng1 = prevRiderPosRef.current.lng;
-      const lat2 = riderLocation.lat;
-      const lng2 = riderLocation.lng;
-
-      const dy = lat2 - lat1;
-      const dx = lng2 - lng1;
-
-      // Threshold to avoid noisy rotation when standing still
-      if (Math.abs(dy) > 0.00002 || Math.abs(dx) > 0.00002) {
-        const angle = Math.atan2(dx, dy) * (180 / Math.PI);
-        const targetRotation = angle + 90;
-        
-        setBearing(prev => {
-          let diff = (targetRotation - prev) % 360;
-          if (diff < -180) diff += 360;
-          if (diff > 180) diff -= 360;
-          return prev + diff;
-        });
-      }
-    }
-    prevRiderPosRef.current = { lat: riderLocation.lat, lng: riderLocation.lng };
-  }, [riderLocation.lat, riderLocation.lng]);
-
-  // Memoized rider icon to preserve CSS transition smoothness on rotation changes
-  const dynamicRiderIcon = React.useMemo(() => {
-    return L.divIcon({
-      className: 'tracking-marker-rider',
-      html: `<div class="marker-icon-rider" style="transform: rotate(${bearing}deg);">
-        <span class="material-symbols-rounded">two_wheeler</span>
-      </div>`,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-    });
-  }, [bearing]);
 
   // Geocode the delivery address once
   useEffect(() => {
@@ -196,20 +162,6 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
       if (!cancelled && route) {
         setRouteCoords(route.coordinates);
         setEta(Math.ceil(route.duration / 60)); // Convert to minutes
-
-        // Initialize bearing if not set yet and route contains coordinates
-        if (!prevRiderPosRef.current && route.coordinates.length >= 2) {
-          const lat1 = route.coordinates[0][0];
-          const lng1 = route.coordinates[0][1];
-          const lat2 = route.coordinates[1][0];
-          const lng2 = route.coordinates[1][1];
-          const dy = lat2 - lat1;
-          const dx = lng2 - lng1;
-          if (Math.abs(dy) > 0.00001 || Math.abs(dx) > 0.00001) {
-            const angle = Math.atan2(dx, dy) * (180 / Math.PI);
-            setBearing(angle + 90);
-          }
-        }
       }
     };
     updateRoute();
@@ -266,7 +218,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
           )}
 
           {/* Rider Marker */}
-          <Marker position={[riderPos.lat, riderPos.lng]} icon={dynamicRiderIcon} />
+          <Marker position={[riderPos.lat, riderPos.lng]} icon={riderIcon} />
 
           {/* Customer Marker */}
           <Marker position={[customerPos.lat, customerPos.lng]} icon={customerIcon} />
