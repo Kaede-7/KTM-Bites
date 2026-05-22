@@ -144,7 +144,7 @@ Both the backend and frontend require a local `.env` file. These files are exclu
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/KTM-Bites.git
+git clone https://github.com/Kaede-7/KTM-Bites.git
 cd KTM-Bites
 ```
 
