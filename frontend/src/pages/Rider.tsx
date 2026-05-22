@@ -573,7 +573,7 @@ const Rider: React.FC = () => {
             {droppedOrders.length > 0 && (
               <div className="rider-section">
                 <div className="rider-section-header">
-                  <h2>Completed Today</h2>
+                  <h2>Completed</h2>
                   <span className="rider-section-count">{droppedOrders.length}</span>
                 </div>
                 <div className="rider-orders-grid">
