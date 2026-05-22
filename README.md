@@ -17,6 +17,7 @@ The system is organized into four role-based portals, each with its own authenti
 
 - [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
+- [Frontend Pages](#frontend-pages)
 - [Environment Variables](#environment-variables)
 - [Installation](#installation)
 - [Database Migrations](#database-migrations)
@@ -65,59 +66,71 @@ KTM-Bites/
 
 ---
 
+## Frontend Pages
+
+| Route | Page | Description |
+| :--- | :--- | :--- |
+| `/` | `LandingPage` | Splash page, introduction, spin wheel |
+| `/home` | `Home` | User homepage with dashboard, promotions, recommended items |
+| `/menu` | `MenuBrowse` | Menu catalog with category filters and search |
+| `/menu/:id` | `ItemDetail` | Detailed menu item view, custom options, add to cart |
+| `/contact` | `Contact` | Contact/feedback form and company information |
+| `/about` | `About` | Company story, mission, and team information |
+| `/login` | `Login` | Customer credentials/Google OAuth login page |
+| `/signup` | `Signup` | Customer account registration |
+| `/forgot-password` | `ForgotPassword` | Password reset request form |
+| `/reset-password` | `ResetPassword` | Set new password form using verification token |
+| `/rider-login` | `RiderLogin` | Delivery rider credentials login page |
+| `/rider-signup` | `RiderSignup` | Rider account application registration page |
+| `/admin` | `Admin` | Admin panel to manage orders, menu items, users, and simulations |
+| `/kitchen` | `Kitchen` | Kitchen display system to manage cooking pipelines |
+| `/rider` | `Rider` | Rider dashboard to accept/decline orders, view paths, and update status |
+| `/rider/profile` | `RiderProfile` | Rider profile page for updating details and status |
+| `/cart` | `Cart` | Customer shopping cart summary |
+| `/checkout` | `Checkout` | Checkout form with Khalti/Kharcha payment option |
+| `/order-tracking/:id` | `OrderTracking` | Live order tracking page with Leaflet map and route simulation |
+| `/profile` | `Profile` | Customer profile management and order history |
+
+---
+
 ## Environment Variables
 
 Both the backend and frontend require a local `.env` file. These files are excluded from version control via `.gitignore`.
 
-### Backend (`backend/.env`)
+### Backend .env
 
-Create a file named `.env` inside the `backend/` directory with the following variables:
+| Variable | Description |
+| :--- | :--- |
+| `SECRET_KEY` | Cryptographic secret key for Django security. |
+| `DATABASE_URL` | PostgreSQL connection URL (e.g. Supabase hosted instance). |
+| `DEMO_USER_EMAIL` | Email for the pre-seeded Customer user account. |
+| `DEMO_USER_PASSWORD` | Password for the pre-seeded Customer user account. |
+| `ADMIN_USER_EMAIL` | Email for the pre-seeded Admin account. |
+| `ADMIN_USER_PASSWORD` | Password for the pre-seeded Admin account. |
+| `KITCHEN_USER_EMAIL` | Email for the pre-seeded Kitchen account. |
+| `KITCHEN_USER_PASSWORD` | Password for the pre-seeded Kitchen account. |
+| `GROQ_API_KEY` | Cloud API key for the Groq service running Llama 3 AI. |
+| `OPENWEATHER_API_KEY` | API key from OpenWeatherMap for AI weather context. |
+| `KHALTI_SECRET_KEY` | Khalti merchant portal secret key for verification. |
+| `KHALTI_PUBLIC_KEY` | Khalti merchant portal public key for frontend SDK load. |
+| `KHARCHA_BASE_URL` | Base API URL for the Kharcha payment portal. |
+| `KHARCHA_FRONTEND_URL` | Hosted frontend URL for Kharcha gateway pages. |
+| `KHARCHA_REDIRECT_URI` | Authentication callback URI for Kharcha OAuth. |
+| `FRONTEND_BASE_URL` | Address of the React frontend application (e.g., `http://localhost:5173`). |
+| `BACKEND_BASE_URL` | Address of the Django backend application (e.g., `http://localhost:8000`). |
+| `KHARCHA_CLIENT_ID` | Client identifier for OAuth2 Kharcha link. |
+| `KHARCHA_CLIENT_SECRET` | Client secret key for OAuth2 Kharcha link. |
+| `KHARCHA_API_KEY` | Merchant API key for payment processing. |
+| `KHARCHA_REDIRECT_BASE` | Base path for payment success redirect URL generation. |
+| `EMAIL_HOST_USER` | Email username for sending password reset alerts. |
+| `EMAIL_HOST_PASSWORD` | App-specific password for the email provider account. |
 
-```env
-# Django
-SECRET_KEY=your-django-secret-key
-DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<dbname>
+### Frontend .env
 
-# Seed accounts
-DEMO_USER_EMAIL=saksham@email.com
-DEMO_USER_PASSWORD=password123
-ADMIN_USER_EMAIL=admin@ktmbites.com
-ADMIN_USER_PASSWORD=admin123
-KITCHEN_USER_EMAIL=kitchen@ktmbites.com
-KITCHEN_USER_PASSWORD=kitchen123
-
-# AI
-GROQ_API_KEY=your_groq_api_key
-OPENWEATHER_API_KEY=your_openweather_api_key
-
-# Khalti payment gateway
-KHALTI_SECRET_KEY=your_khalti_secret_key
-KHALTI_PUBLIC_KEY=your_khalti_public_key
-
-# Kharcha payment gateway (OAuth)
-KHARCHA_BASE_URL=https://kharcha-production.up.railway.app/
-KHARCHA_FRONTEND_URL=https://kharcha-omega.vercel.app
-KHARCHA_REDIRECT_URI=http://localhost:8000/api/kharcha/callback/
-FRONTEND_BASE_URL=http://localhost:5173
-BACKEND_BASE_URL=http://localhost:8000
-KHARCHA_CLIENT_ID=your_kharcha_client_id
-KHARCHA_CLIENT_SECRET=your_kharcha_client_secret
-KHARCHA_API_KEY=your_kharcha_api_key
-KHARCHA_REDIRECT_BASE=http://localhost:8000/api
-
-# Email (password resets, notifications)
-EMAIL_HOST_USER=your_gmail@gmail.com
-EMAIL_HOST_PASSWORD=your_gmail_app_password
-```
-
-### Frontend (`frontend/.env`)
-
-Create a file named `.env` inside the `frontend/` directory:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000/api
-VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
-```
+| Variable | Description |
+| :--- | :--- |
+| `VITE_API_BASE_URL` | Backend Django REST API root endpoint URL. |
+| `VITE_GOOGLE_CLIENT_ID` | OAuth 2.0 client ID for Google One-Tap/Login button. |
 
 ---
 
@@ -200,26 +213,113 @@ The following accounts are pre-seeded in the shared database for testing:
 
 ## API Reference
 
-A summary of the primary REST endpoints exposed by the backend:
+### Authentication
 
-| Method | Endpoint | Description |
-| :---: | :--- | :--- |
-| `POST` | `/api/auth/login/` | Authenticate a user |
-| `POST` | `/api/auth/register/` | Register a new customer account |
-| `POST` | `/api/auth/google/` | Google OAuth authentication |
-| `POST` | `/api/auth/forgot-password/` | Request a password reset email |
-| `POST` | `/api/auth/reset-password/` | Set a new password using a reset token |
-| `GET` | `/api/menu/` | List all menu items |
-| `GET` | `/api/categories/` | List menu categories |
-| `POST` | `/api/orders/` | Place a new order |
-| `GET` | `/api/orders/` | Retrieve the current user's order history |
-| `POST` | `/api/orders/<id>/cancel/` | Cancel an active order (within 5-minute window) |
-| `GET` | `/api/admin/orders/` | Fetch all orders (admin only) |
-| `PATCH` | `/api/admin/orders/<id>/` | Update an order's status (admin only) |
-| `GET` | `/api/kitchen/orders/` | Fetch active kitchen orders (kitchen staff only) |
-| `POST` | `/api/rider/login/` | Authenticate a rider |
-| `PUT` | `/api/rider/location/` | Update a rider's GPS coordinates |
-| `POST` | `/api/ai/recommend/` | Get AI-powered food recommendations |
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `POST` | `/api/auth/register/` | None | Register a new customer account |
+| `POST` | `/api/auth/login/` | None | Authenticate a user and return a token |
+| `GET` | `/api/auth/profile/` | JWT | Retrieve profile details of authenticated user |
+| `POST` | `/api/auth/change-password/` | JWT | Change user password |
+| `POST` | `/api/auth/google/` | None | Google OAuth login / registration |
+| `POST` | `/api/auth/forgot-password/` | None | Request a password reset email |
+| `POST` | `/api/auth/reset-password/` | None | Reset password with token |
+| `POST` | `/api/rider/register/` | None | Apply/register as a delivery rider |
+| `POST` | `/api/rider/login/` | None | Authenticate a rider |
+
+### Menu
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `GET` | `/api/categories/` | None | Fetch all menu categories |
+| `GET` | `/api/menu/` | None | Fetch all menu items |
+| `GET` | `/api/menu/<int:pk>/` | None | Fetch details for a specific menu item |
+
+### Shopping Cart
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `GET` | `/api/cart/` | JWT | View contents of the active shopping cart |
+| `POST` | `/api/cart/add/` | JWT | Add a menu item to the cart |
+| `PUT` | `/api/cart/update/<int:pk>/` | JWT | Update the quantity/details of a cart item |
+| `DELETE` | `/api/cart/remove/<int:pk>/` | JWT | Remove an item from the cart |
+
+### Orders
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `GET` | `/api/orders/` | JWT | Fetch order history for the logged-in customer |
+| `POST` | `/api/orders/` | JWT | Place a new order |
+| `GET` | `/api/orders/<int:pk>/` | JWT | Fetch detailed status of a specific order |
+| `PUT` | `/api/orders/<int:pk>/update/` | JWT | Update order information |
+| `POST` | `/api/orders/<int:pk>/cancel/` | JWT | Cancel order within the 5-minute window |
+| `POST` | `/api/orders/<int:pk>/rate-rider/` | JWT | Rate and review the delivery rider |
+| `POST` | `/api/orders/<int:pk>/reinitiate-payment/` | JWT | Retry payment for an unpaid order |
+
+### Admin Panel
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `GET` | `/api/admin/orders/` | JWT (Admin) | List all orders in the system |
+| `GET` | `/api/admin/orders/<int:pk>/` | JWT (Admin) | View detailed admin status of an order |
+| `GET` | `/api/admin/users/` | JWT (Admin) | List registered users and customers |
+| `GET` | `/api/admin/riders/` | JWT (Admin) | List registered delivery riders |
+| `GET` | `/api/admin/riders/<int:pk>/reviews/` | JWT (Admin) | Fetch reviews for a specific rider |
+| `GET`/`POST` | `/api/admin/menu/` | JWT (Admin) | Manage (list, create, update) menu items |
+| `GET`/`POST` | `/api/admin/categories/` | JWT (Admin) | Manage menu categories |
+
+### Payments (Khalti)
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `POST` | `/api/payments/initiate/` | JWT | Generate a payment session and gateway URL |
+| `POST` | `/api/payments/verify/` | JWT | Verify payment status on the server side |
+| `GET` | `/api/payments/status/<int:order_id>/` | JWT | Check payment success for a specific order |
+
+### AI Features
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `POST` | `/api/ai/chat/` | JWT | Send message to Llama 3 AI chatbot assistant |
+| `GET` | `/api/ai/recommendations/` | JWT | Get weather & mood-based menu recommendations |
+
+### Rider GPS Tracking
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `PUT` | `/api/rider/location/` | JWT (Rider) | Broadcast live GPS coordinates of the rider |
+| `GET` | `/api/rider/profile/` | JWT (Rider) | Retrieve profile of the logged-in rider |
+
+### Kharcha Integration (Redirect Portal)
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `POST` | `/api/kharcha/portal/initiate/` | JWT | Create a pay session and get hosted checkout link |
+| `GET` | `/api/kharcha/portal/callback/` | None | Handle redirect callback from Kharcha portal |
+
+### Kharcha Integration (Linked Account Payment)
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `POST` | `/api/kharcha/pay/initiate/` | JWT | Request OTP code for payment from linked account |
+| `POST` | `/api/kharcha/pay/confirm/` | JWT | Confirm payment using OTP code |
+
+### Kharcha Integration (OAuth Account Link)
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `GET` | `/api/kharcha/link/status/` | JWT | Check if user has linked a Kharcha account |
+| `POST` | `/api/kharcha/link/start/` | JWT | Generate OAuth URL to start linking accounts |
+| `GET` | `/api/kharcha/callback/` | None | Handle redirect callback from Kharcha OAuth |
+| `POST` | `/api/kharcha/link/remove/` | JWT | Unlink the Kharcha account |
+
+### Notifications
+
+| Method | Endpoint | Auth | Description |
+| :---: | :--- | :---: | :--- |
+| `GET` | `/api/notifications/` | JWT | Get user notifications list |
+| `POST` | `/api/notifications/<int:pk>/read/` | JWT | Mark a specific notification as read |
+| `POST` | `/api/notifications/read-all/` | JWT | Mark all notifications as read |
 
 ---
 
@@ -268,8 +368,6 @@ npm run build
 The output is written to the `dist/` directory, ready for deployment to any static hosting provider.
 
 ---
-
-
 
 ## License
 
