@@ -114,7 +114,7 @@ const Kitchen: React.FC = () => {
     setLoginLoading(true);
     try {
       const response = await authLogin(email, password, rememberMe);
-      if (!response.user.is_staff && !response.user.is_superuser) {
+      if (response.user.role !== "KITCHEN") {
         clearAllPortals();
         throw new Error("Access denied. Kitchen staff credentials required.");
       }
