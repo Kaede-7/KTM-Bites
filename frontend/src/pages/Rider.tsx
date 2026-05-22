@@ -11,6 +11,7 @@ import { fetchRiderProfile } from "../api/rider";
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import '../css/tracking-map.css';
 import { useToast } from "../components/Toast";
 import { geocodeAddress, KATHMANDU_CENTER } from "../api/geocode";
 import { useRef } from "react";
@@ -42,6 +43,51 @@ const Rider: React.FC = () => {
   const [routeLoading, setRouteLoading] = useState<number | null>(null);
   const { showToast } = useToast();
   const [simulatingOrderId, setSimulatingOrderId] = useState<number | null>(null);
+
+  const [bearing, setBearing] = useState<number>(90); // default to pointing North (bearing 0 + 90deg offset = 90)
+  const prevMyLocationRef = useRef<{ lat: number; lng: number } | null>(null);
+
+  // Calculate and update bearing angle smoothly on rider position changes
+  useEffect(() => {
+    if (myLocation) {
+      if (prevMyLocationRef.current) {
+        const lat1 = prevMyLocationRef.current.lat;
+        const lng1 = prevMyLocationRef.current.lng;
+        const lat2 = myLocation.lat;
+        const lng2 = myLocation.lng;
+
+        const dy = lat2 - lat1;
+        const dx = lng2 - lng1;
+
+        // Threshold to avoid noisy rotation when standing still
+        if (Math.abs(dy) > 0.00001 || Math.abs(dx) > 0.00001) {
+          const angle = Math.atan2(dx, dy) * (180 / Math.PI);
+          const targetRotation = angle + 90;
+
+          setBearing(prev => {
+            let diff = (targetRotation - prev) % 360;
+            if (diff < -180) diff += 360;
+            if (diff > 180) diff -= 360;
+            return prev + diff;
+          });
+        }
+      }
+      prevMyLocationRef.current = { lat: myLocation.lat, lng: myLocation.lng };
+    }
+  }, [myLocation]);
+
+  // Memoized rider icon to preserve CSS transition smoothness on rotation changes
+  const dynamicRiderIcon = React.useMemo(() => {
+    if (!myLocation) return null;
+    return L.divIcon({
+      className: 'tracking-marker-rider',
+      html: `<div class="marker-icon-rider" style="transform: rotate(${bearing}deg);">
+        <span class="material-symbols-rounded">two_wheeler</span>
+      </div>`,
+      iconSize: [40, 40],
+      iconAnchor: [20, 20],
+    });
+  }, [bearing, myLocation]);
   const simulationIntervalRef = useRef<any>(null);
   const [simulationRoute, setSimulationRoute] = useState<[number, number][]>([]);
   const [simulationDest, setSimulationDest] = useState<{ lat: number; lng: number } | null>(null);
@@ -186,6 +232,20 @@ const Rider: React.FC = () => {
       setSimulatingOrderId(order.id);
       setRouteLoading(null);
       showToast("Simulation started!", "success");
+
+      // Initialize bearing based on the first segment of the route
+      if (routeLatLngs.length >= 2) {
+        const lat1 = routeLatLngs[0][0];
+        const lng1 = routeLatLngs[0][1];
+        const lat2 = routeLatLngs[1][0];
+        const lng2 = routeLatLngs[1][1];
+        const dy = lat2 - lat1;
+        const dx = lng2 - lng1;
+        if (Math.abs(dy) > 0.00001 || Math.abs(dx) > 0.00001) {
+          const angle = Math.atan2(dx, dy) * (180 / Math.PI);
+          setBearing(angle + 90);
+        }
+      }
 
       // We want about 30-40 steps total for a ~30-40s simulation (1 step/sec)
       const stepJump = Math.max(1, Math.floor(totalSteps / 35));
@@ -432,15 +492,12 @@ const Rider: React.FC = () => {
                   )}
 
                   {/* Rider bike marker */}
-                  <Marker
-                    position={[myLocation.lat, myLocation.lng]}
-                    icon={L.divIcon({
-                      className: 'tracking-marker-rider',
-                      html: `<div style="background:#f28b46;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(242,139,70,0.5);"><span class=\"material-symbols-rounded\" style=\"color:white;font-size:22px;\">two_wheeler</span></div>`,
-                      iconSize: [40, 40],
-                      iconAnchor: [20, 20],
-                    })}
-                  />
+                  {dynamicRiderIcon && (
+                    <Marker
+                      position={[myLocation.lat, myLocation.lng]}
+                      icon={dynamicRiderIcon}
+                    />
+                  )}
                 </MapContainer>
               </div>
               <div className="rider-gps-info">
