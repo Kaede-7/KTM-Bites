@@ -12,6 +12,7 @@ import AIRecommendations from "../components/AIRecommendations";
 import { useToast } from "../components/Toast";
 import Skeleton from "../components/Skeleton";
 import PageTransition from "../components/PageTransition";
+import { AddressAutocomplete } from "../components/AddressAutocomplete";
 
 const Home: React.FC = () => {
   const [favorites, setFavorites] = useState<MenuItemData[]>([]);
@@ -136,18 +137,17 @@ const Home: React.FC = () => {
                 type="tel"
                 placeholder="Phone Number"
                 value={phoneInput}
-                onChange={(e) => setPhoneInput(e.target.value)}
+                onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ""))}
                 autoFocus
               />
             </div>
 
             <div className="address-modal-input-wrap">
               <span className="material-symbols-rounded">location_on</span>
-              <input
-                type="text"
+              <AddressAutocomplete
                 placeholder="Delivery Address"
                 value={addressInput}
-                onChange={(e) => setAddressInput(e.target.value)}
+                onChange={setAddressInput}
                 onKeyDown={(e) => e.key === "Enter" && handleSaveAddress()}
               />
             </div>

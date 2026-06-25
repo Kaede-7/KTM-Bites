@@ -16,6 +16,7 @@ import {
   initiateKharchaPortalPayment,
   type KharchaLinkStatus,
 } from "../api/kharcha";
+import { AddressAutocomplete } from "../components/AddressAutocomplete";
 
 // ── OTP Modal ──────────────────────────────────────────────────
 interface OtpModalProps {
@@ -407,11 +408,22 @@ const Checkout: React.FC = () => {
                 </div>
                 <div className="checkout-field">
                   <label>Phone Number</label>
-                  <input type="tel" placeholder="+977-98XXXXXXXX" value={form.phone} onChange={handleChange("phone")} required />
+                  <input
+                    type="tel"
+                    placeholder="+977-98XXXXXXXX"
+                    value={form.phone}
+                    onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value.replace(/\D/g, "") }))}
+                    required
+                  />
                 </div>
                 <div className="checkout-field full-width">
                   <label>Street Address</label>
-                  <input type="text" placeholder="Enter your street address" value={form.address} onChange={handleChange("address")} required />
+                  <AddressAutocomplete
+                    placeholder="Enter your street address"
+                    value={form.address}
+                    onChange={(val) => setForm((p) => ({ ...p, address: val }))}
+                    required
+                  />
                 </div>
                 <div className="checkout-field">
                   <label>City</label>

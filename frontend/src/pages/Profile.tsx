@@ -15,6 +15,7 @@ import {
 import PageTransition from "../components/PageTransition";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { downloadOrderPDF } from "../utils/pdfGenerator";
+import { AddressAutocomplete } from "../components/AddressAutocomplete";
 
 // ── Toast Component ──────────────────────────────────────────
 const Toast: React.FC<{ msg: string; type: "success" | "error"; onClose: () => void }> = ({ msg, type, onClose }) => (
@@ -482,8 +483,12 @@ const Profile: React.FC = () => {
                       <input 
                         type="tel" 
                         value={formData.phone || ""} 
-                        onChange={handleChange("phone")} 
+                        onChange={(e) => {
+                          const numericOnly = e.target.value.replace(/\D/g, "");
+                          setFormData((prev) => ({ ...prev, phone: numericOnly }));
+                        }}
                         placeholder="Phone Number" 
+                        inputMode="numeric"
                       />
                     </div>
                   </div>
@@ -491,12 +496,11 @@ const Profile: React.FC = () => {
                   <div className="pf-row">
                     <div className="pf-field">
                       <label className="pf-label">Street Address</label>
-                      <div className="pf-input-group">
-                        <input 
-                          type="text" 
-                          value={formData.address || ""} 
-                          onChange={handleChange("address")} 
-                          placeholder="Street Address" 
+                      <div className="pf-input-group" style={{ overflow: 'visible' }}>
+                        <AddressAutocomplete
+                          placeholder="Street Address"
+                          value={formData.address || ""}
+                          onChange={(val) => setFormData((prev) => ({ ...prev, address: val }))}
                         />
                       </div>
                     </div>
