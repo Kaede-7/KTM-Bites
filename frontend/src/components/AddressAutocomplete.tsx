@@ -36,7 +36,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Close dropdown on click outside
   useEffect(() => {
