@@ -1,0 +1,143 @@
+.calorie-tracker {
+  position: fixed;
+  z-index: 1100;
+  inset: auto 0 0;
+  height: 3px;
+  pointer-events: none;
+}
+
+.calorie-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: rgba(42, 36, 32, 0.18);
+}
+
+.calorie-track-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffc66f, #f28b46);
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calorie-runner {
+  position: absolute;
+  z-index: 2;
+  top: auto;
+  bottom: 2px;
+  transform: translateX(-50%);
+  color: inherit;
+  pointer-events: auto;
+  transition: left 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calorie-emoji {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 23px;
+  line-height: 1;
+  border: 2px solid #f28b46;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 5px 14px rgba(42, 36, 32, 0.24),
+    0 0 0 3px rgba(255, 255, 255, 0.9);
+  filter: none;
+}
+
+.calorie-tracker.is-over .calorie-track-fill {
+  background: linear-gradient(90deg, #f28b46, #ef4444);
+}
+
+.calorie-tracker.is-over .calorie-emoji {
+  border-color: #ef4444;
+  background: #ffffff;
+  box-shadow:
+    0 5px 14px rgba(239, 68, 68, 0.34),
+    0 0 0 3px rgba(255, 255, 255, 0.9);
+}
+
+.calorie-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  min-width: 170px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  background: rgba(42, 36, 32, 0.94);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(42, 36, 32, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+.calorie-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(42, 36, 32, 0.94);
+}
+
+.calorie-tooltip strong {
+  font-size: 13px;
+}
+
+.calorie-tooltip span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+}
+
+.calorie-runner:hover .calorie-tooltip,
+.calorie-runner:focus-visible .calorie-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.calorie-runner.at-start .calorie-tooltip {
+  left: -2px;
+  transform: translate(0, 6px);
+}
+
+.calorie-runner.at-start:hover .calorie-tooltip,
+.calorie-runner.at-start:focus-visible .calorie-tooltip {
+  transform: translate(0, 0);
+}
+
+.calorie-runner.at-start .calorie-tooltip::after {
+  left: 15px;
+}
+
+.calorie-runner.at-end .calorie-tooltip {
+  right: -2px;
+  left: auto;
+  transform: translate(0, 6px);
+}
+
+.calorie-runner.at-end:hover .calorie-tooltip,
+.calorie-runner.at-end:focus-visible .calorie-tooltip {
+  transform: translate(0, 0);
+}
+
+.calorie-runner.at-end .calorie-tooltip::after {
+  right: 15px;
+  left: auto;
+  transform: none;
+}
+
+@media (max-width: 600px) {
+  .calorie-tooltip {
+    min-width: 154px;
+  }
+}
