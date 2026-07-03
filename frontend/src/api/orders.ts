@@ -61,6 +61,7 @@ export interface OrderData {
   rider_location?: RiderLocation | null;  // Live GPS coordinates of rider
   rider_info?: RiderInfo | null;          // Rider name and phone
   has_reviewed_rider?: boolean;           // True if user has rated this rider for this order
+  can_manage?: boolean;                   // Host/owner-only order actions
 }
 
 // Data needed to place a new order

@@ -2,6 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import secrets
+
+
+def generate_group_invite_code():
+    return secrets.token_urlsafe(12)
 
 
 class Category(models.Model):
@@ -26,6 +31,7 @@ class MenuItem(models.Model):
     time = models.CharField(max_length=20, default='20-25 min')
     image = models.URLField(max_length=500)
     description = models.TextField(blank=True)
+    calories = models.PositiveIntegerField(default=500)
     badge = models.CharField(max_length=20, blank=True)
     is_available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -53,6 +59,10 @@ class Cart(models.Model):
     def item_count(self):
         return sum(item.quantity for item in self.items.all())
 
+    @property
+    def total_calories(self):
+        return sum(item.total_calories for item in self.items.select_related('menu_item').all())
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
@@ -68,6 +78,10 @@ class CartItem(models.Model):
     @property
     def subtotal(self):
         return self.menu_item.price * self.quantity
+
+    @property
+    def total_calories(self):
+        return self.menu_item.calories * self.quantity
 
 
 class Order(models.Model):
@@ -152,6 +166,7 @@ class UserProfile(models.Model):
     phone = models.CharField(max_length=20, blank=True, default='')
     city = models.CharField(max_length=100, blank=True, default='Kathmandu')
     bio = models.TextField(blank=True, default='')
+    calorie_target = models.PositiveIntegerField(default=2000)
 
     def __str__(self):
         return f"{self.user.username} ({self.role})"
@@ -315,6 +330,136 @@ class KharchaLinkedAccount(models.Model):
  
     def __str__(self):
         return f"Kharcha link for {self.user.username}"
+
+
+class GroupOrder(models.Model):
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('locked', 'Ready for payment'),
+        ('paying', 'Payment in progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+    SPLIT_CHOICES = [
+        ('single', 'One person pays'),
+        ('equal', 'Split evenly'),
+        ('items', 'Each person pays for their items'),
+    ]
+    SINGLE_PAYMENT_CHOICES = [
+        ('treat', 'Pay for everyone'),
+        ('settle_later', 'Pay now and settle later in Kharcha'),
+    ]
+
+    name = models.CharField(max_length=100)
+    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hosted_group_orders')
+    invite_code = models.CharField(max_length=32, unique=True, db_index=True, default=generate_group_invite_code)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    split_mode = models.CharField(max_length=20, choices=SPLIT_CHOICES, default='single')
+    single_payment_mode = models.CharField(
+        max_length=20,
+        choices=SINGLE_PAYMENT_CHOICES,
+        default='treat',
+    )
+    kharcha_group_id = models.CharField(max_length=255, blank=True)
+    kharcha_sync_status = models.CharField(max_length=20, blank=True)
+    kharcha_missing_members = models.JSONField(default=list, blank=True)
+    full_name = models.CharField(max_length=100, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=50, default='Kathmandu')
+    landmark = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True)
+    order = models.OneToOneField(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='group_order')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def subtotal(self):
+        return sum(item.subtotal for item in self.items.select_related('menu_item').all())
+
+    @property
+    def delivery_fee(self):
+        return 80 if self.items.exists() else 0
+
+    @property
+    def total(self):
+        return self.subtotal + self.delivery_fee
+
+    @property
+    def total_calories(self):
+        return sum(item.total_calories for item in self.items.select_related('menu_item').all())
+
+    @property
+    def calorie_target(self):
+        return sum(
+            getattr(getattr(member.user, 'profile', None), 'calorie_target', 2000)
+            for member in self.members.select_related('user', 'user__profile').all()
+        )
+
+
+class GroupOrderMember(models.Model):
+    group = models.ForeignKey(GroupOrder, on_delete=models.CASCADE, related_name='members')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_order_memberships')
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('group', 'user')
+        ordering = ['joined_at']
+
+
+class GroupCartItem(models.Model):
+    group = models.ForeignKey(GroupOrder, on_delete=models.CASCADE, related_name='items')
+    added_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_cart_items')
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        unique_together = ('group', 'added_by', 'menu_item')
+
+    @property
+    def subtotal(self):
+        return self.menu_item.price * self.quantity
+
+    @property
+    def total_calories(self):
+        return self.menu_item.calories * self.quantity
+
+
+class GroupPaymentShare(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('initiated', 'OTP sent'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+    ]
+
+    group = models.ForeignKey(GroupOrder, on_delete=models.CASCADE, related_name='payment_shares')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_payment_shares')
+    payment_payer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='initiated_group_payments',
+    )
+    paid_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sponsored_group_payments',
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    kharcha_payment_id = models.CharField(max_length=255, blank=True)
+    transaction_id = models.CharField(max_length=255, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('group', 'user')
 
 class Notification(models.Model):
     """User notifications for order updates, promos, and reminders."""

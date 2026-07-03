@@ -265,3 +265,18 @@
   }
 }
 
+.item-detail-calories {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 16px 0;
+  padding: 9px 13px;
+  border-radius: 999px;
+  color: #b45309;
+  background: rgba(242, 139, 70, 0.12);
+}
+
+.item-detail-calories small {
+  color: #8b7d72;
+}

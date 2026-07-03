@@ -37,6 +37,16 @@ urlpatterns = [
     path('cart/update/<int:pk>/', views.cart_update, name='cart-update'),
     path('cart/remove/<int:pk>/', views.cart_remove, name='cart-remove'),
 
+    # Group ordering
+    path('groups/', views.group_order_list_create, name='group-order-list-create'),
+    path('groups/<str:invite_code>/', views.group_order_detail, name='group-order-detail'),
+    path('groups/<str:invite_code>/join/', views.group_order_join, name='group-order-join'),
+    path('groups/<str:invite_code>/items/', views.group_order_add_item, name='group-order-add-item'),
+    path('groups/<str:invite_code>/items/<int:pk>/', views.group_order_item, name='group-order-item'),
+    path('groups/<str:invite_code>/checkout/', views.group_order_checkout, name='group-order-checkout'),
+    path('groups/<str:invite_code>/pay/initiate/', views.group_payment_initiate, name='group-payment-initiate'),
+    path('groups/<str:invite_code>/pay/confirm/', views.group_payment_confirm, name='group-payment-confirm'),
+
     # ── Orders ────────────────────────────────────────────────
     path('orders/', views.order_list_create, name='order-list-create'),
     path('orders/<int:pk>/', views.order_detail, name='order-detail'),

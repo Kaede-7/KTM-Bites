@@ -12,7 +12,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(MenuItem)
 class MenuItemAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price', 'rating', 'badge', 'is_available']
+    list_display = ['name', 'category', 'price', 'calories', 'rating', 'badge', 'is_available']
     list_filter = ['category', 'is_available']
     search_fields = ['name']
 
@@ -41,7 +41,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'role', 'city', 'address']
+    list_display = ['user', 'role', 'calorie_target', 'city', 'address']
     list_filter = ['role', 'city']
     search_fields = ['user__username', 'user__email']
 

@@ -145,6 +145,7 @@ const ChatWidget: React.FC = () => {
                         <div className="chat-item-card-info">
                           <div className="chat-item-card-name">{item.name}</div>
                           <div className="chat-item-card-price">Rs. {item.price}</div>
+                          <div className="chat-item-card-price">🔥 {item.calories} kcal</div>
                         </div>
                         <button
                           className={`chat-item-add-btn ${addedItems.has(item.id) ? 'added' : ''}`}

@@ -5,6 +5,7 @@ import { ToastProvider } from "./components/Toast";
 import AuthLayout from "./components/AuthLayout";
 import LoadingAnimation from "./components/LoadingAnimation";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CalorieTracker from "./components/CalorieTracker";
 
 // Lazy load pages
 const LandingPage = lazy(() => import("./pages/dashboard"));
@@ -27,6 +28,7 @@ const RiderSignup = lazy(() => import("./pages/RiderSignup"));
 const RiderLogin = lazy(() => import("./pages/RiderLogin"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Groups = lazy(() => import("./pages/Groups"));
 
 function App() {
   const location = useLocation();
@@ -65,11 +67,14 @@ function App() {
           <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/order-tracking/:id" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/groups" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
+          <Route path="/groups/:code" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
         </Routes>
       </Suspense>
 
       {/* AI Chat Widget — floating button on every page except landing page */}
       {!isLandingPage && <ChatWidget />}
+      <CalorieTracker />
     </ToastProvider>
   );
 }

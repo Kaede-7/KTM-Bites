@@ -45,6 +45,7 @@ class Command(BaseCommand):
                 'time': '20-25 min',
                 'image': 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&h=500&fit=crop',
                 'description': 'Our signature chicken momos are filled with a savory blend of minced chicken, ginger, garlic, and fresh herbs. Steamed to perfection and served with our house-made spicy tomato achar. A Kathmandu street-food classic!',
+                'calories': 420,
                 'badge': 'Bestseller',
             },
             {
@@ -56,6 +57,7 @@ class Command(BaseCommand):
                 'time': '20-25 min',
                 'image': 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=600&h=500&fit=crop',
                 'description': 'Crispy fried buff momos served with tangy tomato achar. Golden and crunchy on the outside, juicy on the inside.',
+                'calories': 560,
                 'badge': '',
             },
             {
@@ -67,6 +69,7 @@ class Command(BaseCommand):
                 'time': '25-30 min',
                 'image': 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=500&fit=crop',
                 'description': 'Authentic Italian-style pizza with San Marzano tomato sauce, fresh mozzarella, and fragrant basil on a crispy thin crust.',
+                'calories': 780,
                 'badge': '',
             },
             {
@@ -78,6 +81,7 @@ class Command(BaseCommand):
                 'time': '25-30 min',
                 'image': 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&h=500&fit=crop',
                 'description': 'Loaded with pepperoni, mozzarella and oregano on our signature hand-tossed dough.',
+                'calories': 920,
                 'badge': 'New',
             },
             {
@@ -89,6 +93,7 @@ class Command(BaseCommand):
                 'time': '15-20 min',
                 'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=500&fit=crop',
                 'description': 'A juicy beef patty topped with cheddar cheese, fresh lettuce, tomato, onion rings, and our special house sauce.',
+                'calories': 650,
                 'badge': '',
             },
             {
@@ -100,6 +105,7 @@ class Command(BaseCommand):
                 'time': '20-25 min',
                 'image': 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&h=500&fit=crop',
                 'description': 'Traditional Nepali dal bhat set with steamed rice, lentil soup, seasonal vegetable curries, pickles, and papadum.',
+                'calories': 850,
                 'badge': 'Popular',
             },
             {
@@ -111,6 +117,7 @@ class Command(BaseCommand):
                 'time': '15-20 min',
                 'image': 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=600&h=500&fit=crop',
                 'description': 'Stir-fried noodles with chicken and fresh vegetables, seasoned with soy sauce and spices.',
+                'calories': 610,
                 'badge': '',
             },
             {
@@ -122,6 +129,7 @@ class Command(BaseCommand):
                 'time': '5-10 min',
                 'image': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=600&h=500&fit=crop',
                 'description': 'Double-shot espresso blended with cold milk, served over ice. Smooth and refreshing.',
+                'calories': 180,
                 'badge': '',
             },
             {
@@ -133,6 +141,7 @@ class Command(BaseCommand):
                 'time': '10-15 min',
                 'image': 'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=600&h=500&fit=crop',
                 'description': 'Rich and fudgy chocolate brownie with walnuts, served warm with a scoop of vanilla ice cream.',
+                'calories': 520,
                 'badge': '',
             },
         ]

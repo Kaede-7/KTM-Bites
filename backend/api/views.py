@@ -23,11 +23,15 @@ from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from groq import Groq
 from django.shortcuts import redirect as django_redirect
+from django.db import transaction
+from django.db.models import Q
+from decimal import Decimal, ROUND_DOWN
 
 from .models import (
     Category, MenuItem, Cart, CartItem,
     Order, OrderItem, UserProfile, PasswordResetToken, RiderProfile,
-    Notification,
+    Notification, GroupOrder, GroupOrderMember, GroupCartItem,
+    GroupPaymentShare,
 )
 
 from .serializers import (
@@ -36,7 +40,7 @@ from .serializers import (
     CategorySerializer, MenuItemSerializer, MenuItemDetailSerializer,
     CartSerializer, AddToCartSerializer, UpdateCartItemSerializer,
     OrderSerializer, PlaceOrderSerializer, RiderProfileSerializer,
-    NotificationSerializer,
+    NotificationSerializer, GroupOrderSerializer,
 )
 
 # ========================
@@ -192,6 +196,7 @@ def google_login_view(request):
     credential = request.data.get('credential')
     access_token = request.data.get('access_token')
     role = request.data.get('role', 'USER')
+    calorie_target = request.data.get('calorie_target')
 
     if not credential and not access_token:
         return Response({'error': 'No credential provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -248,6 +253,8 @@ def google_login_view(request):
             # Create profile and set the role
             profile, _ = UserProfile.objects.get_or_create(user=user)
             profile.role = role
+            if calorie_target is not None:
+                profile.calorie_target = max(500, min(10000, int(calorie_target)))
             profile.save()
             Cart.objects.get_or_create(user=user)
         else:
@@ -266,7 +273,9 @@ def google_login_view(request):
             profile, _ = UserProfile.objects.get_or_create(user=user)
             if profile.role == 'USER' and role in ['RIDER', 'KITCHEN']:
                 profile.role = role
-                profile.save()
+            if calorie_target is not None and role == 'USER':
+                profile.calorie_target = max(500, min(10000, int(calorie_target)))
+            profile.save()
             
         token, _ = Token.objects.get_or_create(user=user)
         Cart.objects.get_or_create(user=user)
@@ -340,6 +349,7 @@ def profile_view(request):
             "address": profile.address,
             "city": profile.city,
             "bio": profile.bio,
+            "calorie_target": profile.calorie_target,
             "has_password": user.has_usable_password(),
             "rank": profile.rank_data,
         })
@@ -359,9 +369,14 @@ def profile_view(request):
     profile.address = request.data.get('address', profile.address)
     profile.city = request.data.get('city', profile.city)
     profile.bio = request.data.get('bio', profile.bio)
+    if 'calorie_target' in request.data:
+        try:
+            profile.calorie_target = max(500, min(10000, int(request.data['calorie_target'])))
+        except (TypeError, ValueError):
+            return Response({"calorie_target": ["Enter a whole number between 500 and 10000."]}, status=400)
     profile.save()
 
-    return Response({"message": "Profile updated"})
+    return Response(ProfileSerializer(user).data)
 
 
 @api_view(['POST'])
@@ -550,6 +565,18 @@ def cart_add(request):
         cart, _ = Cart.objects.get_or_create(user=request.user)
 
         item = MenuItem.objects.get(id=serializer.validated_data['menu_item_id'])
+        requested_quantity = serializer.validated_data['quantity']
+        projected_calories = cart.total_calories + (item.calories * requested_quantity)
+        calorie_target = getattr(request.user.profile, 'calorie_target', 2000)
+
+        if projected_calories > calorie_target and not serializer.validated_data['allow_over_limit']:
+            return Response({
+                "code": "calorie_limit_exceeded",
+                "message": f"This would bring your cart to {projected_calories} kcal, above your {calorie_target} kcal target. Add it anyway?",
+                "current_calories": cart.total_calories,
+                "projected_calories": projected_calories,
+                "calorie_target": calorie_target,
+            }, status=status.HTTP_409_CONFLICT)
 
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
@@ -571,7 +598,24 @@ def cart_add(request):
 def cart_update(request, pk):
     try:
         item = CartItem.objects.get(pk=pk, cart__user=request.user)
-        item.quantity = request.data.get("quantity", item.quantity)
+        serializer = UpdateCartItemSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_quantity = serializer.validated_data['quantity']
+        projected_calories = (
+            item.cart.total_calories
+            - item.total_calories
+            + (item.menu_item.calories * new_quantity)
+        )
+        calorie_target = getattr(request.user.profile, 'calorie_target', 2000)
+        if projected_calories > calorie_target and not serializer.validated_data['allow_over_limit']:
+            return Response({
+                "code": "calorie_limit_exceeded",
+                "message": f"This would bring your cart to {projected_calories} kcal, above your {calorie_target} kcal target. Continue anyway?",
+                "current_calories": item.cart.total_calories,
+                "projected_calories": projected_calories,
+                "calorie_target": calorie_target,
+            }, status=status.HTTP_409_CONFLICT)
+        item.quantity = new_quantity
         item.save()
         return Response(CartSerializer(item.cart).data)
     except CartItem.DoesNotExist:
@@ -591,6 +635,416 @@ def cart_remove(request, pk):
 
 
 # ========================
+# GROUP ORDERS
+# ========================
+def _group_for_member(user, invite_code):
+    return GroupOrder.objects.filter(
+        invite_code=invite_code,
+        members__user=user,
+    ).distinct().first()
+
+
+def _group_payload(group, request):
+    group = GroupOrder.objects.prefetch_related(
+        'members__user__profile',
+        'items__menu_item',
+        'items__added_by',
+        'payment_shares__user',
+    ).get(pk=group.pk)
+    return GroupOrderSerializer(group, context={'request': request}).data
+
+
+def _display_name(user):
+    return user.first_name or user.email.split('@')[0]
+
+
+def _sync_group_to_kharcha(group):
+    """Create the matching Kharcha group and equal bill after host payment."""
+    import requests as http_requests
+
+    if group.kharcha_group_id:
+        return
+    try:
+        host_link = group.host.kharcha_account
+        if not host_link.is_active:
+            raise Exception('Host Kharcha account is not linked.')
+    except Exception as exc:
+        group.kharcha_sync_status = 'failed'
+        group.save(update_fields=['kharcha_sync_status'])
+        return
+
+    member_links = []
+    missing = []
+    for membership in group.members.select_related('user').exclude(user=group.host):
+        try:
+            link = membership.user.kharcha_account
+            if not link.is_active:
+                raise Exception
+            member_links.append(link.link_token)
+        except Exception:
+            missing.append(_display_name(membership.user))
+
+    group.kharcha_missing_members = missing
+    group.kharcha_sync_status = 'creating'
+    group.save(update_fields=['kharcha_missing_members', 'kharcha_sync_status'])
+
+    try:
+        response = http_requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/oauth/groups/create",
+            headers={
+                'X-Client-Id': settings.KHARCHA_CLIENT_ID,
+                'X-Client-Secret': settings.KHARCHA_CLIENT_SECRET,
+                'Content-Type': 'application/json',
+            },
+            json={
+                'name': group.name,
+                'creator_link_token': host_link.link_token,
+                'member_link_tokens': member_links,
+                'amount': float(group.total),
+                'bill_title': f'KTM-Bites: {group.name}',
+            },
+            timeout=15,
+        )
+        data = response.json()
+    except Exception:
+        data = {}
+
+    if data.get('success'):
+        group.kharcha_group_id = data['group_id']
+        group.kharcha_sync_status = 'created'
+        group.save(update_fields=['kharcha_group_id', 'kharcha_sync_status'])
+    else:
+        group.kharcha_sync_status = 'failed'
+        group.save(update_fields=['kharcha_sync_status'])
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def group_order_list_create(request):
+    if request.method == 'GET':
+        groups = GroupOrder.objects.filter(members__user=request.user).distinct()
+        return Response(GroupOrderSerializer(groups, many=True, context={'request': request}).data)
+
+    name = str(request.data.get('name', '')).strip()
+    if not name:
+        return Response({'error': 'Group name is required.'}, status=400)
+
+    with transaction.atomic():
+        group = GroupOrder.objects.create(name=name[:100], host=request.user)
+        GroupOrderMember.objects.create(group=group, user=request.user)
+    return Response(_group_payload(group, request), status=201)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def group_order_join(request, invite_code):
+    try:
+        group = GroupOrder.objects.get(invite_code=invite_code)
+    except GroupOrder.DoesNotExist:
+        return Response({'error': 'This invite link is invalid.'}, status=404)
+    if group.status != 'open':
+        return Response({'error': 'This group is no longer accepting members.'}, status=409)
+    GroupOrderMember.objects.get_or_create(group=group, user=request.user)
+    return Response(_group_payload(group, request))
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def group_order_detail(request, invite_code):
+    group = _group_for_member(request.user, invite_code)
+    if not group:
+        return Response({'error': 'Join this group before viewing it.'}, status=403)
+    return Response(_group_payload(group, request))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def group_order_add_item(request, invite_code):
+    group = _group_for_member(request.user, invite_code)
+    if not group:
+        return Response({'error': 'You are not a member of this group.'}, status=403)
+    if group.status != 'open':
+        return Response({'error': 'The cart is locked for payment.'}, status=409)
+
+    try:
+        menu_item = MenuItem.objects.get(pk=request.data.get('menu_item_id'), is_available=True)
+        quantity = max(1, int(request.data.get('quantity', 1)))
+    except (MenuItem.DoesNotExist, TypeError, ValueError):
+        return Response({'error': 'Choose a valid menu item and quantity.'}, status=400)
+
+    projected = group.total_calories + (menu_item.calories * quantity)
+    if projected > group.calorie_target and not request.data.get('allow_over_limit'):
+        return Response({
+            'code': 'calorie_limit_exceeded',
+            'message': f'This would bring the group cart to {projected} kcal, above the shared {group.calorie_target} kcal target.',
+            'projected_calories': projected,
+            'calorie_target': group.calorie_target,
+        }, status=409)
+
+    item, created = GroupCartItem.objects.get_or_create(
+        group=group,
+        added_by=request.user,
+        menu_item=menu_item,
+        defaults={'quantity': quantity},
+    )
+    if not created:
+        item.quantity += quantity
+        item.save(update_fields=['quantity'])
+    return Response(_group_payload(group, request))
+
+
+@api_view(['PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def group_order_item(request, invite_code, pk):
+    group = _group_for_member(request.user, invite_code)
+    if not group or group.status != 'open':
+        return Response({'error': 'This group cart cannot be changed.'}, status=409)
+    try:
+        item = GroupCartItem.objects.get(pk=pk, group=group, added_by=request.user)
+    except GroupCartItem.DoesNotExist:
+        return Response({'error': 'You can only change items you added.'}, status=403)
+    if request.method == 'DELETE':
+        item.delete()
+    else:
+        try:
+            quantity = max(1, int(request.data.get('quantity')))
+        except (TypeError, ValueError):
+            return Response({'error': 'Quantity must be at least 1.'}, status=400)
+        projected = group.total_calories - item.total_calories + (item.menu_item.calories * quantity)
+        if projected > group.calorie_target and not request.data.get('allow_over_limit'):
+            return Response({
+                'code': 'calorie_limit_exceeded',
+                'message': f'This would bring the group cart to {projected} kcal, above the shared {group.calorie_target} kcal target.',
+            }, status=409)
+        item.quantity = quantity
+        item.save(update_fields=['quantity'])
+    return Response(_group_payload(group, request))
+
+
+def _allocate_group_shares(group):
+    members = list(group.members.select_related('user').all())
+    total = Decimal(group.total).quantize(Decimal('0.01'))
+    delivery = Decimal(group.delivery_fee)
+    allocations = {}
+
+    if group.split_mode == 'single':
+        allocations[group.host_id] = total
+    elif group.split_mode == 'equal':
+        base = (total / len(members)).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+        remainder = total - (base * len(members))
+        for index, member in enumerate(members):
+            allocations[member.user_id] = base + (remainder if index == 0 else Decimal('0'))
+    else:
+        delivery_base = (delivery / len(members)).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+        delivery_remainder = delivery - (delivery_base * len(members))
+        for index, member in enumerate(members):
+            item_total = sum(
+                (item.subtotal for item in group.items.filter(added_by=member.user).select_related('menu_item')),
+                Decimal('0'),
+            )
+            allocations[member.user_id] = item_total + delivery_base + (
+                delivery_remainder if index == 0 else Decimal('0')
+            )
+    return allocations
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def group_order_checkout(request, invite_code):
+    group = _group_for_member(request.user, invite_code)
+    if not group or group.host_id != request.user.id:
+        return Response({'error': 'Only the group host can start checkout.'}, status=403)
+    if group.status != 'open':
+        return Response({'error': 'Checkout has already started.'}, status=409)
+    if not group.items.exists():
+        return Response({'error': 'Add at least one item before checkout.'}, status=400)
+
+    split_mode = request.data.get('split_mode', 'single')
+    if split_mode not in {'single', 'equal', 'items'}:
+        return Response({'error': 'Choose a valid payment split.'}, status=400)
+    required = ['full_name', 'phone', 'address']
+    if any(not str(request.data.get(field, '')).strip() for field in required):
+        return Response({'error': 'Name, phone and delivery address are required.'}, status=400)
+
+    with transaction.atomic():
+        group.split_mode = split_mode
+        group.single_payment_mode = (
+            request.data.get('single_payment_mode', 'treat')
+            if split_mode == 'single'
+            else 'treat'
+        )
+        if group.single_payment_mode not in {'treat', 'settle_later'}:
+            group.single_payment_mode = 'treat'
+        if split_mode == 'single' and group.single_payment_mode == 'settle_later':
+            group.kharcha_missing_members = [
+                _display_name(member.user)
+                for member in group.members.select_related('user')
+                if not (
+                    hasattr(member.user, 'kharcha_account') and
+                    member.user.kharcha_account.is_active
+                )
+            ]
+            group.kharcha_sync_status = 'pending'
+        for field in ['full_name', 'phone', 'address', 'city', 'landmark', 'notes']:
+            if field in request.data:
+                setattr(group, field, request.data.get(field, ''))
+        group.status = 'locked'
+        group.save()
+
+        order = Order.objects.create(
+            user=group.host,
+            subtotal=group.subtotal,
+            delivery_fee=group.delivery_fee,
+            discount_amount=0,
+            total=group.total,
+            status='pending_payment',
+            payment_method='kharcha',
+            payment_status='pending',
+            full_name=group.full_name,
+            phone=group.phone,
+            address=group.address,
+            city=group.city,
+            landmark=group.landmark,
+            notes=group.notes,
+        )
+        for item in group.items.select_related('menu_item'):
+            OrderItem.objects.create(
+                order=order,
+                menu_item=item.menu_item,
+                quantity=item.quantity,
+                price=item.menu_item.price,
+            )
+        group.order = order
+        group.save(update_fields=['order'])
+
+        GroupPaymentShare.objects.filter(group=group).delete()
+        for user_id, amount in _allocate_group_shares(group).items():
+            GroupPaymentShare.objects.create(group=group, user_id=user_id, amount=amount)
+
+    return Response(_group_payload(group, request))
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def group_payment_initiate(request, invite_code):
+    import requests as http_requests
+    group = _group_for_member(request.user, invite_code)
+    if not group or group.status not in {'locked', 'paying'}:
+        return Response({'error': 'This group is not ready for payment.'}, status=409)
+    target_user_id = request.data.get('target_user_id') or request.user.id
+    if not group.members.filter(user_id=target_user_id).exists():
+        return Response({'error': 'That person is not in this group.'}, status=404)
+    try:
+        share = GroupPaymentShare.objects.get(group=group, user_id=target_user_id)
+        linked = request.user.kharcha_account
+        if not linked.is_active:
+            raise Exception
+    except GroupPaymentShare.DoesNotExist:
+        return Response({'error': 'You do not have a payment share in this order.'}, status=403)
+    except Exception:
+        return Response({'error': 'Link your Kharcha account before paying.', 'link_required': True}, status=400)
+    if share.status == 'paid':
+        return Response({'error': 'Your share is already paid.'}, status=409)
+    if share.status == 'initiated' and share.payment_payer_id != request.user.id:
+        return Response({
+            'error': f'{_display_name(share.payment_payer)} is already paying this share.'
+        }, status=409)
+
+    try:
+        res = http_requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/oauth/pay/initiate",
+            headers={
+                'X-Client-Id': settings.KHARCHA_CLIENT_ID,
+                'X-Client-Secret': settings.KHARCHA_CLIENT_SECRET,
+                'Content-Type': 'application/json',
+            },
+            json={
+                'link_token': linked.link_token,
+                'amount': float(share.amount),
+                'note': (
+                    f"KTM Bites group order: {group.name}"
+                    if share.user_id == request.user.id
+                    else f"KTM Bites treat for {_display_name(share.user)}: {group.name}"
+                ),
+                'callback_url': getattr(settings, 'KHARCHA_WEBHOOK_URL', ''),
+            },
+            timeout=15,
+        )
+        data = res.json()
+    except http_requests.RequestException as exc:
+        return Response({'error': 'Could not reach Kharcha.', 'details': str(exc)}, status=502)
+    if not data.get('success'):
+        return Response({'error': data.get('message', 'Kharcha declined the payment.')}, status=400)
+
+    share.kharcha_payment_id = data['payment_id']
+    share.status = 'initiated'
+    share.payment_payer = request.user
+    share.save(update_fields=['kharcha_payment_id', 'status', 'payment_payer'])
+    group.status = 'paying'
+    group.save(update_fields=['status'])
+    return Response({
+        'payment_id': share.kharcha_payment_id,
+        'masked_email': data.get('masked_email'),
+        'amount': float(share.amount),
+        'for_user': _display_name(share.user),
+        'is_treat': share.user_id != request.user.id,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def group_payment_confirm(request, invite_code):
+    import requests as http_requests
+    group = _group_for_member(request.user, invite_code)
+    try:
+        share = GroupPaymentShare.objects.get(
+            group=group,
+            payment_payer=request.user,
+            kharcha_payment_id=request.data.get('payment_id'),
+            status='initiated',
+        )
+    except GroupPaymentShare.DoesNotExist:
+        return Response({'error': 'No pending payment was found.'}, status=404)
+    try:
+        res = http_requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/oauth/pay/confirm",
+            json={'payment_id': share.kharcha_payment_id, 'otp': str(request.data.get('otp', ''))},
+            timeout=15,
+        )
+        data = res.json()
+    except http_requests.RequestException as exc:
+        return Response({'error': 'Could not reach Kharcha.', 'details': str(exc)}, status=502)
+    if not data.get('success'):
+        return Response({
+            'error': data.get('message', 'Payment failed.'),
+            'attempts_remaining': data.get('attempts_remaining'),
+        }, status=res.status_code)
+
+    share.status = 'paid'
+    share.paid_by = request.user
+    share.transaction_id = data.get('transaction', {}).get('transaction_id', '')
+    share.paid_at = timezone.now()
+    share.save(update_fields=['status', 'paid_by', 'transaction_id', 'paid_at'])
+
+    if not group.payment_shares.exclude(status='paid').exists():
+        group.status = 'completed'
+        group.order.status = 'placed'
+        group.order.payment_status = 'completed'
+        group.order.transaction_id = f"group:{group.invite_code}"
+        group.order.save(update_fields=['status', 'payment_status', 'transaction_id'])
+        group.save(update_fields=['status'])
+        if group.split_mode == 'single' and group.single_payment_mode == 'settle_later':
+            _sync_group_to_kharcha(group)
+        for membership in group.members.select_related('user'):
+            create_notification(
+                membership.user, 'order_placed', 'Group order placed!',
+                f'{group.name} is fully paid and the kitchen has received the order.',
+                order=group.order,
+            )
+    return Response(_group_payload(group, request))
+
+
+# ========================
 # ORDERS
 # ========================
 @api_view(['GET', 'POST'])
@@ -599,8 +1053,11 @@ def order_list_create(request):
 
     if request.method == "GET":
         # Optimize: prefetch_related('items') fetches all order items in one batch
-        orders = Order.objects.prefetch_related('items', 'items__menu_item').filter(user=request.user)
-        return Response(OrderSerializer(orders, many=True).data)
+        orders = Order.objects.prefetch_related('items', 'items__menu_item').filter(
+            Q(user=request.user) |
+            Q(group_order__members__user=request.user)
+        ).distinct()
+        return Response(OrderSerializer(orders, many=True, context={'request': request}).data)
 
     # Cash on Delivery (COD) is completely disabled.
     return Response(
@@ -616,8 +1073,11 @@ def order_list_create(request):
 @permission_classes([IsAuthenticated])
 def order_detail(request, pk):
     try:
-        order = Order.objects.get(pk=pk, user=request.user)
-        return Response(OrderSerializer(order).data)
+        order = Order.objects.filter(
+            Q(pk=pk, user=request.user) |
+            Q(pk=pk, group_order__members__user=request.user)
+        ).distinct().get()
+        return Response(OrderSerializer(order, context={'request': request}).data)
     except Order.DoesNotExist:
         return Response({"error": "Order not found"}, status=404)
 
@@ -644,7 +1104,10 @@ def cancel_order(request, pk):
 
     order.status = 'cancelled'
     order.save(update_fields=['status'])
-    return Response({"message": "Order cancelled successfully.", "order": OrderSerializer(order).data})
+    return Response({
+        "message": "Order cancelled successfully.",
+        "order": OrderSerializer(order, context={'request': request}).data,
+    })
 
 
 # ========================
@@ -1353,6 +1816,7 @@ def chat_view(request):
             "name": item.name,
             "category": item.category.name,
             "price": str(item.price),
+            "calories": item.calories,
             "description": item.description,
             "rating": str(item.rating),
         }
@@ -1414,6 +1878,7 @@ Your job:
                         "id": m.id,
                         "name": m.name,
                         "price": str(m.price),
+                        "calories": m.calories,
                         "image": m.image,
                     })
         except Exception:
@@ -1489,7 +1954,7 @@ def recommendations_view(request):
     # 4. Full menu for AI context
     menu_items = MenuItem.objects.filter(is_available=True).select_related('category')
     menu_context = [
-        {"id": item.id, "name": item.name, "category": item.category.name, "price": str(item.price)}
+        {"id": item.id, "name": item.name, "category": item.category.name, "price": str(item.price), "calories": item.calories}
         for item in menu_items
     ]
 
@@ -1530,7 +1995,7 @@ Return ONLY a JSON list of 3 objects:
             m = item_map[iid]
             recommendations.append({
                 "id": m.id, "name": m.name, "price": str(m.price),
-                "image": m.image, 
+                "image": m.image, "calories": m.calories,
                 "reason": reason_map.get(iid, ''),
                 "type": type_map.get(iid, 'AI Pick'),
             })

@@ -19,6 +19,7 @@ export interface MenuItemData {
   time: string;
   image: string;
   description: string;
+  calories: number;
   badge: string;
   is_available: boolean;
 }

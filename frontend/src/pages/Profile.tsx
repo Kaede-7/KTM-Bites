@@ -15,7 +15,6 @@ import {
 import PageTransition from "../components/PageTransition";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { downloadOrderPDF } from "../utils/pdfGenerator";
-import { AddressAutocomplete } from "../components/AddressAutocomplete";
 
 // ── Toast Component ──────────────────────────────────────────
 const Toast: React.FC<{ msg: string; type: "success" | "error"; onClose: () => void }> = ({ msg, type, onClose }) => (
@@ -120,7 +119,8 @@ const Profile: React.FC = () => {
     phone: "",
     address: "",
     city: "",
-    bio: ""
+    bio: "",
+    calorie_target: 2000,
   } as any);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -209,9 +209,16 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async () => {
+    const calorieTarget = Number(formData.calorie_target);
+    if (!Number.isInteger(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
+      showToast("Calorie target must be between 500 and 10,000 kcal.", "error");
+      return;
+    }
     setSaving(true);
     try {
-      await updateProfile(formData);
+      await updateProfile({ ...formData, calorie_target: calorieTarget });
+      setFormData((prev) => ({ ...prev, calorie_target: calorieTarget }));
+      window.dispatchEvent(new Event("cart-updated"));
       showToast("Profile updated successfully!");
     } catch {
       showToast("Failed to update profile.", "error");
@@ -483,24 +490,46 @@ const Profile: React.FC = () => {
                       <input 
                         type="tel" 
                         value={formData.phone || ""} 
-                        onChange={(e) => {
-                          const numericOnly = e.target.value.replace(/\D/g, "");
-                          setFormData((prev) => ({ ...prev, phone: numericOnly }));
-                        }}
+                        onChange={handleChange("phone")} 
                         placeholder="Phone Number" 
-                        inputMode="numeric"
                       />
+                    </div>
+                  </div>
+
+                  <div className="pf-field">
+                    <label className="pf-label">Calorie Target</label>
+                    <div className="pf-input-group pf-calorie-input">
+                      <span className="pf-calorie-icon">🔥</span>
+                      <input
+                        type="number"
+                        min="500"
+                        max="10000"
+                        step="50"
+                        value={formData.calorie_target || 2000}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            calorie_target: Number(e.target.value),
+                          }))
+                        }
+                        placeholder="Daily calorie target"
+                      />
+                      <span className="pf-calorie-unit">kcal</span>
+                    </div>
+                    <div className="pf-field-hint">
+                      Your cart progress bar will use this target.
                     </div>
                   </div>
 
                   <div className="pf-row">
                     <div className="pf-field">
                       <label className="pf-label">Street Address</label>
-                      <div className="pf-input-group" style={{ overflow: 'visible' }}>
-                        <AddressAutocomplete
-                          placeholder="Street Address"
-                          value={formData.address || ""}
-                          onChange={(val) => setFormData((prev) => ({ ...prev, address: val }))}
+                      <div className="pf-input-group">
+                        <input 
+                          type="text" 
+                          value={formData.address || ""} 
+                          onChange={handleChange("address")} 
+                          placeholder="Street Address" 
                         />
                       </div>
                     </div>

@@ -97,6 +97,12 @@ const ItemDetail: React.FC = () => {
 
             <p className="item-detail-desc">{item.description}</p>
 
+            <div className="item-detail-calories">
+              <span>🔥</span>
+              <strong>{item.calories * qty} kcal</strong>
+              <small>{item.calories} kcal per item</small>
+            </div>
+
             <div className="item-detail-price">
               Rs. {item.price}
               {item.old_price && <span>Rs. {item.old_price}</span>}

@@ -1263,6 +1263,34 @@
   box-sizing: border-box;
 }
 
+.pf-calorie-input {
+  display: flex;
+  align-items: center;
+}
+
+.pf-calorie-input input {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.pf-calorie-icon {
+  padding-left: 16px;
+  font-size: 19px;
+}
+
+.pf-calorie-unit {
+  padding-right: 18px;
+  color: #8b7d72;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pf-field-hint {
+  margin: 6px 4px 0;
+  color: #8b7d72;
+  font-size: 12px;
+}
+
 .pf-eye-btn {
   position: absolute;
   right: 12px;

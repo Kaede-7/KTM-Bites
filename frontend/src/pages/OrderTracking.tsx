@@ -187,7 +187,7 @@ const OrderTracking: React.FC = () => {
   };
   const getStatusLabel = () => statusSteps.find(s => s.key === order.status)?.title || order.status_display;
 
-  const canCancel = order.status === "placed" && cancelSecs > 0;
+  const canCancel = order.can_manage !== false && order.status === "placed" && cancelSecs > 0;
 
   return (
     <PageTransition>
@@ -246,7 +246,7 @@ const OrderTracking: React.FC = () => {
         </div>
 
         {/* ── 5-min Cancel Banner ─────────────────────────── */}
-        {order.status === "placed" && (
+        {order.can_manage !== false && order.status === "placed" && (
           <div className={`tracking-cancel-banner ${canCancel ? "" : "expired"}`}>
             {canCancel ? (
               <>
@@ -278,7 +278,7 @@ const OrderTracking: React.FC = () => {
           </div>
         )}
 
-        {order.status === "pending_payment" && (
+        {order.can_manage !== false && order.status === "pending_payment" && (
           <div className="tracking-pending-payment-banner">
             <div className="tracking-pending-content">
               <span className="material-symbols-rounded">payments</span>
@@ -374,7 +374,7 @@ const OrderTracking: React.FC = () => {
             </div>
 
             {/* Rating & Comment Form */}
-            {!order.has_reviewed_rider && !reviewSuccess && (
+            {order.can_manage !== false && !order.has_reviewed_rider && !reviewSuccess && (
               <div style={{ borderTop: '1px solid #ebdcd0', paddingTop: '20px' }}>
                 <p style={{ margin: '0 0 12px 0', fontSize: '0.95rem', fontWeight: 600, color: '#2a2420' }}>
                   Rate your delivery experience (Optional)

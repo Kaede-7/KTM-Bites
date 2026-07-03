@@ -26,6 +26,7 @@ export interface RecommendedItem {
   name: string;     // e.g. "Chicken Momo"
   price: number;    // e.g. 250
   image: string;    // URL to the food image
+  calories: number;
   reason?: string;  // e.g. "Perfect for a rainy evening"
   type?: string;    // e.g. "Weather-based"
 }

@@ -13,6 +13,7 @@ const Signup: React.FC = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    calorieTarget: "2000",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -46,6 +47,11 @@ const Signup: React.FC = () => {
       setError(passwordError);
       return;
     }
+    const calorieTarget = Number(formData.calorieTarget);
+    if (!Number.isInteger(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
+      setError("Calorie target must be a whole number between 500 and 10,000 kcal.");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -53,6 +59,7 @@ const Signup: React.FC = () => {
         full_name: formData.fullName,
         email: formData.email,
         password: formData.password,
+        calorie_target: calorieTarget,
       });
       navigate("/home");
     } catch (err: any) {
@@ -71,7 +78,12 @@ const Signup: React.FC = () => {
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        await googleLogin(tokenResponse.access_token, true);
+        const calorieTarget = Number(formData.calorieTarget);
+        if (!Number.isInteger(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
+          setError("Set a calorie target between 500 and 10,000 kcal first.");
+          return;
+        }
+        await googleLogin(tokenResponse.access_token, true, 'USER', false, calorieTarget);
         navigate("/home");
       } catch (err: any) {
         setError("Google signup failed. Please try again.");
@@ -112,6 +124,24 @@ const Signup: React.FC = () => {
         <div className="auth-input-wrapper">
           <span className="material-symbols-rounded">mail</span>
           <input type="email" placeholder="Email Address" value={formData.email} onChange={handleChange("email")} required />
+        </div>
+
+        <div className="auth-input-wrapper">
+          <span className="material-symbols-rounded">local_fire_department</span>
+          <input
+            type="number"
+            min="500"
+            max="10000"
+            step="50"
+            placeholder="Daily calorie target"
+            value={formData.calorieTarget}
+            onChange={handleChange("calorieTarget")}
+            required
+          />
+          <span className="auth-input-suffix">kcal</span>
+        </div>
+        <div className="auth-input-hint">
+          We’ll track your cart against this target. You can still choose to go over it.
         </div>
 
         <div className="auth-input-wrapper">

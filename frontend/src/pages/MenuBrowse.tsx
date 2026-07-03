@@ -213,6 +213,7 @@ const MenuBrowse: React.FC = () => {
                   </div>
                   <div className="mcm-body">
                     <h3 className="mcm-title">{item.name}</h3>
+                    <div className="menu-calorie-chip">🔥 {item.calories} kcal</div>
                     <p className="mcm-desc">{item.description}</p>
                     <button className="mcm-add-btn" onClick={(e) => handleAddToCart(e, item.id)}>
                       <span className="material-symbols-rounded">shopping_cart</span>

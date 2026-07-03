@@ -19,6 +19,7 @@ interface MenuItem {
   category?: string | number;
   category_name?: string;
   price: number;
+  calories: number;
   old_price?: number;
   rating?: number;
   reviews?: number;
@@ -97,6 +98,7 @@ const Admin: React.FC = () => {
     name: "",
     category: 1,
     price: 0,
+    calories: 500,
     image: "",
     description: "",
   });
@@ -260,6 +262,7 @@ const Admin: React.FC = () => {
       name: "",
       category: 1,
       price: 0,
+      calories: 500,
       image: "",
       description: "",
     });
@@ -872,6 +875,23 @@ const Admin: React.FC = () => {
                             })
                           }
                           placeholder="Enter price"
+                          required
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label>Calories (kcal) *</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={menuForm.calories}
+                          onChange={(e) =>
+                            setMenuForm({
+                              ...menuForm,
+                              calories: parseInt(e.target.value, 10) || 0,
+                            })
+                          }
+                          placeholder="Calories per item"
                           required
                         />
                       </div>

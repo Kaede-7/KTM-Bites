@@ -169,6 +169,12 @@
   color: #a3978f;
 }
 
+.auth-input-suffix {
+  color: #8b7d72;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .auth-input-hint {
   font-size: 11px;
   color: #8b7d72;

@@ -88,6 +88,10 @@ const Navbar: React.FC = () => {
               <span className="material-symbols-rounded">restaurant_menu</span>
               Menu
             </Link>
+            <Link to="/groups" className={`navbar-link ${isActive("/groups")}`}>
+              <span className="material-symbols-rounded">groups</span>
+              Group Order
+            </Link>
             <Link to="/order-tracking/latest" className={`navbar-link ${isActive("/order-tracking/latest")}`}>
               <span className="material-symbols-rounded">local_shipping</span>
               Track Order
@@ -183,6 +187,9 @@ const Navbar: React.FC = () => {
               </Link>
               <Link to="/cart" className={`navbar-mobile-link ${isActive("/cart")}`} onClick={() => setIsMenuOpen(false)}>
                 <span className="material-symbols-rounded">shopping_cart</span>Cart {cartCount > 0 && `(${cartCount})`}
+              </Link>
+              <Link to="/groups" className={`navbar-mobile-link ${isActive("/groups")}`} onClick={() => setIsMenuOpen(false)}>
+                <span className="material-symbols-rounded">groups</span>Group Order
               </Link>
               <Link to="/order-tracking/latest" className={`navbar-mobile-link`} onClick={() => setIsMenuOpen(false)}>
                 <span className="material-symbols-rounded">local_shipping</span>Track Order

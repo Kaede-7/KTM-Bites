@@ -37,6 +37,7 @@ const Cart: React.FC = () => {
     try {
       const data = await updateCartItem(cartItemId, newQty);
       setCart(data);
+      window.dispatchEvent(new Event("cart-updated"));
     } catch (err) {
       console.error("Failed to update quantity:", err);
     }
@@ -46,6 +47,7 @@ const Cart: React.FC = () => {
     try {
       const data = await removeFromCart(cartItemId);
       setCart(data);
+      window.dispatchEvent(new Event("cart-updated"));
     } catch (err) {
       console.error("Failed to remove item:", err);
     }
@@ -86,6 +88,8 @@ const Cart: React.FC = () => {
 
   const deliveryFee = 80;
   const total = Number(cart.total) + deliveryFee;
+  const calorieFill = Math.min(cart.calorie_percentage, 100);
+  const caloriesRemaining = Math.max(cart.calorie_target - cart.total_calories, 0);
 
   return (
     <PageTransition>
@@ -104,6 +108,7 @@ const Cart: React.FC = () => {
                   <h4 className="cart-item-name">{item.name}</h4>
                   <p className="cart-item-category">{item.category}</p>
                   <p className="cart-item-price">Rs. {item.price}</p>
+                  <p className="cart-item-calories">🔥 {item.total_calories} kcal</p>
                 </div>
                 <div className="cart-item-controls">
                   <div className="cart-item-qty">
@@ -125,6 +130,42 @@ const Cart: React.FC = () => {
 
           <div className="cart-summary">
             <h3>Order Summary</h3>
+
+            <div className={`cart-calorie-meter ${cart.calorie_exceeded ? "is-over" : ""}`}>
+              <div className="cart-calorie-gauge" aria-hidden="true">
+                <div
+                  className="cart-calorie-gauge-fill"
+                  style={{ height: `${calorieFill}%` }}
+                />
+                <span
+                  className="cart-calorie-gauge-fire"
+                  style={{ bottom: `clamp(8px, ${calorieFill}%, calc(100% - 16px))` }}
+                >
+                  🔥
+                </span>
+              </div>
+
+              <div className="cart-calorie-details">
+                <div className="cart-calorie-heading">
+                  <span>Calorie meter</span>
+                  <strong>{Math.round(cart.calorie_percentage)}%</strong>
+                </div>
+                <div className="cart-calorie-value">
+                  {cart.total_calories.toLocaleString()}
+                  <span> / {cart.calorie_target.toLocaleString()} kcal</span>
+                </div>
+                <p>
+                  {cart.calorie_exceeded
+                    ? `${(cart.total_calories - cart.calorie_target).toLocaleString()} kcal over your target`
+                    : `${caloriesRemaining.toLocaleString()} kcal remaining`}
+                </p>
+                <Link to="/profile" className="cart-calorie-edit">
+                  Change target
+                  <span className="material-symbols-rounded">arrow_forward</span>
+                </Link>
+              </div>
+            </div>
+
             <div className="cart-summary-row"><span>Subtotal</span><span>Rs. {cart.total}</span></div>
             <div className="cart-summary-row"><span>Delivery Fee</span><span>Rs. {deliveryFee}</span></div>
 
