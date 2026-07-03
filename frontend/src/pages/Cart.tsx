@@ -89,7 +89,7 @@ const Cart: React.FC = () => {
   const deliveryFee = 80;
   const total = Number(cart.total) + deliveryFee;
   const calorieFill = Math.min(cart.calorie_percentage, 100);
-  const caloriesRemaining = Math.max(cart.calorie_target - cart.total_calories, 0);
+  const caloriesRemaining = cart.calorie_target !== null ? Math.max(cart.calorie_target - cart.total_calories, 0) : 0;
 
   return (
     <PageTransition>
@@ -131,6 +131,7 @@ const Cart: React.FC = () => {
           <div className="cart-summary">
             <h3>Order Summary</h3>
 
+            {cart.calorie_target !== null ? (
             <div className={`cart-calorie-meter ${cart.calorie_exceeded ? "is-over" : ""}`}>
               <div className="cart-calorie-gauge" aria-hidden="true">
                 <div
@@ -152,11 +153,11 @@ const Cart: React.FC = () => {
                 </div>
                 <div className="cart-calorie-value">
                   {cart.total_calories.toLocaleString()}
-                  <span> / {cart.calorie_target.toLocaleString()} kcal</span>
+                  <span>/ {(cart.calorie_target as number).toLocaleString()} kcal</span>
                 </div>
                 <p>
                   {cart.calorie_exceeded
-                    ? `${(cart.total_calories - cart.calorie_target).toLocaleString()} kcal over your target`
+                    ? `${(cart.total_calories - (cart.calorie_target as number)).toLocaleString()} kcal over your target`
                     : `${caloriesRemaining.toLocaleString()} kcal remaining`}
                 </p>
                 <Link to="/profile" className="cart-calorie-edit">
@@ -165,8 +166,10 @@ const Cart: React.FC = () => {
                 </Link>
               </div>
             </div>
+            ) : null}
 
             <div className="cart-summary-row"><span>Subtotal</span><span>Rs. {cart.total}</span></div>
+
             <div className="cart-summary-row"><span>Delivery Fee</span><span>Rs. {deliveryFee}</span></div>
 
             <div className="cart-summary-divider" />
