@@ -567,9 +567,9 @@ def cart_add(request):
         item = MenuItem.objects.get(id=serializer.validated_data['menu_item_id'])
         requested_quantity = serializer.validated_data['quantity']
         projected_calories = cart.total_calories + (item.calories * requested_quantity)
-        calorie_target = getattr(request.user.profile, 'calorie_target', 2000)
+        calorie_target = getattr(request.user.profile, 'calorie_target', None)
 
-        if projected_calories > calorie_target and not serializer.validated_data['allow_over_limit']:
+        if calorie_target is not None and projected_calories > calorie_target and not serializer.validated_data['allow_over_limit']:
             return Response({
                 "code": "calorie_limit_exceeded",
                 "message": f"This would bring your cart to {projected_calories} kcal, above your {calorie_target} kcal target. Add it anyway?",
@@ -606,8 +606,8 @@ def cart_update(request, pk):
             - item.total_calories
             + (item.menu_item.calories * new_quantity)
         )
-        calorie_target = getattr(request.user.profile, 'calorie_target', 2000)
-        if projected_calories > calorie_target and not serializer.validated_data['allow_over_limit']:
+        calorie_target = getattr(request.user.profile, 'calorie_target', None)
+        if calorie_target is not None and projected_calories > calorie_target and not serializer.validated_data['allow_over_limit']:
             return Response({
                 "code": "calorie_limit_exceeded",
                 "message": f"This would bring your cart to {projected_calories} kcal, above your {calorie_target} kcal target. Continue anyway?",

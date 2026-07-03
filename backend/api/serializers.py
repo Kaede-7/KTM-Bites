@@ -14,7 +14,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
     full_name = serializers.CharField(source='first_name')
     phone = serializers.CharField(write_only=True, required=False, default='')
-    calorie_target = serializers.IntegerField(write_only=True, min_value=500, max_value=10000, default=2000)
+    calorie_target = serializers.IntegerField(write_only=True, min_value=500, max_value=10000, required=False, allow_null=True, default=None)
 
     role = serializers.CharField(write_only=True, required=False, default='USER')
 
@@ -43,7 +43,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         from .models import RiderProfile
         phone = validated_data.pop('phone', '')
-        calorie_target = validated_data.pop('calorie_target', 2000)
+        calorie_target = validated_data.pop('calorie_target', None)
         role = validated_data.pop('role', 'USER')
         user = User.objects.create_user(
             username=validated_data['email'],
@@ -56,6 +56,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.role = role
         user.profile.calorie_target = calorie_target
         user.profile.save()
+
 
         user.save()
         return user
@@ -84,7 +85,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     address = serializers.CharField(source='profile.address', default='')
     city = serializers.CharField(source='profile.city', default='')
     bio = serializers.CharField(source='profile.bio', default='')
-    calorie_target = serializers.IntegerField(source='profile.calorie_target', min_value=500, max_value=10000)
+    calorie_target = serializers.IntegerField(source='profile.calorie_target', min_value=500, max_value=10000, allow_null=True, required=False)
 
     class Meta:
         model = User
@@ -189,14 +190,19 @@ class CartSerializer(serializers.ModelSerializer):
         ]
 
     def get_calorie_target(self, obj):
-        return getattr(getattr(obj.user, 'profile', None), 'calorie_target', 2000)
+        profile = getattr(obj.user, 'profile', None)
+        if profile and profile.calorie_target is not None:
+            return profile.calorie_target
+        return None
 
     def get_calorie_percentage(self, obj):
         target = self.get_calorie_target(obj)
         return round((obj.total_calories / target) * 100, 1) if target else 0
 
     def get_calorie_exceeded(self, obj):
-        return obj.total_calories > self.get_calorie_target(obj)
+        target = self.get_calorie_target(obj)
+        return obj.total_calories > target if target is not None else False
+
 
 
 class GroupMemberSerializer(serializers.ModelSerializer):

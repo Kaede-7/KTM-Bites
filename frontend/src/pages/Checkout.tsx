@@ -9,6 +9,8 @@ import LoadingAnimation from "../components/LoadingAnimation";
 import { getCart, type CartData } from "../api/cart";
 import { initiatePayment } from "../api/orders";
 import { getProfile, persistSessionForRedirect } from "../api/auth";
+import { AddressAutocomplete } from "../components/AddressAutocomplete";
+
 import {
   getKharchaLinkStatus,
   initiateKharchaLinkedPayment,
@@ -411,8 +413,22 @@ const Checkout: React.FC = () => {
                 </div>
                 <div className="checkout-field full-width">
                   <label>Street Address</label>
-                  <input type="text" placeholder="Enter your street address" value={form.address} onChange={handleChange("address")} required />
+                  <div style={{
+                    border: "1.5px solid rgba(212, 196, 168, 0.4)",
+                    borderRadius: "10px",
+                    padding: "10px 14px",
+                    background: "rgba(255, 255, 255, 0.8)",
+                    display: "flex",
+                    alignItems: "center"
+                  }}>
+                    <AddressAutocomplete
+                      value={form.address}
+                      onChange={(val) => setForm(prev => ({ ...prev, address: val }))}
+                      placeholder="Enter your street address"
+                    />
+                  </div>
                 </div>
+
                 <div className="checkout-field">
                   <label>City</label>
                   <input type="text" placeholder="City" value={form.city} onChange={handleChange("city")} />

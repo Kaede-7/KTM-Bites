@@ -13,7 +13,6 @@ const Signup: React.FC = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    calorieTarget: "2000",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -47,11 +46,6 @@ const Signup: React.FC = () => {
       setError(passwordError);
       return;
     }
-    const calorieTarget = Number(formData.calorieTarget);
-    if (!Number.isInteger(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
-      setError("Calorie target must be a whole number between 500 and 10,000 kcal.");
-      return;
-    }
 
     setLoading(true);
     try {
@@ -59,7 +53,7 @@ const Signup: React.FC = () => {
         full_name: formData.fullName,
         email: formData.email,
         password: formData.password,
-        calorie_target: calorieTarget,
+        // calorie_target defaults to 2000 on the backend; user sets it via Home popup
       });
       navigate("/home");
     } catch (err: any) {
@@ -78,12 +72,7 @@ const Signup: React.FC = () => {
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const calorieTarget = Number(formData.calorieTarget);
-        if (!Number.isInteger(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
-          setError("Set a calorie target between 500 and 10,000 kcal first.");
-          return;
-        }
-        await googleLogin(tokenResponse.access_token, true, 'USER', false, calorieTarget);
+        await googleLogin(tokenResponse.access_token, true, 'USER', false);
         navigate("/home");
       } catch (err: any) {
         setError("Google signup failed. Please try again.");
@@ -127,24 +116,6 @@ const Signup: React.FC = () => {
         </div>
 
         <div className="auth-input-wrapper">
-          <span className="material-symbols-rounded">local_fire_department</span>
-          <input
-            type="number"
-            min="500"
-            max="10000"
-            step="50"
-            placeholder="Daily calorie target"
-            value={formData.calorieTarget}
-            onChange={handleChange("calorieTarget")}
-            required
-          />
-          <span className="auth-input-suffix">kcal</span>
-        </div>
-        <div className="auth-input-hint">
-          We’ll track your cart against this target. You can still choose to go over it.
-        </div>
-
-        <div className="auth-input-wrapper">
           <span className="material-symbols-rounded">lock</span>
           <input
             type={showPassword ? "text" : "password"}
@@ -158,7 +129,7 @@ const Signup: React.FC = () => {
           </button>
         </div>
         <div className="auth-input-hint">
-          Must be 8+ chars with uppercase, number, & special char
+          Must be 8+ chars with uppercase, number, &amp; special char
         </div>
 
         <div className="auth-input-wrapper" style={{ marginBottom: "8px" }}>

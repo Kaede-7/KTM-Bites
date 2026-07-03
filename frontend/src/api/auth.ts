@@ -35,7 +35,8 @@ export interface ProfileData {
   address: string;
   city: string;
   bio: string;
-  calorie_target: number;
+  calorie_target: number | null;
+
   has_password: boolean;
   role?: string;
   rank: {

@@ -19,7 +19,7 @@ export interface CartData {
   total: number;
   item_count: number;
   total_calories: number;
-  calorie_target: number;
+  calorie_target: number | null;
   calorie_percentage: number;
   calorie_exceeded: boolean;
 }

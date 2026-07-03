@@ -30,13 +30,7 @@ export async function geocodeAddress(address: string, city = 'Kathmandu'): Promi
     const query = encodeURIComponent(`${address}, ${city}, Nepal`);
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
 
-    const response = await fetch(url, {
-      headers: {
-        // Nominatim requires a User-Agent to identify your app
-        'User-Agent': 'KTM-Bites-Delivery-App/1.0',
-      },
-    });
-
+    const response = await fetch(url);
     const results = await response.json();
 
     if (results && results.length > 0) {
@@ -46,7 +40,6 @@ export async function geocodeAddress(address: string, city = 'Kathmandu'): Promi
       };
     }
 
-    // If no results, return Kathmandu center
     console.warn(`Geocoding: No results for "${address}, ${city}". Using default.`);
     return KATHMANDU_CENTER;
   } catch (error) {
@@ -55,4 +48,39 @@ export async function geocodeAddress(address: string, city = 'Kathmandu'): Promi
   }
 }
 
+export interface GeocodeSuggestion {
+  display_name: string;
+  name: string;
+}
+
+/**
+ * Searches locations matching a query string in Kathmandu, Nepal.
+ * Returns up to 5 matching places.
+ */
+export async function searchKathmanduLocations(query: string): Promise<GeocodeSuggestion[]> {
+  if (!query || query.trim().length < 3) return [];
+  try {
+    const formattedQuery = encodeURIComponent(`${query}, Kathmandu`);
+    const url = `https://nominatim.openstreetmap.org/search?q=${formattedQuery}&format=json&limit=5&addressdetails=1`;
+
+    const response = await fetch(url);
+    const results = await response.json();
+    if (!results || !Array.isArray(results)) return [];
+
+    return results.map((item: any) => {
+      const parts = item.display_name.split(',');
+      const shortName = parts.slice(0, 3).join(',').trim();
+      return {
+        display_name: item.display_name,
+        name: shortName
+      };
+    });
+  } catch (error) {
+    console.error('Failed to search locations:', error);
+    return [];
+  }
+}
+
 export { KATHMANDU_CENTER };
+
+

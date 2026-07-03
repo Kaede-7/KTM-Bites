@@ -198,9 +198,11 @@
   line-height: 1.45;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
 
 .notif-time {
   font-size: 11px;
@@ -251,6 +253,68 @@
   position: fixed;
   inset: 0;
   z-index: 499;
+}
+
+/* ── Calorie "Not Set" Special Notification ──────────────────── */
+.notif-item-calorie {
+  background: linear-gradient(135deg, rgba(255, 237, 213, 0.7) 0%, rgba(255, 248, 240, 0.5) 100%);
+  border: 1px solid rgba(242, 139, 70, 0.2);
+  border-radius: 14px;
+  gap: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.notif-item-calorie::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(242,139,70,0.04), transparent);
+  pointer-events: none;
+}
+
+.notif-item-calorie:hover {
+  background: linear-gradient(135deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 248, 240, 0.8) 100%);
+  border-color: rgba(242, 139, 70, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(242,139,70,0.14);
+}
+
+.notif-calorie-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff3e8, #ffe0c2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(242,139,70,0.2);
+}
+
+.notif-calorie-icon-wrap .material-symbols-rounded {
+  font-size: 22px;
+  color: #f28b46;
+  font-variation-settings: 'FILL' 1;
+}
+
+.notif-calorie-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #d95e14;
+  margin-bottom: 3px;
+}
+
+.notif-calorie-cta {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f28b46;
+  letter-spacing: 0.01em;
 }
 
 /* ── Responsive ──────────────────────────────────────────────── */

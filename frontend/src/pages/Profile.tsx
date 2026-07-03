@@ -15,6 +15,8 @@ import {
 import PageTransition from "../components/PageTransition";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { downloadOrderPDF } from "../utils/pdfGenerator";
+import { AddressAutocomplete } from "../components/AddressAutocomplete";
+
 
 // ── Toast Component ──────────────────────────────────────────
 const Toast: React.FC<{ msg: string; type: "success" | "error"; onClose: () => void }> = ({ msg, type, onClose }) => (
@@ -120,7 +122,7 @@ const Profile: React.FC = () => {
     address: "",
     city: "",
     bio: "",
-    calorie_target: 2000,
+    calorie_target: null,
   } as any);
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,8 +207,13 @@ const Profile: React.FC = () => {
   }, [activeTab]);
 
   const handleChange = (field: keyof ProfileData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    let val = e.target.value;
+    if (field === "phone") {
+      val = val.replace(/\D/g, "");
+    }
+    setFormData((prev) => ({ ...prev, [field]: val }));
   };
+
 
   const handleSave = async () => {
     const calorieTarget = Number(formData.calorie_target);
@@ -218,7 +225,7 @@ const Profile: React.FC = () => {
     try {
       await updateProfile({ ...formData, calorie_target: calorieTarget });
       setFormData((prev) => ({ ...prev, calorie_target: calorieTarget }));
-      window.dispatchEvent(new Event("cart-updated"));
+      window.dispatchEvent(new Event("cart-updated")); // refresh calorie context
       showToast("Profile updated successfully!");
     } catch {
       showToast("Failed to update profile.", "error");
@@ -463,6 +470,7 @@ const Profile: React.FC = () => {
                   <div className="pf-field">
                     <label className="pf-label">Full Name</label>
                     <div className="pf-input-group">
+                      <span className="material-symbols-rounded pf-input-icon">person</span>
                       <input 
                         type="text" 
                         value={formData.full_name || ""} 
@@ -475,6 +483,7 @@ const Profile: React.FC = () => {
                   <div className="pf-field">
                     <label className="pf-label">Email Address</label>
                     <div className="pf-input-group">
+                      <span className="material-symbols-rounded pf-input-icon">mail</span>
                       <input 
                         type="email" 
                         value={formData.email || ""} 
@@ -487,6 +496,7 @@ const Profile: React.FC = () => {
                   <div className="pf-field">
                     <label className="pf-label">Phone Number</label>
                     <div className="pf-input-group">
+                      <span className="material-symbols-rounded pf-input-icon">call</span>
                       <input 
                         type="tel" 
                         value={formData.phone || ""} 
@@ -499,17 +509,17 @@ const Profile: React.FC = () => {
                   <div className="pf-field">
                     <label className="pf-label">Calorie Target</label>
                     <div className="pf-input-group pf-calorie-input">
-                      <span className="pf-calorie-icon">🔥</span>
+                      <span className="material-symbols-rounded pf-input-icon" style={{ color: "#f28b46" }}>local_fire_department</span>
                       <input
                         type="number"
                         min="500"
                         max="10000"
                         step="50"
-                        value={formData.calorie_target || 2000}
+                        value={formData.calorie_target !== null && formData.calorie_target !== undefined ? formData.calorie_target : ""}
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            calorie_target: Number(e.target.value),
+                            calorie_target: e.target.value === "" ? null : Number(e.target.value),
                           }))
                         }
                         placeholder="Daily calorie target"
@@ -517,33 +527,26 @@ const Profile: React.FC = () => {
                       <span className="pf-calorie-unit">kcal</span>
                     </div>
                     <div className="pf-field-hint">
-                      Your cart progress bar will use this target.
+                      {formData.calorie_target
+                        ? "Your cart progress bar will use this target."
+                        : "Goal: Not set. Enter a value above and save to configure."}
                     </div>
+
                   </div>
 
-                  <div className="pf-row">
-                    <div className="pf-field">
-                      <label className="pf-label">Street Address</label>
-                      <div className="pf-input-group">
-                        <input 
-                          type="text" 
-                          value={formData.address || ""} 
-                          onChange={handleChange("address")} 
-                          placeholder="Street Address" 
-                        />
-                      </div>
-                    </div>
-                    <div className="pf-field">
-                      <label className="pf-label">City</label>
-                      <div className="pf-input-group">
-                        <select value={formData.city || ""} onChange={handleChange("city")}>
-                          <option value="">Select City</option>
-                          <option value="Kathmandu">Kathmandu</option>
-                          <option value="Lalitpur">Lalitpur</option>
-                          <option value="Bhaktapur">Bhaktapur</option>
-                        </select>
-                        <span className="material-symbols-rounded pf-select-arrow">expand_more</span>
-                      </div>
+
+
+
+
+                  <div className="pf-field">
+                    <label className="pf-label">Street Address</label>
+                    <div className="pf-input-group" style={{ overflow: "visible" }}>
+                      <span className="material-symbols-rounded pf-input-icon">location_on</span>
+                      <AddressAutocomplete 
+                        value={formData.address || ""} 
+                        onChange={(val) => setFormData(prev => ({ ...prev, address: val }))} 
+                        placeholder="Street Address" 
+                      />
                     </div>
                   </div>
 

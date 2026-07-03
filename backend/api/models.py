@@ -166,10 +166,11 @@ class UserProfile(models.Model):
     phone = models.CharField(max_length=20, blank=True, default='')
     city = models.CharField(max_length=100, blank=True, default='Kathmandu')
     bio = models.TextField(blank=True, default='')
-    calorie_target = models.PositiveIntegerField(default=2000)
+    calorie_target = models.PositiveIntegerField(null=True, blank=True, default=None)
 
     def __str__(self):
         return f"{self.user.username} ({self.role})"
+
 
     @property
     def rank_data(self):

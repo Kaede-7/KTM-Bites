@@ -265,18 +265,94 @@
   }
 }
 
-.item-detail-calories {
+.item-detail-calorie-card {
+  background: #fff;
+  border: 1px solid rgba(212, 196, 168, 0.35);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(200, 132, 26, 0.03);
+  margin: 8px 0 16px 0;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-  margin: 16px 0;
-  padding: 9px 13px;
-  border-radius: 999px;
-  color: #b45309;
-  background: rgba(242, 139, 70, 0.12);
+  flex-direction: column;
+  gap: 16px;
 }
 
-.item-detail-calories small {
-  color: #8b7d72;
+.idc-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
+
+.idc-top .material-symbols-rounded {
+  font-size: 28px;
+  color: #f28b46;
+  background: rgba(242, 139, 70, 0.1);
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.idc-kcal {
+  display: flex;
+  flex-direction: column;
+}
+
+.idc-kcal strong {
+  font-size: 20px;
+  color: #2a2420;
+  font-weight: 800;
+}
+
+.idc-kcal span {
+  font-size: 12px;
+  color: #8b7d72;
+  margin-top: 2px;
+}
+
+.item-detail-macros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  border-top: 1px solid rgba(212, 196, 168, 0.25);
+  padding-top: 16px;
+}
+
+.item-detail-macro-card {
+  background: #faf8f5;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.item-detail-macro-card .material-symbols-rounded {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.item-detail-macro-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.macro-name {
+  font-size: 11px;
+  color: #8b7d72;
+  font-weight: 500;
+}
+
+.macro-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2a2420;
+  margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+  .item-detail-macros {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+

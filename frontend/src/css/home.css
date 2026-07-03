@@ -443,13 +443,14 @@
 }
 
 .address-modal {
-  background: #fdf6f0;
+  background: #fdfaf7;
   border-radius: 28px;
   padding: 40px 36px 32px;
   max-width: 480px;
   width: 100%;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.15);
+  box-shadow: 0 24px 80px rgba(42, 36, 32, 0.12);
   text-align: center;
+  border: 1px solid rgba(212, 196, 168, 0.35);
   animation: modalSlide 0.4s cubic-bezier(0.16,1,0.3,1);
 }
 
@@ -462,16 +463,16 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #c68233;
+  background: linear-gradient(135deg, #f28b46 0%, #e06c22 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
-  box-shadow: 0 8px 24px rgba(198, 130, 51, 0.3);
+  box-shadow: 0 8px 24px rgba(242, 139, 70, 0.3);
 }
 
 .address-modal-icon .material-symbols-rounded {
-  font-size: 32px;
+  font-size: 30px;
   color: #fff;
 }
 
@@ -492,29 +493,29 @@
 .address-modal-input-wrap {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 24px;
-  border: 1px solid #e0dbd5;
+  gap: 12px;
+  padding: 0 20px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 50px;
   background: #ffffff;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   margin-bottom: 16px;
 }
 
 .address-modal-input-wrap:focus-within {
-  border-color: #c68233;
-  box-shadow: 0 0 0 4px rgba(198, 130, 51, 0.1);
+  border-color: #f28b46;
+  box-shadow: 0 0 0 3px rgba(242, 139, 70, 0.15);
 }
 
 .address-modal-input-wrap .material-symbols-rounded {
-  font-size: 22px;
-  color: #a09387;
+  font-size: 20px;
+  color: #8b7d72;
   flex-shrink: 0;
 }
 
 .address-modal-input-wrap input {
   flex: 1;
-  padding: 16px 0;
+  padding: 14px 0;
   border: none;
   background: none;
   font-size: 15px;
@@ -540,11 +541,11 @@
 }
 
 .address-modal-skip {
-  padding: 14px 28px;
+  padding: 12px 28px;
   background: none;
-  border: 1px solid #e0dbd5;
+  border: 1px solid rgba(212, 196, 168, 0.5);
   border-radius: 50px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #8b7d72;
   cursor: pointer;
@@ -553,16 +554,17 @@
 }
 
 .address-modal-skip:hover {
-  border-color: #c0b3a8;
-  color: #2a2420;
+  background: rgba(242, 139, 70, 0.05);
+  border-color: rgba(242, 139, 70, 0.3);
+  color: #f28b46;
 }
 
 .address-modal-save {
-  padding: 14px 32px;
-  background: #c68233;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #f28b46 0%, #e06c22 100%);
   border: none;
   border-radius: 50px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
   display: flex;
@@ -570,11 +572,13 @@
   gap: 8px;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
-  box-shadow: 0 4px 16px rgba(198, 130, 51, 0.3);
+  box-shadow: 0 4px 16px rgba(242, 139, 70, 0.28);
+  transition: all 0.2s ease;
 }
 
 .address-modal-save:hover:not(:disabled) {
-  background: #b5762d;
+  box-shadow: 0 8px 20px rgba(242, 139, 70, 0.4);
+  transform: translateY(-1px);
 }
 
 .address-modal-save:disabled {
@@ -587,6 +591,7 @@
 .address-modal-save .material-symbols-rounded {
   font-size: 18px;
 }
+
 
 /* Guest Welcome Card */
 .guest-welcome-card { background: linear-gradient(135deg, #fff 0%, #fdf6f0 100%); border: 1.5px solid rgba(242, 139, 70, 0.2); text-align: center; padding: 40px 30px; }
@@ -671,3 +676,114 @@
     margin-top: -22px;
   }
 }
+
+/* ── Calorie Setup Modal Extensions ─────────────────────────── */
+.calorie-setup-modal {
+  max-width: 420px;
+  width: 92%;
+}
+
+.calorie-preset-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 12px 0 8px;
+}
+
+.calorie-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(212, 196, 168, 0.4);
+  background: rgba(253, 246, 240, 0.8);
+  color: #6b5d52;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.calorie-chip span:first-child {
+  font-size: 18px;
+}
+
+.calorie-chip:hover {
+  border-color: rgba(242, 139, 70, 0.4);
+  background: rgba(242, 139, 70, 0.06);
+  color: #c45e0d;
+}
+
+.calorie-chip.active {
+  border-color: #f28b46;
+  background: rgba(242, 139, 70, 0.12);
+  color: #c45e0d;
+  box-shadow: 0 0 0 3px rgba(242, 139, 70, 0.1);
+}
+
+.calorie-slider-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 4px;
+}
+
+.calorie-slider-val {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #2a2420;
+}
+
+.calorie-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f28b46, #fbbf24);
+  outline: none;
+  cursor: pointer;
+}
+
+.calorie-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #f28b46;
+  box-shadow: 0 2px 8px rgba(242, 139, 70, 0.3);
+  cursor: grab;
+  transition: box-shadow 0.2s ease;
+}
+
+.calorie-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  box-shadow: 0 4px 14px rgba(242, 139, 70, 0.45);
+}
+
+.calorie-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #a09288;
+}
+
+.calorie-slider-desc {
+  text-align: center;
+  font-size: 13px;
+  color: #8b7d72;
+  font-style: italic;
+  margin: 0;
+}
+
