@@ -334,7 +334,7 @@ const Profile: React.FC = () => {
                       key={tier.name} 
                       className={`rm-tier-card rm-tier-${tierSlug} ${isCurrent ? 'rm-tier-current' : ''} ${!isUnlocked ? 'rm-tier-locked' : ''}`}
                     >
-                      <div className="rm-tier-badge" style={{ backgroundColor: tier.color }}>
+                      <div className="rm-tier-badge">
                         <span className="material-symbols-rounded">
                           {tier.name === "Mythic Crimson" ? "military_tech" : 
                            (tier.name === "Diamond" || tier.name === "Platinum") ? "workspace_premium" : "stars"}
@@ -346,7 +346,7 @@ const Profile: React.FC = () => {
                             {tier.name}
                             {isCurrent && <span className="rm-tier-you">You</span>}
                           </div>
-                          <div className="rm-tier-discount" style={{ color: tier.color }}>
+                          <div className="rm-tier-discount">
                             {tier.discount > 0 ? `${tier.discount}%` : '—'}
                           </div>
                         </div>

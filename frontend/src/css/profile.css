@@ -621,7 +621,6 @@
 .rm-close:hover {
   background: rgba(242, 139, 70, 0.1);
   color: #f28b46;
-  transform: rotate(90deg);
 }
 
 .rm-close .material-symbols-rounded {
@@ -687,9 +686,25 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
   margin-top: 2px;
 }
+
+.rm-tier-rookie .rm-tier-badge { background: #8b7d72; }
+.rm-tier-bronze .rm-tier-badge { background: linear-gradient(135deg, #cd7f32, #a05a2c); }
+.rm-tier-silver .rm-tier-badge { background: linear-gradient(135deg, #a3a3a3, #737373); }
+.rm-tier-gold .rm-tier-badge { background: linear-gradient(135deg, #ffd700, #b45309); }
+.rm-tier-platinum .rm-tier-badge { background: linear-gradient(135deg, #38bdf8, #0284c7); }
+.rm-tier-diamond .rm-tier-badge { background: linear-gradient(135deg, #22d3ee, #0891b2); }
+.rm-tier-mythic-crimson .rm-tier-badge { background: linear-gradient(135deg, #ef4444, #991b1b); }
+
+.rm-tier-rookie .rm-tier-discount { color: #8b7d72; }
+.rm-tier-bronze .rm-tier-discount { color: #cd7f32; }
+.rm-tier-silver .rm-tier-discount { color: #a3a3a3; }
+.rm-tier-gold .rm-tier-discount { color: #ffd700; }
+.rm-tier-platinum .rm-tier-discount { color: #38bdf8; }
+.rm-tier-diamond .rm-tier-discount { color: #22d3ee; }
+.rm-tier-mythic-crimson .rm-tier-discount { color: #ef4444; }
 
 .rm-tier-badge .material-symbols-rounded {
   font-size: 18px;
