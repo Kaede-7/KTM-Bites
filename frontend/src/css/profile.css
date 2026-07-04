@@ -621,6 +621,8 @@
 .rm-close:hover {
   background: rgba(242, 139, 70, 0.1);
   color: #f28b46;
+  box-shadow: 0 4px 12px rgba(242, 139, 70, 0.25);
+  transform: scale(1.05);
 }
 
 .rm-close .material-symbols-rounded {
@@ -814,11 +816,11 @@
 .rm-tier-diamond .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
 .rm-tier-diamond .rm-tier-lock-icon .material-symbols-rounded { color: rgba(185, 242, 255, 0.4); }
 
-.rm-tier-mythic-crimson { background: radial-gradient(ellipse at 30% 0%, #1a0808, #0d0303) !important; border-color: rgba(180, 0, 0, 0.25) !important; }
-.rm-tier-mythic-crimson .rm-tier-name { color: #ff4d4d; }
-.rm-tier-mythic-crimson .rm-tier-req { color: rgba(255, 255, 255, 0.35); }
-.rm-tier-mythic-crimson .rm-tier-perks { color: rgba(255, 255, 255, 0.55); }
-.rm-tier-mythic-crimson .rm-tier-lock-icon .material-symbols-rounded { color: rgba(255, 77, 77, 0.4); }
+.rm-tier-mythic-crimson { background: linear-gradient(135deg, #1f1111 0%, #110808 100%) !important; border-color: rgba(255, 92, 92, 0.25) !important; }
+.rm-tier-mythic-crimson .rm-tier-name { color: #ff5c5c; }
+.rm-tier-mythic-crimson .rm-tier-req { color: rgba(255, 92, 92, 0.45); }
+.rm-tier-mythic-crimson .rm-tier-perks { color: rgba(255, 255, 255, 0.65); }
+.rm-tier-mythic-crimson .rm-tier-lock-icon .material-symbols-rounded { color: rgba(255, 92, 92, 0.4); }
 
 /* Current tier override borders for dark tiers */
 .rm-tier-bronze.rm-tier-current { border-color: #cd7f32 !important; box-shadow: 0 4px 20px rgba(205, 127, 50, 0.2); }
@@ -826,7 +828,7 @@
 .rm-tier-gold.rm-tier-current { border-color: #ffd700 !important; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15); }
 .rm-tier-platinum.rm-tier-current { border-color: #00d4ff !important; box-shadow: 0 4px 20px rgba(0, 212, 255, 0.15); }
 .rm-tier-diamond.rm-tier-current { border-color: #b9f2ff !important; box-shadow: 0 4px 20px rgba(185, 242, 255, 0.15); }
-.rm-tier-mythic-crimson.rm-tier-current { border-color: #ff4d4d !important; box-shadow: 0 4px 20px rgba(255, 77, 77, 0.2); }
+.rm-tier-mythic-crimson.rm-tier-current { border-color: #ff5c5c !important; box-shadow: 0 4px 20px rgba(255, 92, 92, 0.2); }
 
 /* ── Footer ─────────────────────────────────── */
 .rm-footer {
