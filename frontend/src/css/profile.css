@@ -672,11 +672,28 @@
 
 /* Locked tier */
 .rm-tier-card.rm-tier-locked {
-  opacity: 0.55;
+  border-color: rgba(0, 0, 0, 0.04);
 }
 
-.rm-tier-card.rm-tier-locked:hover {
+.rm-tier-card.rm-tier-locked .rm-tier-badge {
+  filter: grayscale(50%);
   opacity: 0.7;
+}
+
+.rm-tier-card.rm-tier-locked .rm-tier-name {
+  opacity: 0.8;
+}
+
+.rm-tier-card.rm-tier-locked .rm-tier-discount {
+  opacity: 0.6;
+}
+
+.rm-tier-card.rm-tier-locked .rm-tier-req {
+  opacity: 0.75;
+}
+
+.rm-tier-card.rm-tier-locked .rm-tier-perks {
+  opacity: 0.55;
 }
 
 /* ── Badge ──────────────────────────────────── */
