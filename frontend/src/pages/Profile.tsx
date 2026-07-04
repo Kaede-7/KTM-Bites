@@ -370,28 +370,51 @@ const Profile: React.FC = () => {
             
             {/* Rank Card */}
             {formData.rank && (
-              <div className={`profile-rank-card tier-${formData.rank.current_rank.toLowerCase().replace(/\s+/g, '-')}`} style={{ borderColor: `${formData.rank.color}40` }}>
-                <div className="prc-top">
+              <div className={`profile-rank-card tier-${formData.rank.current_rank.toLowerCase().replace(/\s+/g, '-')}`}>
+                {/* Card Header */}
+                <div className="prc-header">
                   <div className="prc-badge" style={{ backgroundColor: formData.rank.color }}>
                     <span className="material-symbols-rounded">
-                      {formData.rank.current_rank === "Mythic Crimson" ? "military_tech" : "stars"}
+                      {formData.rank.current_rank === "Mythic Crimson" ? "military_tech" : 
+                       (formData.rank.current_rank === "Diamond" || formData.rank.current_rank === "Platinum") ? "workspace_premium" : "stars"}
                     </span>
                   </div>
-                  <div className="prc-info">
-                    <div className="prc-label">Your rank</div>
-                    <div className="prc-name">{formData.rank.current_rank}</div>
-                  </div>
                   <div className="prc-discount">
-                    <span>{formData.rank.discount}% OFF</span>
+                    {formData.rank.discount}% OFF
                   </div>
                 </div>
-                
-                <div className="prc-progress-wrap">
-                  <div className="prc-progress-labels">
-                    <span>{formData.rank?.order_count} orders</span>
-                    <span>{formData.rank?.next_rank}</span>
+
+                {/* Rank Title */}
+                <div className="prc-title-section">
+                  <div className="prc-label">Membership Tier</div>
+                  <div className="prc-name">{formData.rank.current_rank}</div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="prc-stats-row">
+                  <div className="prc-stat">
+                    <span className="prc-stat-value">{formData.rank?.order_count}</span>
+                    <span className="prc-stat-label">Orders</span>
                   </div>
-                  <div className="prc-progress-bar">
+                  <div className="prc-stat-divider" />
+                  <div className="prc-stat">
+                    <span className="prc-stat-value">{Math.round(formData.rank?.progress || 0)}%</span>
+                    <span className="prc-stat-label">Progress</span>
+                  </div>
+                  <div className="prc-stat-divider" />
+                  <div className="prc-stat">
+                    <span className="prc-stat-value">{formData.rank.discount}%</span>
+                    <span className="prc-stat-label">Discount</span>
+                  </div>
+                </div>
+
+                {/* Progress Section */}
+                <div className="prc-progress-section">
+                  <div className="prc-progress-meta">
+                    <span>{formData.rank?.order_count} / {(formData.rank?.order_count || 0) + (formData.rank?.orders_to_next || 0)} orders</span>
+                    <span>{formData.rank?.next_rank || "Max Rank"}</span>
+                  </div>
+                  <div className="prc-progress-track">
                     <div 
                       className="prc-progress-fill" 
                       style={{ 
@@ -400,19 +423,25 @@ const Profile: React.FC = () => {
                       }} 
                     />
                   </div>
-                  <div className="prc-footer-row">
-                    {formData.rank?.orders_to_next > 0 ? (
-                      <div className="prc-hint">
-                        {formData.rank?.orders_to_next} more orders to {formData.rank?.next_rank}
-                      </div>
-                    ) : (
-                      <div className="prc-hint">You are at maximum rank!</div>
-                    )}
-                    <button className="prc-info-btn" onClick={() => setShowRanks(true)}>
-                      <span className="material-symbols-rounded">info</span>
-                      View Benefits
-                    </button>
-                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="prc-card-footer">
+                  {formData.rank?.orders_to_next > 0 ? (
+                    <div className="prc-hint">
+                      <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>trending_up</span>
+                      {formData.rank?.orders_to_next} more to {formData.rank?.next_rank}
+                    </div>
+                  ) : (
+                    <div className="prc-hint">
+                      <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>emoji_events</span>
+                      Maximum rank achieved!
+                    </div>
+                  )}
+                  <button className="prc-info-btn" onClick={() => setShowRanks(true)}>
+                    All Tiers
+                    <span className="material-symbols-rounded">arrow_forward</span>
+                  </button>
                 </div>
               </div>
             )}
