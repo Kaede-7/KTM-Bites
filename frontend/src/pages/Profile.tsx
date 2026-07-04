@@ -346,8 +346,13 @@ const Profile: React.FC = () => {
                             {tier.name}
                             {isCurrent && <span className="rm-tier-you">You</span>}
                           </div>
-                          <div className="rm-tier-discount">
-                            {tier.discount > 0 ? `${tier.discount}%` : '—'}
+                          <div className="rm-tier-right-side">
+                            <div className="rm-tier-discount">
+                              {tier.discount > 0 ? `${tier.discount}%` : '—'}
+                            </div>
+                            {!isUnlocked && (
+                              <span className="material-symbols-rounded rm-tier-lock-inline">lock</span>
+                            )}
                           </div>
                         </div>
                         <div className="rm-tier-req">
@@ -355,11 +360,6 @@ const Profile: React.FC = () => {
                         </div>
                         <p className="rm-tier-perks">{tier.perks}</p>
                       </div>
-                      {!isUnlocked && (
-                        <div className="rm-tier-lock-icon">
-                          <span className="material-symbols-rounded">lock</span>
-                        </div>
-                      )}
                     </div>
                   );
                 })}

@@ -790,16 +790,22 @@
   margin: 0;
 }
 
-/* ── Lock Icon ──────────────────────────────── */
-.rm-tier-lock-icon {
-  position: absolute;
-  top: 16px;
-  right: 16px;
+.rm-tier-right-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.rm-tier-lock-icon .material-symbols-rounded {
-  font-size: 14px;
+.rm-tier-lock-inline {
+  font-size: 14px !important;
   color: #b8a89a;
+  display: inline-block;
+  line-height: 1;
+}
+
+.rm-tier-mythic-crimson .rm-tier-lock-inline {
+  color: rgba(255, 92, 92, 0.5) !important;
 }
 
 /* ── Dark Tier Overrides for Modal ──────────── */
@@ -807,37 +813,37 @@
 .rm-tier-bronze .rm-tier-name { color: #cd7f32; }
 .rm-tier-bronze .rm-tier-req { color: rgba(205, 127, 50, 0.5); }
 .rm-tier-bronze .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
-.rm-tier-bronze .rm-tier-lock-icon .material-symbols-rounded { color: rgba(205, 127, 50, 0.4); }
+.rm-tier-bronze .rm-tier-lock-inline { color: rgba(205, 127, 50, 0.4) !important; }
 
 .rm-tier-silver { background: linear-gradient(135deg, #1e1e22, #141416) !important; border-color: rgba(192, 192, 192, 0.15) !important; }
 .rm-tier-silver .rm-tier-name { color: #d0d0d0; }
 .rm-tier-silver .rm-tier-req { color: rgba(192, 192, 192, 0.45); }
 .rm-tier-silver .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
-.rm-tier-silver .rm-tier-lock-icon .material-symbols-rounded { color: rgba(192, 192, 192, 0.4); }
+.rm-tier-silver .rm-tier-lock-inline { color: rgba(192, 192, 192, 0.4) !important; }
 
 .rm-tier-gold { background: linear-gradient(135deg, #1f1a05, #141000) !important; border-color: rgba(255, 215, 0, 0.15) !important; }
 .rm-tier-gold .rm-tier-name { color: #ffd700; }
 .rm-tier-gold .rm-tier-req { color: rgba(255, 215, 0, 0.4); }
 .rm-tier-gold .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
-.rm-tier-gold .rm-tier-lock-icon .material-symbols-rounded { color: rgba(255, 215, 0, 0.4); }
+.rm-tier-gold .rm-tier-lock-inline { color: rgba(255, 215, 0, 0.4) !important; }
 
 .rm-tier-platinum { background: linear-gradient(135deg, #06111c, #0a1828) !important; border-color: rgba(0, 212, 255, 0.15) !important; }
 .rm-tier-platinum .rm-tier-name { color: #00d4ff; }
 .rm-tier-platinum .rm-tier-req { color: rgba(0, 212, 255, 0.4); }
 .rm-tier-platinum .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
-.rm-tier-platinum .rm-tier-lock-icon .material-symbols-rounded { color: rgba(0, 212, 255, 0.4); }
+.rm-tier-platinum .rm-tier-lock-inline { color: rgba(0, 212, 255, 0.4) !important; }
 
 .rm-tier-diamond { background: linear-gradient(135deg, #051518, #001012) !important; border-color: rgba(185, 242, 255, 0.15) !important; }
 .rm-tier-diamond .rm-tier-name { color: #b9f2ff; }
 .rm-tier-diamond .rm-tier-req { color: rgba(185, 242, 255, 0.4); }
 .rm-tier-diamond .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
-.rm-tier-diamond .rm-tier-lock-icon .material-symbols-rounded { color: rgba(185, 242, 255, 0.4); }
+.rm-tier-diamond .rm-tier-lock-inline { color: rgba(185, 242, 255, 0.4) !important; }
 
 .rm-tier-mythic-crimson { background: linear-gradient(135deg, #1f1111 0%, #110808 100%) !important; border-color: rgba(255, 92, 92, 0.25) !important; }
 .rm-tier-mythic-crimson .rm-tier-name { color: #ff5c5c; }
 .rm-tier-mythic-crimson .rm-tier-req { color: rgba(255, 92, 92, 0.45); }
 .rm-tier-mythic-crimson .rm-tier-perks { color: rgba(255, 255, 255, 0.65); }
-.rm-tier-mythic-crimson .rm-tier-lock-icon .material-symbols-rounded { color: rgba(255, 92, 92, 0.4); }
+.rm-tier-mythic-crimson .rm-tier-lock-inline { color: rgba(255, 92, 92, 0.4) !important; }
 
 /* Current tier override borders for dark tiers */
 .rm-tier-bronze.rm-tier-current { border-color: #cd7f32 !important; box-shadow: 0 4px 20px rgba(205, 127, 50, 0.2); }
