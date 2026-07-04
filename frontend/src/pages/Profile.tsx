@@ -16,6 +16,8 @@ import PageTransition from "../components/PageTransition";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { downloadOrderPDF } from "../utils/pdfGenerator";
 import { AddressAutocomplete } from "../components/AddressAutocomplete";
+import khaltiLogo from "../assets/khalti_logo.svg";
+import kharchaLogo from "../assets/kharcha_logo.png";
 
 
 // ── Toast Component ──────────────────────────────────────────
@@ -65,14 +67,20 @@ const LinkedAccountsSection: React.FC<LinkedAccountsProps> = ({ showToast }) => 
   return (
     <div className="profile-section-modern">
       <div className="pm-header">
-        <h2>Payment Methods</h2>
+        <div className="pm-header-icon">
+          <span className="material-symbols-rounded">payments</span>
+        </div>
+        <div>
+          <h2>Payment Methods</h2>
+          <div className="pm-header-sub">Manage your linked digital wallets</div>
+        </div>
       </div>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="payment-wallets-list">
         {/* Kharcha Card */}
         <div className="wallet-account-card">
           <div className="wallet-info-left">
-            <div className="wallet-logo kharcha">K</div>
+            <img src={kharchaLogo} alt="Kharcha Wallet Logo" className="wallet-logo-img kharcha" />
             <div className="wallet-details">
               <div className="wallet-name">Kharcha Wallet</div>
               <div className={`wallet-status ${status?.linked ? "active" : ""}`}>
@@ -94,7 +102,7 @@ const LinkedAccountsSection: React.FC<LinkedAccountsProps> = ({ showToast }) => 
         {/* Khalti Card */}
         <div className="wallet-account-card">
           <div className="wallet-info-left">
-            <div className="wallet-logo khalti">K</div>
+            <img src={khaltiLogo} alt="Khalti Wallet Logo" className="wallet-logo-img khalti" />
             <div className="wallet-details">
               <div className="wallet-name">Khalti</div>
               <div className="wallet-status active">Available</div>
@@ -281,7 +289,6 @@ const Profile: React.FC = () => {
     ...(formData.has_password ? [{ key: "password", icon: "visibility", label: "Password", desc: "Change your password" }] : []),
     { key: "orders", icon: "receipt_long", label: "Order History", desc: "Track your past orders" },
     { key: "linked", icon: "payments", label: "Payment Methods", desc: "Add your wallet" },
-    { key: "invite", icon: "edit", label: "Invite Your Friends", desc: "Get rewards for invitations" },
   ];
 
   if (loading) {
@@ -853,26 +860,7 @@ const Profile: React.FC = () => {
               </div>
             )}
 
-            {activeTab === "invite" && (
-              <div className="invite-section-modern">
-                <div className="pm-header">
-                  <h2>Invite Your Friends</h2>
-                </div>
-                <div style={{ 
-                  textAlign: 'center', 
-                  padding: '60px 20px', 
-                  background: 'rgba(242, 139, 70, 0.05)', 
-                  borderRadius: '24px',
-                  border: '1px dashed rgba(242, 139, 70, 0.3)'
-                }}>
-                  <span className="material-symbols-rounded" style={{ fontSize: '48px', color: '#f28b46', marginBottom: '16px' }}>group_add</span>
-                  <h3>Referral Program Coming Soon!</h3>
-                  <p style={{ color: '#8b7d72', maxWidth: '300px', margin: '12px auto' }}>
-                    Share the love for KTM Bites and get rewards for every friend who signs up and orders.
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Invite section removed */}
           </main>
 
         </div>
