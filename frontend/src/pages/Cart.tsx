@@ -108,7 +108,7 @@ const Cart: React.FC = () => {
                   <h4 className="cart-item-name">{item.name}</h4>
                   <p className="cart-item-category">{item.category}</p>
                   <p className="cart-item-price">Rs. {item.price}</p>
-                  <p className="cart-item-calories">🔥 {item.total_calories} kcal</p>
+                  <p className="cart-item-calories"><span className="material-symbols-rounded" style={{ fontSize: '16px', color: '#f28b46', verticalAlign: 'middle' }}>local_fire_department</span> {item.total_calories} kcal</p>
                 </div>
                 <div className="cart-item-controls">
                   <div className="cart-item-qty">
@@ -142,7 +142,7 @@ const Cart: React.FC = () => {
                   className="cart-calorie-gauge-fire"
                   style={{ bottom: `clamp(8px, ${calorieFill}%, calc(100% - 16px))` }}
                 >
-                  🔥
+                  <span className="material-symbols-rounded" style={{ fontSize: '18px', color: '#f28b46' }}>local_fire_department</span>
                 </span>
               </div>
 

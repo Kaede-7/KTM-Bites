@@ -59,10 +59,10 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({ type, width = 200, he
         return (
           <div className="lottie-fallback-empty-cart">
             <div className="lottie-empty-cart-glow" />
-            <span className="lottie-empty-cart-item pizza">🍕</span>
+            <span className="lottie-empty-cart-item pizza"><span className="material-symbols-rounded" style={{ color: '#e85d04', fontSize: 'inherit' }}>local_pizza</span></span>
             <span className="lottie-empty-cart-item burger"><span className="material-symbols-rounded" style={{ color: '#f28b46', fontSize: 'inherit' }}>lunch_dining</span></span>
-            <span className="lottie-empty-cart-item cookie">🍪</span>
-            <span className="lottie-empty-cart-item donut">🍩</span>
+            <span className="lottie-empty-cart-item cookie"><span className="material-symbols-rounded" style={{ color: '#d97706', fontSize: 'inherit' }}>cookie</span></span>
+            <span className="lottie-empty-cart-item donut"><span className="material-symbols-rounded" style={{ color: '#db2777', fontSize: 'inherit' }}>donut_large</span></span>
             <svg className="lottie-empty-cart-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
@@ -88,7 +88,7 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({ type, width = 200, he
         return (
           <div className="lottie-fallback-loading">
             <div className="lottie-loader-spinner">
-              <div className="lottie-loader-inner">🍴</div>
+              <div className="lottie-loader-inner"><span className="material-symbols-rounded" style={{ fontSize: 'inherit', color: '#f28b46' }}>restaurant</span></div>
             </div>
           </div>
         );
