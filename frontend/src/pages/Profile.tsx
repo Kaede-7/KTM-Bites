@@ -315,48 +315,61 @@ const Profile: React.FC = () => {
           <div className="ranks-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="rm-header">
               <span className="material-symbols-rounded">stars</span>
-              <h2>KTM Bites Membership Ranks</h2>
+              <div>
+                <h2>Membership Ranks</h2>
+                <p className="rm-header-sub">Place more orders to unlock higher tiers</p>
+              </div>
               <button className="rm-close" onClick={() => setShowRanks(false)}>
                 <span className="material-symbols-rounded">close</span>
               </button>
             </div>
             <div className="rm-body">
-              <p className="rm-intro">Unlock higher ranks by placing more orders and enjoy premium benefits.</p>
-              <div className="ranks-list">
-                {rankTiers.map((tier) => (
-                  <div 
-                    key={tier.name} 
-                    className={`profile-rank-card tier-${tier.name.toLowerCase().replace(/\s+/g, '-')} preview-card ${formData.rank?.current_rank === tier.name ? 'current' : ''}`}
-                    style={{ '--tier-color': tier.color } as any}
-                  >
-                    <div className="prc-top">
-                      <div className="prc-badge" style={{ backgroundColor: tier.color }}>
+              <div className="rm-tier-list">
+                {rankTiers.map((tier) => {
+                  const isCurrent = formData.rank?.current_rank === tier.name;
+                  const isUnlocked = (formData.rank?.order_count || 0) >= tier.min;
+                  const tierSlug = tier.name.toLowerCase().replace(/\s+/g, '-');
+                  return (
+                    <div 
+                      key={tier.name} 
+                      className={`rm-tier-card rm-tier-${tierSlug} ${isCurrent ? 'rm-tier-current' : ''} ${!isUnlocked ? 'rm-tier-locked' : ''}`}
+                    >
+                      <div className="rm-tier-badge" style={{ backgroundColor: tier.color }}>
                         <span className="material-symbols-rounded">
-                          {tier.name === "Mythic Crimson" ? "military_tech" : (tier.name === "Diamond" || tier.name === "Platinum" ? "workspace_premium" : "stars")}
+                          {tier.name === "Mythic Crimson" ? "military_tech" : 
+                           (tier.name === "Diamond" || tier.name === "Platinum") ? "workspace_premium" : "stars"}
                         </span>
                       </div>
-                      <div className="prc-info">
-                        <div className="prc-label">Rank Details</div>
-                        <div className="prc-name">
-                          {tier.name}
-                          {formData.rank?.current_rank === tier.name && <span className="rtc-current-label">Current</span>}
+                      <div className="rm-tier-body">
+                        <div className="rm-tier-top-row">
+                          <div className="rm-tier-name">
+                            {tier.name}
+                            {isCurrent && <span className="rm-tier-you">You</span>}
+                          </div>
+                          <div className="rm-tier-discount" style={{ color: tier.color }}>
+                            {tier.discount > 0 ? `${tier.discount}%` : '—'}
+                          </div>
                         </div>
+                        <div className="rm-tier-req">
+                          {tier.min === 0 ? 'Starting tier' : `${tier.min} orders to unlock`}
+                        </div>
+                        <p className="rm-tier-perks">{tier.perks}</p>
                       </div>
-                      <div className="prc-discount">
-                        <span>{tier.discount}% OFF</span>
-                      </div>
+                      {!isUnlocked && (
+                        <div className="rm-tier-lock-icon">
+                          <span className="material-symbols-rounded">lock</span>
+                        </div>
+                      )}
                     </div>
-                    
-                    <div className="prc-preview-details">
-                      <div className="rtc-requirement">Unlocks at {tier.min} orders</div>
-                      <p className="rtc-perks">{tier.perks}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
             <div className="rm-footer">
-              <button className="rm-action-btn" onClick={() => setShowRanks(false)}>Got it, thanks!</button>
+              <button className="rm-action-btn" onClick={() => setShowRanks(false)}>
+                <span className="material-symbols-rounded">check</span>
+                Got it
+              </button>
             </div>
           </div>
         </div>

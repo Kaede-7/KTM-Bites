@@ -527,404 +527,330 @@
 .ranks-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(42, 36, 32, 0.6);
-  backdrop-filter: blur(8px);
+  background: rgba(20, 18, 16, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 100000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
-  animation: pm-fade-in 0.3s ease;
+  animation: rm-fade-in 0.25s ease;
 }
 
 .ranks-modal-content {
-  background: #fff;
+  background: #fdfaf7;
   width: 100%;
-  max-width: 600px;
-  border-radius: 32px;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3);
+  max-width: 520px;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
   overflow: hidden;
-  animation: pm-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: rm-slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-@keyframes pm-fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+@keyframes rm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes pm-slide-up {
-  from {
-    transform: translateY(40px) scale(0.95);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
+@keyframes rm-slide-up {
+  from { transform: translateY(30px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 .rm-header {
-  padding: 28px 32px;
+  padding: 24px 28px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
+  gap: 14px;
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .rm-header .material-symbols-rounded:first-child {
-  width: 44px;
-  height: 44px;
-  background: #fdf0e8;
-  color: #f28b46;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-variation-settings: 'FILL' 1;
-}
-
-.rm-header h2 {
-  font-size: 20px;
-  font-weight: 800;
-  color: #2a2420;
-  flex: 1;
-}
-
-.rm-close {
-  background: rgba(139, 125, 114, 0.08);
-  border: 1px solid rgba(139, 125, 114, 0.05);
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #f28b46, #e06c22);
+  color: #fff;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #8b7d72;
-}
-
-.rm-close:hover {
-  background: #fdf0e8;
-  color: #f28b46;
-  transform: rotate(90deg) scale(1.1);
-  border-color: rgba(242, 139, 70, 0.2);
-}
-
-.rm-close .material-symbols-rounded {
   font-size: 20px;
-  font-variation-settings: 'wght' 500;
-}
-
-.rm-body {
-  padding: 24px 32px;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.rm-intro {
-  font-size: 14px;
-  color: #6b5d52;
-  margin-bottom: 24px;
-  line-height: 1.5;
-}
-
-.ranks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.profile-rank-card.preview-card {
-  margin-bottom: 24px;
-  cursor: default;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-.profile-rank-card.preview-card.current {
-  border: 2px solid #f28b46 !important;
-  box-shadow: 0 8px 32px rgba(242, 139, 70, 0.25);
-  transform: scale(1.02);
-  z-index: 5;
-}
-
-.prc-preview-details {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  position: relative;
-  z-index: 2;
-}
-
-.profile-rank-card.tier-mythic-crimson .prc-preview-details,
-.profile-rank-card.tier-diamond .prc-preview-details,
-.profile-rank-card.tier-platinum .prc-preview-details,
-.profile-rank-card.tier-gold .prc-preview-details,
-.profile-rank-card.tier-silver .prc-preview-details,
-.profile-rank-card.tier-bronze .prc-preview-details {
-  border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-.rtc-requirement {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 8px;
-  color: #8b7d72;
-}
-
-.tier-mythic-crimson .rtc-requirement,
-.tier-diamond .rtc-requirement,
-.tier-platinum .rtc-requirement,
-.tier-gold .rtc-requirement,
-.tier-silver .rtc-requirement,
-.tier-bronze .rtc-requirement {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.rtc-perks {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #6b5d52;
-}
-
-.tier-mythic-crimson .rtc-perks,
-.tier-diamond .rtc-perks,
-.tier-platinum .rtc-perks,
-.tier-gold .rtc-perks,
-.tier-silver .rtc-perks,
-.tier-bronze .rtc-perks {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.rtc-current-label {
-  display: inline-block;
-  margin-left: 10px;
-  font-size: 10px;
-  background: #f28b46;
-  color: #fff;
-  padding: 1px 8px;
-  border-radius: 4px;
-  vertical-align: middle;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 800;
-}
-
-.rtc-badge {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-@keyframes badge-shine {
-  0% {
-    transform: translate(-100%, -100%) rotate(45deg);
-  }
-
-  20%,
-  100% {
-    transform: translate(100%, 100%) rotate(45deg);
-  }
-}
-
-.tier-gold .rtc-badge::after,
-.tier-diamond .rtc-badge::after,
-.tier-mythic-crimson .rtc-badge::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1), transparent);
-  transform: rotate(45deg);
-  animation: badge-shine 3s infinite;
-}
-
-.tier-platinum .rtc-badge::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), rgba(184, 212, 255, 0.6), rgba(255, 255, 255, 0.2), transparent);
-  transform: rotate(45deg);
-  animation: badge-shine 2.5s infinite;
-}
-
-.tier-gold .rtc-badge {
-  background: linear-gradient(135deg, #ffd700 0%, #ffae00 50%, #d4af37 100%) !important;
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
-}
-
-.tier-platinum .rtc-badge {
-  background: linear-gradient(135deg, #ffffff 0%, #e2f0ff 50%, #b8d4ff 100%) !important;
-  box-shadow: 0 4px 15px rgba(184, 212, 255, 0.4);
-}
-
-.tier-diamond .rtc-badge {
-  background: linear-gradient(135deg, #b9f2ff 0%, #00d2ff 50%, #00a8cc 100%) !important;
-  box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
-}
-
-.tier-mythic-crimson {
-  background: #fdfaf7 !important;
-  border: 1px solid rgba(0, 0, 0, 0.04) !important;
-}
-
-.tier-mythic-crimson.current {
-  background: #fff !important;
-  border: 2px solid #8b0000 !important;
-  box-shadow: 0 10px 25px rgba(139, 0, 0, 0.1);
-}
-
-.tier-mythic-crimson .rtc-badge {
-  background: linear-gradient(135deg, #8b0000 0%, #d40000 50%, #4a0000 100%) !important;
-  box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
-  border-radius: 16px;
-  width: 52px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tier-mythic-crimson .rtc-badge::after {
-  background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.4), rgba(255, 215, 0, 0.1), transparent);
-  animation: badge-shine 3s infinite;
-}
-
-.tier-mythic-crimson .rtc-name-row h4 {
-  font-size: 16px;
-  font-weight: 800;
-  color: #2a2420;
-  text-transform: none;
-  letter-spacing: normal;
-  text-shadow: none;
-}
-
-.tier-mythic-crimson .rtc-requirement {
-  color: #8b0000;
-  font-weight: 700;
-  font-size: 11px;
-}
-
-.tier-mythic-crimson .rtc-perks {
-  color: #6b5d52;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.tier-mythic-crimson .rtc-discount-badge {
-  color: #8b0000;
-  opacity: 0.4;
-  font-size: 14px;
-  font-weight: 900;
-  text-shadow: none;
-  border: none;
-  padding: 0;
-}
-
-.rtc-badge .material-symbols-rounded {
-  font-size: 28px;
   font-variation-settings: 'FILL' 1;
-  position: relative;
-  z-index: 2;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(242, 139, 70, 0.3);
 }
 
-.tier-platinum .prc-badge .material-symbols-rounded {
-  color: #1e3a8a !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.tier-diamond .prc-badge .material-symbols-rounded {
-  color: #0f766e !important;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-
-.rtc-info {
+.rm-header div {
   flex: 1;
   min-width: 0;
 }
 
-.rtc-name-row {
+.rm-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #2a2420;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.rm-header-sub {
+  font-size: 12px;
+  color: #8b7d72;
+  margin: 2px 0 0;
+}
+
+.rm-close {
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #8b7d72;
+  flex-shrink: 0;
+}
+
+.rm-close:hover {
+  background: rgba(242, 139, 70, 0.1);
+  color: #f28b46;
+  transform: rotate(90deg);
+}
+
+.rm-close .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.rm-body {
+  padding: 20px 28px;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.rm-body::-webkit-scrollbar { width: 4px; }
+.rm-body::-webkit-scrollbar-track { background: transparent; }
+.rm-body::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.1); border-radius: 99px; }
+
+/* ── Tier Card List ───────────────────────────── */
+.rm-tier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rm-tier-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.rm-tier-card:hover {
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* Current tier */
+.rm-tier-card.rm-tier-current {
+  background: #fff;
+  border: 2px solid #f28b46;
+  box-shadow: 0 4px 20px rgba(242, 139, 70, 0.15);
+}
+
+/* Locked tier */
+.rm-tier-card.rm-tier-locked {
+  opacity: 0.55;
+}
+
+.rm-tier-card.rm-tier-locked:hover {
+  opacity: 0.7;
+}
+
+/* ── Badge ──────────────────────────────────── */
+.rm-tier-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  margin-top: 2px;
+}
+
+.rm-tier-badge .material-symbols-rounded {
+  font-size: 18px;
+  color: #fff;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ── Body ───────────────────────────────────── */
+.rm-tier-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rm-tier-top-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.rm-tier-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #2a2420;
+  letter-spacing: -0.01em;
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 2px;
-  flex-wrap: wrap;
 }
 
-.rtc-name-row h4 {
-  font-size: 16px;
-  font-weight: 800;
-  color: #2a2420;
-  word-break: break-word;
-}
-
-.rtc-current-label {
+.rm-tier-you {
   font-size: 9px;
-  background: #2a2420;
-  color: #fff;
-  padding: 2px 8px;
-  border-radius: 99px;
-  text-transform: uppercase;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: #f28b46;
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 4px;
+  line-height: 1.4;
 }
 
-.rtc-discount-badge {
+.rm-tier-discount {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+.rm-tier-req {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8b7d72;
+  margin-bottom: 6px;
+}
+
+.rm-tier-perks {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #6b5d52;
+  margin: 0;
+}
+
+/* ── Lock Icon ──────────────────────────────── */
+.rm-tier-lock-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.rm-tier-lock-icon .material-symbols-rounded {
   font-size: 14px;
-  font-weight: 900;
-  color: #4a3f35;
-  opacity: 0.4;
-  writing-mode: vertical-lr;
-  transform: rotate(180deg);
-  letter-spacing: 0.05em;
+  color: #b8a89a;
 }
 
+/* ── Dark Tier Overrides for Modal ──────────── */
+.rm-tier-bronze { background: linear-gradient(135deg, #2c1a0e, #1a0f06) !important; border-color: rgba(205, 127, 50, 0.2) !important; }
+.rm-tier-bronze .rm-tier-name { color: #cd7f32; }
+.rm-tier-bronze .rm-tier-req { color: rgba(205, 127, 50, 0.5); }
+.rm-tier-bronze .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
+.rm-tier-bronze .rm-tier-lock-icon .material-symbols-rounded { color: rgba(205, 127, 50, 0.4); }
+
+.rm-tier-silver { background: linear-gradient(135deg, #1e1e22, #141416) !important; border-color: rgba(192, 192, 192, 0.15) !important; }
+.rm-tier-silver .rm-tier-name { color: #d0d0d0; }
+.rm-tier-silver .rm-tier-req { color: rgba(192, 192, 192, 0.45); }
+.rm-tier-silver .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
+.rm-tier-silver .rm-tier-lock-icon .material-symbols-rounded { color: rgba(192, 192, 192, 0.4); }
+
+.rm-tier-gold { background: linear-gradient(135deg, #1f1a05, #141000) !important; border-color: rgba(255, 215, 0, 0.15) !important; }
+.rm-tier-gold .rm-tier-name { color: #ffd700; }
+.rm-tier-gold .rm-tier-req { color: rgba(255, 215, 0, 0.4); }
+.rm-tier-gold .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
+.rm-tier-gold .rm-tier-lock-icon .material-symbols-rounded { color: rgba(255, 215, 0, 0.4); }
+
+.rm-tier-platinum { background: linear-gradient(135deg, #06111c, #0a1828) !important; border-color: rgba(0, 212, 255, 0.15) !important; }
+.rm-tier-platinum .rm-tier-name { color: #00d4ff; }
+.rm-tier-platinum .rm-tier-req { color: rgba(0, 212, 255, 0.4); }
+.rm-tier-platinum .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
+.rm-tier-platinum .rm-tier-lock-icon .material-symbols-rounded { color: rgba(0, 212, 255, 0.4); }
+
+.rm-tier-diamond { background: linear-gradient(135deg, #051518, #001012) !important; border-color: rgba(185, 242, 255, 0.15) !important; }
+.rm-tier-diamond .rm-tier-name { color: #b9f2ff; }
+.rm-tier-diamond .rm-tier-req { color: rgba(185, 242, 255, 0.4); }
+.rm-tier-diamond .rm-tier-perks { color: rgba(255, 255, 255, 0.6); }
+.rm-tier-diamond .rm-tier-lock-icon .material-symbols-rounded { color: rgba(185, 242, 255, 0.4); }
+
+.rm-tier-mythic-crimson { background: radial-gradient(ellipse at 30% 0%, #1a0808, #0d0303) !important; border-color: rgba(180, 0, 0, 0.25) !important; }
+.rm-tier-mythic-crimson .rm-tier-name { color: #ff4d4d; }
+.rm-tier-mythic-crimson .rm-tier-req { color: rgba(255, 255, 255, 0.35); }
+.rm-tier-mythic-crimson .rm-tier-perks { color: rgba(255, 255, 255, 0.55); }
+.rm-tier-mythic-crimson .rm-tier-lock-icon .material-symbols-rounded { color: rgba(255, 77, 77, 0.4); }
+
+/* Current tier override borders for dark tiers */
+.rm-tier-bronze.rm-tier-current { border-color: #cd7f32 !important; box-shadow: 0 4px 20px rgba(205, 127, 50, 0.2); }
+.rm-tier-silver.rm-tier-current { border-color: #c0c0c0 !important; box-shadow: 0 4px 20px rgba(192, 192, 192, 0.15); }
+.rm-tier-gold.rm-tier-current { border-color: #ffd700 !important; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15); }
+.rm-tier-platinum.rm-tier-current { border-color: #00d4ff !important; box-shadow: 0 4px 20px rgba(0, 212, 255, 0.15); }
+.rm-tier-diamond.rm-tier-current { border-color: #b9f2ff !important; box-shadow: 0 4px 20px rgba(185, 242, 255, 0.15); }
+.rm-tier-mythic-crimson.rm-tier-current { border-color: #ff4d4d !important; box-shadow: 0 4px 20px rgba(255, 77, 77, 0.2); }
+
+/* ── Footer ─────────────────────────────────── */
 .rm-footer {
-  padding: 24px 32px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 16px 28px 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   display: flex;
   justify-content: flex-end;
+  background: #fff;
 }
 
 .rm-action-btn {
   background: #2a2420;
   color: #fff;
   border: none;
-  border-radius: 12px;
-  padding: 12px 24px;
+  border-radius: 10px;
+  padding: 10px 20px;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
 }
 
 .rm-action-btn:hover {
   background: #000;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+.rm-action-btn .material-symbols-rounded {
+  font-size: 16px;
+  font-variation-settings: 'FILL' 1;
+}
+
+
+
 
 /* Sidebar Navigation */
 .profile-nav {
