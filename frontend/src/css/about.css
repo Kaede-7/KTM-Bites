@@ -242,11 +242,11 @@
 
 .payment-pill {
   background: var(--cream);
-  padding: 1.4rem 1.6rem;
+  padding: 1.2rem 1.5rem;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   border: 1px solid var(--line);
   transition: all 0.3s ease;
 }
@@ -257,26 +257,38 @@
   transform: translateX(5px);
 }
 
-.pill-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+.payment-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
 }
 
-.pill-dot.khalti { background: #5c2d91; box-shadow: 0 0 0 4px rgba(92, 45, 145, 0.15); }
-.pill-dot.kharcha { background: #1a5d3b; box-shadow: 0 0 0 4px rgba(26, 93, 59, 0.15); }
+.khalti-logo {
+  height: 28px; /* Khalti logo looks better slightly smaller */
+}
+
+.kharcha-logo {
+  border-radius: 6px;
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.payment-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
 .payment-pill strong {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--dark);
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .pill-sub {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--muted);
-  margin-left: auto;
   font-weight: 500;
 }
 

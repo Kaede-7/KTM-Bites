@@ -3,6 +3,8 @@ import PageTransition from "../components/PageTransition";
 import Navbar from "../components/Navbar";
 import aboutHero from "../assets/about_hero.png";
 import deliveryMap from "../assets/delivery_map.png";
+import khaltiLogo from "../assets/khalti_logo.svg";
+import kharchaLogo from "../assets/kharcha_logo.png";
 import "../css/about.css";
 
 const About: React.FC = () => {
@@ -77,14 +79,18 @@ const About: React.FC = () => {
             <p>We prioritize your security and convenience. We've seamlessly integrated with Nepal's leading digital wallets for a frictionless checkout experience.</p>
             <div className="payment-pills">
               <div className="payment-pill">
-                <span className="pill-dot khalti"></span>
-                <strong>Khalti Digital Wallet</strong>
-                <span className="pill-sub">Secure, one-tap payments.</span>
+                <img src={khaltiLogo} alt="Khalti Digital Wallet Logo" className="payment-logo khalti-logo" />
+                <div className="payment-text">
+                  <strong>Khalti Digital Wallet</strong>
+                  <span className="pill-sub">Secure, one-tap payments.</span>
+                </div>
               </div>
               <div className="payment-pill">
-                <span className="pill-dot kharcha"></span>
-                <strong>Kharcha Wallet</strong>
-                <span className="pill-sub">Fast & secure linked payments.</span>
+                <img src={kharchaLogo} alt="Kharcha Wallet Logo" className="payment-logo kharcha-logo" />
+                <div className="payment-text">
+                  <strong>Kharcha Wallet</strong>
+                  <span className="pill-sub">Fast & secure linked payments.</span>
+                </div>
               </div>
             </div>
           </div>
