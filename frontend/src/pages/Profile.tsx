@@ -501,16 +501,26 @@ const Profile: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="profile-avatar-wrap">
+                <div className={`profile-avatar-wrap ${formData.rank?.current_rank === "Mythic Crimson" ? "vip-mythic-wrap" : ""}`}>
                   <div className="profile-avatar-circle">
                     {initials}
                   </div>
                   <div className="pav-info">
                     <h3>{formData.full_name || "Your Name"}</h3>
                     <span className="pav-email">{formData.email}</span>
-                    <div className="pav-badge">
-                      <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>verified</span>
-                      {formData.role || 'User'}
+                    <div className="pav-badge-row">
+                      <div className="pav-badge">
+                        <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>verified</span>
+                        {formData.role || 'User'}
+                      </div>
+                      {formData.rank && (
+                        <div className={`pav-rank-badge rank-${formData.rank.current_rank.toLowerCase().replace(/\s+/g, '-')}`}>
+                          <span className="material-symbols-rounded">
+                            {formData.rank.current_rank === "Mythic Crimson" ? "military_tech" : "stars"}
+                          </span>
+                          {formData.rank.current_rank === "Mythic Crimson" ? "Mythic VIP" : formData.rank.current_rank}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

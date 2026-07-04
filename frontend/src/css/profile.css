@@ -1095,10 +1095,115 @@
   color: #f28b46;
   font-size: 10px;
   font-weight: 800;
-  padding: 3px 12px;
+  padding: 4px 12px;
   border-radius: 99px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.pav-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.pav-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f5f0eb;
+  border: 1px solid #e8e3de;
+  color: #8b7d72;
+}
+
+.pav-rank-badge .material-symbols-rounded {
+  font-size: 12px;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* Rank-specific badge themes */
+.pav-rank-badge.rank-rookie {
+  background: #faf8f5;
+  border-color: #e8e3de;
+  color: #8b7d72;
+}
+
+.pav-rank-badge.rank-bronze {
+  background: rgba(205, 127, 50, 0.1);
+  border-color: rgba(205, 127, 50, 0.25);
+  color: #cd7f32;
+}
+
+.pav-rank-badge.rank-silver {
+  background: rgba(156, 163, 175, 0.1);
+  border-color: rgba(156, 163, 175, 0.25);
+  color: #7b8089;
+}
+
+.pav-rank-badge.rank-gold {
+  background: rgba(217, 119, 6, 0.1);
+  border-color: rgba(217, 119, 6, 0.25);
+  color: #b45309;
+}
+
+.pav-rank-badge.rank-platinum {
+  background: rgba(2, 132, 199, 0.1);
+  border-color: rgba(2, 132, 199, 0.25);
+  color: #0284c7;
+}
+
+.pav-rank-badge.rank-diamond {
+  background: rgba(8, 145, 178, 0.1);
+  border-color: rgba(8, 145, 178, 0.25);
+  color: #0891b2;
+}
+
+/* Mythic VIP Badge styling */
+.pav-rank-badge.rank-mythic-crimson {
+  background: linear-gradient(135deg, #991b1b, #7f1d1d);
+  border: 1px solid #ffd700;
+  color: #ffd700;
+  box-shadow: 0 0 10px rgba(185, 28, 28, 0.3), 0 0 2px rgba(255, 215, 0, 0.2);
+  font-weight: 900;
+  animation: vip-glow 2.5s infinite alternate;
+}
+
+@keyframes vip-glow {
+  0% { box-shadow: 0 0 6px rgba(185, 28, 28, 0.2), 0 0 1px rgba(255, 215, 0, 0.1); }
+  100% { box-shadow: 0 0 12px rgba(185, 28, 28, 0.4), 0 0 4px rgba(255, 215, 0, 0.3); }
+}
+
+/* Mythic Wrap Enhancements */
+.vip-mythic-wrap {
+  background: linear-gradient(135deg, #fff7f7 0%, #fdf0f0 100%) !important;
+  border-color: rgba(185, 28, 28, 0.2) !important;
+  box-shadow: 0 4px 20px rgba(185, 28, 28, 0.05);
+}
+
+.vip-mythic-wrap:hover {
+  background: #fff !important;
+  border-color: rgba(185, 28, 28, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(185, 28, 28, 0.1);
+}
+
+.vip-mythic-wrap .profile-avatar-circle {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  border: 3px solid #ffd700;
+  color: #ffd700;
+  box-shadow: 0 8px 20px rgba(185, 28, 28, 0.25);
+}
+
+.vip-mythic-wrap:hover .profile-avatar-circle {
+  box-shadow: 0 12px 28px rgba(185, 28, 28, 0.35);
+  border-color: #ffd700;
 }
 
 /* Wallet Cards */
