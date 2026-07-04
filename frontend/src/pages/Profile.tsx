@@ -474,76 +474,75 @@ const Profile: React.FC = () => {
                 </div>
 
                 <div className="profile-form-modern">
-                  <div className="pf-field">
-                    <label className="pf-label">Full Name</label>
-                    <div className="pf-input-group">
-                      <span className="material-symbols-rounded pf-input-icon">person</span>
-                      <input 
-                        type="text" 
-                        value={formData.full_name || ""} 
-                        onChange={handleChange("full_name")} 
-                        placeholder="Full Name" 
-                      />
+                  <div className="pf-row">
+                    <div className="pf-field">
+                      <label className="pf-label">Full Name</label>
+                      <div className="pf-input-group">
+                        <span className="material-symbols-rounded pf-input-icon">person</span>
+                        <input 
+                          type="text" 
+                          value={formData.full_name || ""} 
+                          onChange={handleChange("full_name")} 
+                          placeholder="Full Name" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pf-field">
+                      <label className="pf-label">Email Address</label>
+                      <div className="pf-input-group">
+                        <span className="material-symbols-rounded pf-input-icon">mail</span>
+                        <input 
+                          type="email" 
+                          value={formData.email || ""} 
+                          onChange={handleChange("email")} 
+                          placeholder="Email Address" 
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="pf-field">
-                    <label className="pf-label">Email Address</label>
-                    <div className="pf-input-group">
-                      <span className="material-symbols-rounded pf-input-icon">mail</span>
-                      <input 
-                        type="email" 
-                        value={formData.email || ""} 
-                        onChange={handleChange("email")} 
-                        placeholder="Email Address" 
-                      />
+                  <div className="pf-row">
+                    <div className="pf-field">
+                      <label className="pf-label">Phone Number</label>
+                      <div className="pf-input-group">
+                        <span className="material-symbols-rounded pf-input-icon">call</span>
+                        <input 
+                          type="tel" 
+                          value={formData.phone || ""} 
+                          onChange={handleChange("phone")} 
+                          placeholder="Phone Number" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pf-field">
+                      <label className="pf-label">Calorie Target</label>
+                      <div className="pf-input-group pf-calorie-input">
+                        <span className="material-symbols-rounded pf-input-icon" style={{ color: "#f28b46" }}>local_fire_department</span>
+                        <input
+                          type="number"
+                          min="500"
+                          max="10000"
+                          step="50"
+                          value={formData.calorie_target !== null && formData.calorie_target !== undefined ? formData.calorie_target : ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              calorie_target: e.target.value === "" ? null : Number(e.target.value),
+                            }))
+                          }
+                          placeholder="Daily calorie target"
+                        />
+                        <span className="pf-calorie-unit">kcal</span>
+                      </div>
+                      <div className="pf-field-hint">
+                        {formData.calorie_target
+                          ? "Your cart progress bar will use this target."
+                          : "Goal: Not set. Enter a value above and save to configure."}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="pf-field">
-                    <label className="pf-label">Phone Number</label>
-                    <div className="pf-input-group">
-                      <span className="material-symbols-rounded pf-input-icon">call</span>
-                      <input 
-                        type="tel" 
-                        value={formData.phone || ""} 
-                        onChange={handleChange("phone")} 
-                        placeholder="Phone Number" 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pf-field">
-                    <label className="pf-label">Calorie Target</label>
-                    <div className="pf-input-group pf-calorie-input">
-                      <span className="material-symbols-rounded pf-input-icon" style={{ color: "#f28b46" }}>local_fire_department</span>
-                      <input
-                        type="number"
-                        min="500"
-                        max="10000"
-                        step="50"
-                        value={formData.calorie_target !== null && formData.calorie_target !== undefined ? formData.calorie_target : ""}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            calorie_target: e.target.value === "" ? null : Number(e.target.value),
-                          }))
-                        }
-                        placeholder="Daily calorie target"
-                      />
-                      <span className="pf-calorie-unit">kcal</span>
-                    </div>
-                    <div className="pf-field-hint">
-                      {formData.calorie_target
-                        ? "Your cart progress bar will use this target."
-                        : "Goal: Not set. Enter a value above and save to configure."}
-                    </div>
-
-                  </div>
-
-
-
-
 
                   <div className="pf-field">
                     <label className="pf-label">Street Address</label>
