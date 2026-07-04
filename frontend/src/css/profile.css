@@ -365,30 +365,52 @@
   min-width: 0;
 }
 
+/* ══ PROGRESS BAR GRADIENTS BY TIER ══════════════════════════ */
+.profile-rank-card.tier-rookie .prc-progress-fill {
+  background: linear-gradient(90deg, #f5a66b, #f28b46) !important;
+  box-shadow: 0 0 8px rgba(242, 139, 70, 0.3);
+}
+
+.profile-rank-card.tier-bronze .prc-progress-fill {
+  background: linear-gradient(90deg, #d97706, #b45309) !important;
+  box-shadow: 0 0 8px rgba(180, 83, 9, 0.3);
+}
+
+.profile-rank-card.tier-silver .prc-progress-fill {
+  background: linear-gradient(90deg, #e5e7eb, #9ca3af) !important;
+  box-shadow: 0 0 8px rgba(156, 163, 175, 0.3);
+}
+
+.profile-rank-card.tier-gold .prc-progress-fill {
+  background: linear-gradient(90deg, #fcd34d, #d97706) !important;
+  box-shadow: 0 0 8px rgba(217, 119, 6, 0.4);
+}
+
+.profile-rank-card.tier-platinum .prc-progress-fill {
+  background: linear-gradient(90deg, #38bdf8, #0284c7) !important;
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.4);
+}
+
+.profile-rank-card.tier-diamond .prc-progress-fill {
+  background: linear-gradient(90deg, #22d3ee, #0891b2) !important;
+  box-shadow: 0 0 10px rgba(8, 145, 178, 0.4);
+}
+
 .profile-rank-card.tier-mythic-crimson .prc-progress-fill {
-  background: linear-gradient(90deg, #8b0000, #4a0000) !important;
+  background: linear-gradient(90deg, #f87171, #b91c1c) !important;
+  box-shadow: 0 0 12px rgba(185, 28, 28, 0.5);
   animation: satin-pulse 4s infinite ease-in-out !important;
-  box-shadow: 0 0 10px rgba(139, 0, 0, 0.4);
 }
 
 @keyframes satin-pulse {
-  0% {
-    opacity: 0.8;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0.8;
-  }
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 
 .prc-progress-bar {
-  height: 8px;
+  height: 6px;
   background: rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
@@ -398,12 +420,12 @@
 .tier-gold .prc-progress-bar,
 .tier-silver .prc-progress-bar,
 .tier-bronze .prc-progress-bar {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .prc-progress-fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--radius-full);
   transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   min-width: 2px;
 }
@@ -412,7 +434,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 24px;
+  margin-top: 20px;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -420,62 +442,92 @@
 .prc-hint {
   font-size: 11px;
   color: #8b7d72;
-  font-style: italic;
-  word-break: break-word;
+  font-style: normal;
+  font-weight: 500;
   flex: 1;
   min-width: 0;
 }
 
+.tier-mythic-crimson .prc-hint,
+.tier-diamond .prc-hint,
+.tier-platinum .prc-hint,
+.tier-gold .prc-hint,
+.tier-silver .prc-hint,
+.tier-bronze .prc-hint {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .prc-info-btn {
-  background: rgba(var(--btn-color-rgb, 242, 139, 70), 0.1);
-  border: 1px solid rgba(var(--btn-color-rgb, 242, 139, 70), 0.2);
+  background: rgba(242, 139, 70, 0.08);
+  border: 1px solid rgba(242, 139, 70, 0.2);
   border-radius: 8px;
-  padding: 5px 10px;
+  padding: 6px 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: rgb(var(--btn-color-rgb, 242, 139, 70));
-  font-size: 10px;
+  color: var(--amber);
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.tier-mythic-crimson {
-  --btn-color-rgb: 255, 77, 77;
+.tier-mythic-crimson .prc-info-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
-.tier-diamond {
-  --btn-color-rgb: 185, 242, 255;
+.tier-diamond .prc-info-btn {
+  background: rgba(185, 242, 255, 0.15);
+  border-color: rgba(185, 242, 255, 0.3);
+  color: #b9f2ff;
 }
 
-.tier-platinum {
-  --btn-color-rgb: 0, 212, 255;
+.tier-platinum .prc-info-btn {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.3);
+  color: #00d4ff;
 }
 
-.tier-gold {
-  --btn-color-rgb: 255, 215, 0;
+.tier-gold .prc-info-btn {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.3);
+  color: #ffd700;
 }
 
-.tier-silver {
-  --btn-color-rgb: 224, 224, 224;
+.tier-silver .prc-info-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #e0e0e0;
 }
 
-.tier-bronze {
-  --btn-color-rgb: 205, 127, 50;
-}
-
-.tier-rookie {
-  --btn-color-rgb: 242, 139, 70;
+.tier-bronze .prc-info-btn {
+  background: rgba(205, 127, 50, 0.15);
+  border-color: rgba(205, 127, 50, 0.3);
+  color: #cd7f32;
 }
 
 .prc-info-btn:hover {
-  background: rgba(var(--btn-color-rgb, 242, 139, 70), 0.2);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(var(--btn-color-rgb, 242, 139, 70), 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: var(--white);
+  color: var(--amber);
+  border-color: var(--amber-light);
+}
+
+.tier-mythic-crimson .prc-info-btn:hover,
+.tier-diamond .prc-info-btn:hover,
+.tier-platinum .prc-info-btn:hover,
+.tier-gold .prc-info-btn:hover,
+.tier-silver .prc-info-btn:hover,
+.tier-bronze .prc-info-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .prc-info-btn .material-symbols-rounded {
