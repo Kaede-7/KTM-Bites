@@ -19,7 +19,7 @@ export function useCalorie() {
 const HIDDEN_PREFIXES = ["/login", "/signup", "/admin", "/kitchen", "/rider"];
 
 // Provider — keeps the cart calorie data fresh globally.
-// No visual output; the Navbar dropdown is the UI now.
+// No visual output; the Navbar dropdown is the UI.
 export function CalorieProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [cart, setCart] = useState<CartData | null>(null);
@@ -51,7 +51,8 @@ export function CalorieProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Legacy default export (kept for any direct imports) — now a no-op visual
+// Legacy default export (kept for any direct imports) — now a no-op visual.
+// The bottom progress bar was replaced by the Navbar calorie dropdown.
 export default function CalorieTracker() {
   return null;
 }

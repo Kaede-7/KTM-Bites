@@ -6,7 +6,6 @@ import {
   markAllNotificationsRead,
 } from "../api/notifications";
 import type { NotificationItem } from "../api/notifications";
-import { useCalorie } from "./CalorieTracker";
 import "../css/notifications.css";
 
 const ICON_MAP: Record<string, { icon: string; cls: string }> = {
@@ -46,11 +45,6 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onToggle, onUnreadChang
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { cart, isLoading: cartLoading } = useCalorie();
-
-  // Only flag calorie-not-set once cart has finished loading
-  const calorieNotSet = !cartLoading && cart !== null && cart.calorie_target === null;
-
 
   const lastCountRef = React.useRef<number | null>(null);
 
@@ -58,37 +52,19 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onToggle, onUnreadChang
     try {
       setLoading(true);
       const data = await getNotifications();
-      let notifs = data.notifications;
-      let unread = data.unread_count;
-
-      // Inject client-side notification if calorie target is not set
-      if (calorieNotSet) {
-        const injectedNotif: NotificationItem = {
-          id: -999,
-          type: "system",
-          title: "Daily Calorie Goal Not Set",
-          message: "Please configure your calorie goal to track daily meals. Click here to set it up.",
-          order_id: null,
-          is_read: false,
-          created_at: new Date().toISOString()
-        };
-        notifs = [injectedNotif, ...notifs.filter(n => n.id !== -999)];
-        unread += 1;
-      }
-
-      setNotifications(notifs);
-      setUnreadCount(unread);
-
-      if (lastCountRef.current !== unread) {
-        onUnreadChange(unread);
-        lastCountRef.current = unread;
+      setNotifications(data.notifications);
+      setUnreadCount(data.unread_count);
+      
+      if (lastCountRef.current !== data.unread_count) {
+        onUnreadChange(data.unread_count);
+        lastCountRef.current = data.unread_count;
       }
     } catch {
       // silently fail
     } finally {
       setLoading(false);
     }
-  }, [onUnreadChange, calorieNotSet]);
+  }, [onUnreadChange]);
 
   // Fetch on mount and poll every 30s
   useEffect(() => {
@@ -102,43 +78,13 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onToggle, onUnreadChang
     if (isOpen) fetchNotifs();
   }, [isOpen, fetchNotifs]);
 
-  // Re-inject/remove the calorie notification when target status changes
-  useEffect(() => {
-    setNotifications(prev => {
-      const withoutInjected = prev.filter(n => n.id !== -999);
-      if (calorieNotSet) {
-        const injectedNotif: NotificationItem = {
-          id: -999,
-          type: "system",
-          title: "Daily Calorie Goal Not Set",
-          message: "Please configure your calorie goal to track daily meals. Click here to set it up.",
-          order_id: null,
-          is_read: false,
-          created_at: new Date().toISOString()
-        };
-        return [injectedNotif, ...withoutInjected];
-      }
-      return withoutInjected;
-    });
-  }, [calorieNotSet]);
-
   const handleItemClick = async (notif: NotificationItem) => {
-    if (notif.id === -999) {
-      // Navigate to profile to set the calorie target
-      setNotifications(prev => prev.filter(n => n.id !== -999));
-      setUnreadCount(c => Math.max(0, c - 1));
-      onUnreadChange(Math.max(0, unreadCount - 1));
-      navigate("/profile");
-      onToggle();
-      return;
-    }
-
     if (!notif.is_read) {
       await markNotificationRead(notif.id);
-      setNotifications(prev =>
-        prev.map(n => (n.id === notif.id ? { ...n, is_read: true } : n))
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
       );
-      setUnreadCount(c => Math.max(0, c - 1));
+      setUnreadCount((c) => Math.max(0, c - 1));
       onUnreadChange(Math.max(0, unreadCount - 1));
     }
     if (notif.order_id) {
@@ -152,11 +98,9 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onToggle, onUnreadChang
 
   const handleMarkAll = async () => {
     await markAllNotificationsRead();
-    setNotifications(prev =>
-      prev.map(n => ({ ...n, is_read: true })).filter(n => n.id !== -999 || calorieNotSet)
-    );
-    setUnreadCount(calorieNotSet ? 1 : 0);
-    onUnreadChange(calorieNotSet ? 1 : 0);
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+    onUnreadChange(0);
   };
 
   if (!isOpen) return null;
@@ -183,31 +127,8 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onToggle, onUnreadChang
               <p>No notifications yet</p>
             </div>
           ) : (
-          notifications.map((notif) => {
+            notifications.map((notif) => {
               const iconData = ICON_MAP[notif.type] || ICON_MAP.system;
-
-              // Special premium card for the calorie-not-set notification
-              if (notif.id === -999) {
-                return (
-                  <button
-                    key={notif.id}
-                    className="notif-item notif-item-calorie"
-                    onClick={() => handleItemClick(notif)}
-                  >
-                    <div className="notif-calorie-icon-wrap">
-                      <span className="material-symbols-rounded">local_fire_department</span>
-                    </div>
-                    <div className="notif-text">
-                      <div className="notif-calorie-label">Action Required</div>
-                      <div className="notif-title">kcal Goal Not Set</div>
-                      <div className="notif-msg">Set a daily calorie target to start tracking your meals and stay on top of your health.</div>
-                      <div className="notif-calorie-cta">Set Goal →</div>
-                    </div>
-                    <div className="notif-unread-dot" />
-                  </button>
-                );
-              }
-
               return (
                 <button
                   key={notif.id}
@@ -226,7 +147,6 @@ const NotificationDropdown: React.FC<Props> = ({ isOpen, onToggle, onUnreadChang
                 </button>
               );
             })
-
           )}
         </div>
       </div>

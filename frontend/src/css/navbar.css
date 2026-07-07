@@ -3,18 +3,18 @@
   position: sticky;
   top: 0;
   z-index: 200;
-  background: rgba(253, 246, 240, 0.88);
-  backdrop-filter: blur(24px) saturate(200%);
-  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  background: rgba(253, 246, 240, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(212, 196, 168, 0.35);
   box-shadow: 0 2px 24px rgba(200, 132, 26, 0.06);
 }
 
 .navbar-content {
-  max-width: 1360px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 40px;
-  height: 72px;
+  padding: 0 32px;
+  height: 68px;
   display: flex;
   align-items: center;
   gap: 0;
@@ -28,7 +28,6 @@
   flex-shrink: 0;
   text-decoration: none;
   transform: translateY(-5px);
-  margin-right: 12px;
 }
 
 .navbar-logo-icon {
@@ -71,7 +70,7 @@
   display: none;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
   flex: 1;
 }
 
@@ -82,7 +81,7 @@
   color: #6b5d52;
   background: none;
   border: none;
-  padding: 9px 14px;
+  padding: 8px 16px;
   border-radius: 999px;
   transition: color 0.2s ease, background 0.2s ease;
   text-decoration: none;
@@ -90,13 +89,10 @@
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  letter-spacing: 0.01em;
 }
 
 .navbar-link .material-symbols-rounded {
-  font-size: 19px;
-  opacity: 0.75;
-  transition: opacity 0.2s ease;
+  font-size: 20px;
 }
 
 .navbar-link:hover {
@@ -122,7 +118,7 @@
 .navbar-actions {
   display: none;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   margin-left: auto;
 }
 
@@ -132,7 +128,7 @@
   background: none;
   border: none;
   color: #6b5d52;
-  padding: 8px;
+  padding: 7px;
   border-radius: 999px;
   transition: color 0.2s ease, background 0.2s ease;
   display: flex;
@@ -172,10 +168,19 @@
 .navbar-divider {
   display: block;
   width: 1px;
-  height: 22px;
+  height: 20px;
   background: rgba(200, 170, 130, 0.4);
   flex-shrink: 0;
-  margin: 0 4px;
+}
+
+.navbar-actions .navbar-cart-btn+.navbar-profile-btn::before,
+.navbar-actions .navbar-cart-btn+a::before {
+  content: "";
+  display: block;
+  width: 1px;
+  height: 20px;
+  background: rgba(200, 170, 130, 0.35);
+  margin: 0 2px;
 }
 
 /* Profile button */
@@ -214,7 +219,7 @@
   background: none;
   border: none;
   color: #8b7d72;
-  padding: 8px;
+  padding: 7px;
   border-radius: 999px;
   transition: all 0.2s ease;
   display: flex;
@@ -240,7 +245,7 @@
   color: #6b5d52;
   background: transparent;
   border: none;
-  padding: 8px 18px;
+  padding: 8px 16px;
   border-radius: 999px;
   transition: color 0.2s ease, background 0.2s ease;
   cursor: pointer;
@@ -272,46 +277,118 @@
   box-shadow: 0 10px 24px rgba(242, 139, 70, 0.45);
 }
 
-/* ── Notification bell ───────────────────────────────────────── */
-.notif-bell-btn {
-  position: relative;
+/* ── Mobile toggle ───────────────────────────────────────────── */
+.navbar-mobile-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: #6b5d52;
   padding: 8px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: color 0.2s ease, background 0.2s ease;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  margin-left: auto;
+  /* always pins hamburger to far right */
+  flex-shrink: 0;
 }
 
-.notif-bell-btn:hover {
+.navbar-mobile-toggle:hover {
+  background: rgba(242, 139, 70, 0.09);
+  color: #f28b46;
+}
+
+.navbar-mobile-toggle .material-symbols-rounded {
+  font-size: 26px;
+}
+
+/* ── Mobile dropdown ─────────────────────────────────────────── */
+.navbar-mobile-menu {
+  background: rgba(253, 246, 240, 0.98);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(212, 196, 168, 0.3);
+  padding: 12px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: slideDown 0.22s ease;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.navbar-mobile-link {
+  font-size: 15px;
+  color: #6b5d52;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 11px 14px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.navbar-mobile-link:hover,
+.navbar-mobile-link.active {
   color: #f28b46;
   background: rgba(242, 139, 70, 0.09);
 }
 
-.notif-bell-btn .material-symbols-rounded {
-  font-size: 22px;
+.navbar-mobile-link .material-symbols-rounded {
+  font-size: 20px;
+  opacity: 0.8;
 }
 
-.notif-badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background: #ef4444;
-  color: white;
-  font-size: 9px;
-  font-weight: 700;
-  min-width: 15px;
-  height: 15px;
-  border-radius: 999px;
+.navbar-mobile-actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid rgba(253, 246, 240, 0.95);
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(212, 196, 168, 0.4);
 }
+
+.navbar-mobile-actions .navbar-btn-login,
+.navbar-mobile-actions .navbar-btn-signup {
+  flex: 1;
+  text-align: center;
+  padding: 11px;
+}
+
+/* ── Desktop breakpoint ──────────────────────────────────────── */
+@media (min-width: 768px) {
+  .navbar-links {
+    display: flex;
+  }
+
+  .navbar-actions {
+    display: flex;
+  }
+
+  .navbar-mobile-toggle {
+    display: none;
+  }
+
+  .navbar-mobile-menu {
+    display: none !important;
+  }
+}
+.navbar-cart-btn.bump { animation: navbar-cart-bump 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+@keyframes navbar-cart-bump { 0% { transform: scale(1); } 50% { transform: scale(1.35); } 100% { transform: scale(1); } }
 
 /* ── Calorie Nav Button ────────────────────────────────────────── */
 .calorie-nav-wrap {
@@ -873,7 +950,6 @@
 }
 
 .cd-empty-hint .material-symbols-rounded {
-
   font-size: 16px;
 }
 
@@ -928,109 +1004,3 @@
 .cd-btn-secondary .material-symbols-rounded {
   font-size: 15px;
 }
-
-/* ── Mobile toggle ───────────────────────────────────────────── */
-.navbar-mobile-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: #6b5d52;
-  padding: 8px;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.navbar-mobile-toggle:hover {
-  background: rgba(242, 139, 70, 0.09);
-  color: #f28b46;
-}
-
-.navbar-mobile-toggle .material-symbols-rounded {
-  font-size: 26px;
-}
-
-/* ── Mobile dropdown ─────────────────────────────────────────── */
-.navbar-mobile-menu {
-  background: rgba(253, 246, 240, 0.98);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(212, 196, 168, 0.3);
-  padding: 12px 20px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  animation: slideDown 0.22s ease;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.navbar-mobile-link {
-  font-size: 15px;
-  color: #6b5d52;
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 11px 14px;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.navbar-mobile-link:hover,
-.navbar-mobile-link.active {
-  color: #f28b46;
-  background: rgba(242, 139, 70, 0.09);
-}
-
-.navbar-mobile-link .material-symbols-rounded {
-  font-size: 20px;
-  opacity: 0.8;
-}
-
-.navbar-mobile-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(212, 196, 168, 0.4);
-}
-
-.navbar-mobile-actions .navbar-btn-login,
-.navbar-mobile-actions .navbar-btn-signup {
-  flex: 1;
-  text-align: center;
-  padding: 11px;
-}
-
-/* ── Desktop breakpoint ──────────────────────────────────────── */
-@media (min-width: 768px) {
-  .navbar-links {
-    display: flex;
-  }
-
-  .navbar-actions {
-    display: flex;
-  }
-
-  .navbar-mobile-toggle {
-    display: none;
-  }
-
-  .navbar-mobile-menu {
-    display: none !important;
-  }
-}
-
-.navbar-cart-btn.bump { animation: navbar-cart-bump 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
-@keyframes navbar-cart-bump { 0% { transform: scale(1); } 50% { transform: scale(1.35); } 100% { transform: scale(1); } }

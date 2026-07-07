@@ -57,7 +57,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.calorie_target = calorie_target
         user.profile.save()
 
-
         user.save()
         return user
 
@@ -191,9 +190,8 @@ class CartSerializer(serializers.ModelSerializer):
 
     def get_calorie_target(self, obj):
         profile = getattr(obj.user, 'profile', None)
-        if profile and profile.calorie_target is not None:
-            return profile.calorie_target
-        return None
+        target = getattr(profile, 'calorie_target', None)
+        return target if target is not None else None
 
     def get_calorie_percentage(self, obj):
         target = self.get_calorie_target(obj)
@@ -204,11 +202,10 @@ class CartSerializer(serializers.ModelSerializer):
         return obj.total_calories > target if target is not None else False
 
 
-
 class GroupMemberSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     email = serializers.EmailField(source='user.email', read_only=True)
-    calorie_target = serializers.IntegerField(source='user.profile.calorie_target', read_only=True)
+    calorie_target = serializers.IntegerField(source='user.profile.calorie_target', read_only=True, allow_null=True)
     kharcha_linked = serializers.SerializerMethodField()
 
     class Meta:
@@ -286,7 +283,7 @@ class GroupOrderSerializer(serializers.ModelSerializer):
     delivery_fee = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     total_calories = serializers.IntegerField(read_only=True)
-    calorie_target = serializers.IntegerField(read_only=True)
+    calorie_target = serializers.IntegerField(read_only=True, allow_null=True)
     calorie_percentage = serializers.SerializerMethodField()
     is_host = serializers.SerializerMethodField()
 

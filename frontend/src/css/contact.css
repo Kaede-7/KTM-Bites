@@ -1,6 +1,6 @@
 .contact-page {
   min-height: 100vh;
-  background-color: var(--cream);
+  background-color: var(--bg-primary);
   display: flex;
   flex-direction: column;
 }
@@ -9,71 +9,61 @@
   flex: 1;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 5rem 24px;
+  padding: 4rem 2rem;
   width: 100%;
 }
 
 .contact-header {
   text-align: center;
-  margin-bottom: 5rem;
+  margin-bottom: 4rem;
 }
 
 .contact-header h1 {
-  font-size: 3rem;
-  color: var(--dark);
-  margin-bottom: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-size: 2.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-weight: 700;
 }
 
 .contact-header p {
-  color: var(--mid);
-  font-size: 1.15rem;
-  line-height: 1.6;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
 }
 
 .contact-content {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
-  gap: 3rem;
+  gap: 2rem;
 }
 
 .contact-left {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 2rem;
 }
 
 .contact-card {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  padding: 3.5rem;
+  background: var(--bg-secondary);
+  border-radius: 24px;
+  padding: 2.5rem;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--line);
-  transition: all 0.3s ease;
-}
-
-.contact-card:hover {
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
 }
 
 .contact-card h2 {
-  font-size: 1.8rem;
-  color: var(--dark);
-  margin-bottom: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-weight: 600;
 }
+
 
 /* Hours Card */
 .hours-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 1.25rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .hours-header h2 {
@@ -83,63 +73,47 @@
 .hours-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  border-radius: var(--radius-full);
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 50px;
   font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1px solid var(--line);
+  font-weight: 500;
 }
 
 .hours-badge.open {
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-color: rgba(46, 125, 80, 0.15);
+  background: rgba(0, 0, 0, 0.05);
+  color: #2a2420;
 }
 
 .hours-badge.closed {
-  background: #ffebee;
-  color: #c62828;
-  border-color: rgba(198, 40, 40, 0.15);
+  background: rgba(0, 0, 0, 0.05);
+  color: #2a2420;
 }
 
 .hours-badge .dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 3px rgba(currentColor, 0.15);
 }
 
 .hours-list {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .hours-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--mid);
-  font-size: 1rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px dashed var(--line);
-}
-
-.hours-row:last-child {
-  border-bottom: none;
-}
-
-.hours-row .day {
-  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
 }
 
 .hours-row .time {
-  font-weight: 700;
-  color: var(--dark);
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 /* Find Us Card */
@@ -150,37 +124,25 @@
 }
 
 .find-us-card .address {
-  color: var(--dark);
-  font-weight: 700;
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
 }
 
-.find-us-card .address::before {
-  content: 'pin_drop';
-  font-family: 'Material Symbols Rounded';
-  color: var(--amber);
-  font-size: 1.3rem;
-  font-weight: normal;
+.find-us-card .delivery-radius {
+  color: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
 }
 
 .map-container {
   flex: 1;
-  min-height: 320px;
-  border-radius: var(--radius-md);
+  min-height: 300px;
+  border-radius: 16px;
   overflow: hidden;
   position: relative;
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-}
-
-.map-container:hover {
-  transform: scale(1.01);
-  box-shadow: var(--shadow-md);
+  background: #f0f0f0; /* placeholder bg */
 }
 
 .map-image {
@@ -192,28 +154,15 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .contact-main {
-    padding: 3rem 20px;
-  }
-
-  .contact-header {
-    margin-bottom: 3rem;
-  }
-
-  .contact-header h1 {
-    font-size: 2.5rem;
-  }
-
   .contact-content {
     grid-template-columns: 1fr;
-    gap: 2rem;
   }
   
-  .contact-card {
-    padding: 2.5rem;
+  .contact-header {
+    margin-bottom: 2rem;
   }
   
   .map-container {
-    min-height: 280px;
+    min-height: 250px;
   }
 }

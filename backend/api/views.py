@@ -370,10 +370,15 @@ def profile_view(request):
     profile.city = request.data.get('city', profile.city)
     profile.bio = request.data.get('bio', profile.bio)
     if 'calorie_target' in request.data:
-        try:
-            profile.calorie_target = max(500, min(10000, int(request.data['calorie_target'])))
-        except (TypeError, ValueError):
-            return Response({"calorie_target": ["Enter a whole number between 500 and 10000."]}, status=400)
+        raw_target = request.data['calorie_target']
+        if raw_target in (None, ''):
+            # Explicit clear — calorie tracking is opt-in, so this is allowed.
+            profile.calorie_target = None
+        else:
+            try:
+                profile.calorie_target = max(500, min(10000, int(raw_target)))
+            except (TypeError, ValueError):
+                return Response({"calorie_target": ["Enter a whole number between 500 and 10000."]}, status=400)
     profile.save()
 
     return Response(ProfileSerializer(user).data)
@@ -731,7 +736,7 @@ def group_order_list_create(request):
 
     with transaction.atomic():
         group = GroupOrder.objects.create(name=name[:100], host=request.user)
-        GroupOrderMember.objects.create(group=group, user=request.user)
+        GroupOrderMember.objects.create(group_order=group, user=request.user, is_host=True)
     return Response(_group_payload(group, request), status=201)
 
 
@@ -744,7 +749,7 @@ def group_order_join(request, invite_code):
         return Response({'error': 'This invite link is invalid.'}, status=404)
     if group.status != 'open':
         return Response({'error': 'This group is no longer accepting members.'}, status=409)
-    GroupOrderMember.objects.get_or_create(group=group, user=request.user)
+    GroupOrderMember.objects.get_or_create(group_order=group, user=request.user)
     return Response(_group_payload(group, request))
 
 
@@ -773,7 +778,7 @@ def group_order_add_item(request, invite_code):
         return Response({'error': 'Choose a valid menu item and quantity.'}, status=400)
 
     projected = group.total_calories + (menu_item.calories * quantity)
-    if projected > group.calorie_target and not request.data.get('allow_over_limit'):
+    if group.calorie_target is not None and projected > group.calorie_target and not request.data.get('allow_over_limit'):
         return Response({
             'code': 'calorie_limit_exceeded',
             'message': f'This would bring the group cart to {projected} kcal, above the shared {group.calorie_target} kcal target.',
@@ -811,7 +816,7 @@ def group_order_item(request, invite_code, pk):
         except (TypeError, ValueError):
             return Response({'error': 'Quantity must be at least 1.'}, status=400)
         projected = group.total_calories - item.total_calories + (item.menu_item.calories * quantity)
-        if projected > group.calorie_target and not request.data.get('allow_over_limit'):
+        if group.calorie_target is not None and projected > group.calorie_target and not request.data.get('allow_over_limit'):
             return Response({
                 'code': 'calorie_limit_exceeded',
                 'message': f'This would bring the group cart to {projected} kcal, above the shared {group.calorie_target} kcal target.',

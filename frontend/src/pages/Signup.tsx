@@ -53,7 +53,6 @@ const Signup: React.FC = () => {
         full_name: formData.fullName,
         email: formData.email,
         password: formData.password,
-        // calorie_target defaults to 2000 on the backend; user sets it via Home popup
       });
       navigate("/home");
     } catch (err: any) {
@@ -129,7 +128,7 @@ const Signup: React.FC = () => {
           </button>
         </div>
         <div className="auth-input-hint">
-          Must be 8+ chars with uppercase, number, &amp; special char
+          Must be 8+ chars with uppercase, number, & special char
         </div>
 
         <div className="auth-input-wrapper" style={{ marginBottom: "8px" }}>

@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { useToast } from '../components/Toast';
+import { confirmDialog } from '../components/ConfirmDialog';
 import { getMenuItems, type MenuItemData } from '../api/menu';
 import { getProfile } from '../api/auth';
 import {
@@ -104,7 +105,13 @@ const Groups = () => {
       showToast(`${item.name} added to your group order.`);
     } catch (err: unknown) {
       const data = (err as AxiosError<{ code?: string; message?: string; error?: string }>).response?.data;
-      if (data?.code === 'calorie_limit_exceeded' && window.confirm(`${data.message} Add it anyway?`)) {
+      const approved =
+        data?.code === 'calorie_limit_exceeded' &&
+        (await confirmDialog(`${data.message} Add it anyway?`, {
+          title: 'Calorie target exceeded',
+          confirmText: 'Add anyway',
+        }));
+      if (approved) {
         setGroup(await addGroupItem(group.invite_code, item.id, true));
       } else {
         showToast(data?.error || 'Could not add item.', 'error');
@@ -122,7 +129,13 @@ const Groups = () => {
       setGroup(await updateGroupItem(group.invite_code, id, quantity));
     } catch (err: unknown) {
       const data = (err as AxiosError<{ code?: string; message?: string; error?: string }>).response?.data;
-      if (data?.code === 'calorie_limit_exceeded' && window.confirm(`${data.message} Continue?`)) {
+      const approved =
+        data?.code === 'calorie_limit_exceeded' &&
+        (await confirmDialog(`${data.message} Continue?`, {
+          title: 'Calorie target exceeded',
+          confirmText: 'Continue',
+        }));
+      if (approved) {
         setGroup(await updateGroupItem(group.invite_code, id, quantity, true));
       } else showToast(data?.error || 'Could not update item.', 'error');
     }
@@ -226,8 +239,13 @@ const Groups = () => {
 
       <section className="group-health">
         <div className="group-avatars">{group.members.map((m) => <span key={m.id} title={m.name}>{m.name[0].toUpperCase()}</span>)}</div>
+        {group.calorie_target !== null ? (
         <div className="group-calories"><div><strong>{group.total_calories.toLocaleString()} / {group.calorie_target.toLocaleString()} kcal</strong>
           <span>Shared target grows as friends join</span></div><div className="group-calorie-track"><i style={{ width: `${percent}%` }} /></div></div>
+        ) : (
+        <div className="group-calories"><div><strong>{group.total_calories.toLocaleString()} kcal so far</strong>
+          <span>No shared target yet — members haven't set a personal calorie goal</span></div></div>
+        )}
       </section>
 
       {group.status === 'open' ? <>

@@ -171,7 +171,6 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} ({self.role})"
 
-
     @property
     def rank_data(self):
         order_count = self.user.orders.filter(payment_status='completed').count()
@@ -395,19 +394,28 @@ class GroupOrder(models.Model):
 
     @property
     def calorie_target(self):
-        return sum(
-            getattr(getattr(member.user, 'profile', None), 'calorie_target', 2000)
+        """
+        Sum of each member's personal calorie goal. Calorie tracking is
+        opt-in per user, so members who haven't set a target simply don't
+        contribute one — if no member has opted in, the group has no
+        shared target and calorie enforcement is skipped entirely.
+        """
+        targets = [
+            getattr(getattr(member.user, 'profile', None), 'calorie_target', None)
             for member in self.members.select_related('user', 'user__profile').all()
-        )
+        ]
+        set_targets = [t for t in targets if t is not None]
+        return sum(set_targets) if set_targets else None
 
 
 class GroupOrderMember(models.Model):
-    group = models.ForeignKey(GroupOrder, on_delete=models.CASCADE, related_name='members')
+    group_order = models.ForeignKey(GroupOrder, on_delete=models.CASCADE, related_name='members')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_order_memberships')
+    is_host = models.BooleanField(default=False)
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('group', 'user')
+        unique_together = ('group_order', 'user')
         ordering = ['joined_at']
 
 

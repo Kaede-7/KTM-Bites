@@ -12,7 +12,6 @@ const CalorieDropdown: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
   const { cart, isLoading } = useCalorie();
   const ref = useRef<HTMLDivElement>(null);
 
-
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
@@ -45,7 +44,6 @@ const CalorieDropdown: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
 
   // Fetch finished but no cart or no target set — show CTA
   const isTargetSet = cart !== null && cart.calorie_target !== null;
-
 
   // ── "kcal Not Set" CTA panel — shown when target is null ──────
   if (!isTargetSet) {
@@ -263,7 +261,6 @@ const CalorieDropdown: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
 
 };
 
-// ── Navbar ─────────────────────────────────────────────────────
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
@@ -273,7 +270,7 @@ const Navbar: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path ? "active" : "";
-  const loggedIn = isLoggedIn("user");
+  const loggedIn = isLoggedIn();
 
   const { cart } = useCalorie();
 
@@ -292,16 +289,19 @@ const Navbar: React.FC = () => {
   }, [loggedIn]);
 
   useEffect(() => {
+    // Initial fetch - no bump
     updateCartCount(false);
+    
+    // Listener for manual updates - trigger bump
     const handleCartUpdate = () => updateCartCount(true);
     window.addEventListener("cart-updated", handleCartUpdate);
     return () => window.removeEventListener("cart-updated", handleCartUpdate);
   }, [updateCartCount]);
 
+  // Close notification/calorie dropdowns on route change
   useEffect(() => {
     setNotifOpen(false);
     setCalorieOpen(false);
-    setIsMenuOpen(false);
   }, [location.pathname]);
 
   const handleUnreadChange = useCallback((count: number) => {
@@ -319,7 +319,7 @@ const Navbar: React.FC = () => {
   const isRiderPath = location.pathname.startsWith('/rider');
   const isHiddenPath = ["/login", "/signup", "/admin", "/kitchen", "/rider"].some(p => location.pathname.startsWith(p));
   // Show the calorie icon for any logged-in user on non-hidden paths.
-  // We no longer require cart to be loaded — it shows a loading/unset state.
+  // We don't require cart to be loaded — it shows a loading/unset state.
   const showCalorieBtn = loggedIn && !isHiddenPath;
 
   const caloriePct = cart ? Math.min(cart.calorie_percentage, 100) : 0;
@@ -356,15 +356,15 @@ const Navbar: React.FC = () => {
             </Link>
             <Link to="/groups" className={`navbar-link ${isActive("/groups")}`}>
               <span className="material-symbols-rounded">groups</span>
-              Groups
+              Group Order
             </Link>
             <Link to="/order-tracking/latest" className={`navbar-link ${isActive("/order-tracking/latest")}`}>
               <span className="material-symbols-rounded">local_shipping</span>
-              Track
+              Track Order
             </Link>
             <Link to="/about" className={`navbar-link ${isActive("/about")}`}>
               <span className="material-symbols-rounded">info</span>
-              About
+              About Us
             </Link>
             <Link to="/contact" className={`navbar-link ${isActive("/contact")}`}>
               <span className="material-symbols-rounded">call</span>
@@ -386,7 +386,6 @@ const Navbar: React.FC = () => {
                     aria-label={cart === null || cart.calorie_target === null ? "Calorie goal not set" : "Calorie Tracker"}
                     aria-expanded={calorieOpen}
                   >
-
                     <svg width="34" height="34" viewBox="0 0 34 34" className="calorie-nav-ring-svg">
                       <circle cx="17" cy="17" r="12" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="3" />
                       <circle
@@ -435,7 +434,6 @@ const Navbar: React.FC = () => {
               <span className="navbar-divider" />
             </>
           )}
-
           {loggedIn ? (
             <>
               {!isRiderPath && (

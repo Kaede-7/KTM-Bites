@@ -1,5 +1,6 @@
 import API from './axios';
 import { AxiosError } from 'axios';
+import { confirmDialog } from '../components/ConfirmDialog';
 
 export interface CartItemData {
   id: number;
@@ -38,7 +39,7 @@ async function retryIfCalorieApproved(
   if (
     axiosError.response?.status === 409 &&
     data?.code === 'calorie_limit_exceeded' &&
-    window.confirm(data.message)
+    (await confirmDialog(data.message, { title: 'Calorie target exceeded', confirmText: 'Add anyway' }))
   ) {
     return retry();
   }

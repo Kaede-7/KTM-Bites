@@ -108,7 +108,7 @@ const Cart: React.FC = () => {
                   <h4 className="cart-item-name">{item.name}</h4>
                   <p className="cart-item-category">{item.category}</p>
                   <p className="cart-item-price">Rs. {item.price}</p>
-                  <p className="cart-item-calories"><span className="material-symbols-rounded" style={{ fontSize: '16px', color: '#f28b46', verticalAlign: 'middle' }}>local_fire_department</span> {item.total_calories} kcal</p>
+                  <p className="cart-item-calories">🔥 {item.total_calories} kcal</p>
                 </div>
                 <div className="cart-item-controls">
                   <div className="cart-item-qty">
@@ -142,7 +142,7 @@ const Cart: React.FC = () => {
                   className="cart-calorie-gauge-fire"
                   style={{ bottom: `clamp(8px, ${calorieFill}%, calc(100% - 16px))` }}
                 >
-                  <span className="material-symbols-rounded" style={{ fontSize: '18px', color: '#f28b46' }}>local_fire_department</span>
+                  🔥
                 </span>
               </div>
 
@@ -153,11 +153,11 @@ const Cart: React.FC = () => {
                 </div>
                 <div className="cart-calorie-value">
                   {cart.total_calories.toLocaleString()}
-                  <span>/ {(cart.calorie_target as number).toLocaleString()} kcal</span>
+                  <span> / {cart.calorie_target.toLocaleString()} kcal</span>
                 </div>
                 <p>
                   {cart.calorie_exceeded
-                    ? `${(cart.total_calories - (cart.calorie_target as number)).toLocaleString()} kcal over your target`
+                    ? `${(cart.total_calories - cart.calorie_target).toLocaleString()} kcal over your target`
                     : `${caloriesRemaining.toLocaleString()} kcal remaining`}
                 </p>
                 <Link to="/profile" className="cart-calorie-edit">
@@ -166,10 +166,18 @@ const Cart: React.FC = () => {
                 </Link>
               </div>
             </div>
-            ) : null}
+            ) : (
+              <Link to="/profile" className="cart-calorie-meter cart-calorie-notset">
+                <span className="material-symbols-rounded" style={{ color: '#f28b46' }}>local_fire_department</span>
+                <div>
+                  <strong>Track calories for this order</strong>
+                  <p>No daily goal set — set one in your profile to start tracking.</p>
+                </div>
+                <span className="material-symbols-rounded">arrow_forward</span>
+              </Link>
+            )}
 
             <div className="cart-summary-row"><span>Subtotal</span><span>Rs. {cart.total}</span></div>
-
             <div className="cart-summary-row"><span>Delivery Fee</span><span>Rs. {deliveryFee}</span></div>
 
             <div className="cart-summary-divider" />

@@ -12,8 +12,6 @@ import AIRecommendations from "../components/AIRecommendations";
 import { useToast } from "../components/Toast";
 import Skeleton from "../components/Skeleton";
 import PageTransition from "../components/PageTransition";
-import { AddressAutocomplete } from "../components/AddressAutocomplete";
-
 
 const Home: React.FC = () => {
   const [favorites, setFavorites] = useState<MenuItemData[]>([]);
@@ -43,7 +41,6 @@ const Home: React.FC = () => {
       showToast("Failed to add to cart. Please try again.", "error");
     }
   };
-
 
   useEffect(() => {
     // Stale-while-revalidate: Load from localStorage first for instant UI
@@ -77,7 +74,7 @@ const Home: React.FC = () => {
     };
     fetchData();
 
-    // Check if user has address/phone saved — show modal as needed
+    // Check if user has address and phone saved in DB — if yes, never show again
     if (isLoggedIn()) {
       getProfile().then((profile) => {
         const hasAddress = profile.address && profile.address.trim() !== "" && profile.address !== "Thamel, Kathmandu";
@@ -139,22 +136,21 @@ const Home: React.FC = () => {
                 type="tel"
                 placeholder="Phone Number"
                 value={phoneInput}
-                onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setPhoneInput(e.target.value)}
                 autoFocus
               />
             </div>
 
-
             <div className="address-modal-input-wrap">
               <span className="material-symbols-rounded">location_on</span>
-              <AddressAutocomplete
-                value={addressInput}
-                onChange={setAddressInput}
+              <input
+                type="text"
                 placeholder="Delivery Address"
+                value={addressInput}
+                onChange={(e) => setAddressInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSaveAddress()}
               />
             </div>
-
             <div className="address-modal-actions">
               <button className="address-modal-skip" onClick={() => setShowAddressModal(false)}>
                 Skip for now
@@ -167,7 +163,6 @@ const Home: React.FC = () => {
           </div>
         </div>
       )}
-
 
       <div className="home-container">
         {/* Hero Section */}
@@ -337,10 +332,7 @@ const Home: React.FC = () => {
                         <div className="hf-item-info">
                           <h4>{item.name}</h4>
                           <p>{item.category_name} • Rs. {item.price}</p>
-                          <p>
-                            <span className="material-symbols-rounded" style={{ fontSize: '15px', marginRight: '4px', verticalAlign: 'middle', color: '#f28b46' }}>local_fire_department</span>
-                            {item.calories} kcal
-                          </p>
+                          <p>🔥 {item.calories} kcal</p>
                         </div>
                         <button className="hf-item-btn" onClick={(e) => handleAddToCart(e, item.id)}>
                           <span className="material-symbols-rounded" style={{fontSize: '20px'}}>add</span>

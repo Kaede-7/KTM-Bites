@@ -11,6 +11,7 @@ import API from "../api/axios";
 import LoadingAnimation from "../components/LoadingAnimation";
 import AuthCreative from "../components/AuthCreative";
 import { useToast } from "../components/Toast";
+import { confirmDialog } from "../components/ConfirmDialog";
 
 
 interface MenuItem {
@@ -295,7 +296,7 @@ const Admin: React.FC = () => {
   };
 
   const handleDeleteMenuItem = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this item?")) return;
+    if (!(await confirmDialog("Are you sure you want to delete this item?", { title: "Delete menu item", confirmText: "Delete", tone: "danger" }))) return;
     try {
       setActionLoading(true);
       await adminAPI.deleteMenuItem(id);
@@ -381,7 +382,7 @@ const Admin: React.FC = () => {
   };
 
   const handleDeleteUser = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this user? This cannot be undone.")) return;
+    if (!(await confirmDialog("Are you sure you want to delete this user? This cannot be undone.", { title: "Delete user", confirmText: "Delete", tone: "danger" }))) return;
     try {
       setActionLoading(true);
       await adminAPI.deleteUser(id);
@@ -442,7 +443,7 @@ const Admin: React.FC = () => {
   };
 
   const handleDeleteRider = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this rider? This cannot be undone.")) return;
+    if (!(await confirmDialog("Are you sure you want to delete this rider? This cannot be undone.", { title: "Delete rider", confirmText: "Delete", tone: "danger" }))) return;
     try {
       setActionLoading(true);
       await adminAPI.deleteRider(id);

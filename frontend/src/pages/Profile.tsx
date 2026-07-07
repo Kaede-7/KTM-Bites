@@ -15,10 +15,7 @@ import {
 import PageTransition from "../components/PageTransition";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { downloadOrderPDF } from "../utils/pdfGenerator";
-import { AddressAutocomplete } from "../components/AddressAutocomplete";
-import khaltiLogo from "../assets/khalti_logo.svg";
-import kharchaLogo from "../assets/kharcha_logo.png";
-
+import { confirmDialog } from "../components/ConfirmDialog";
 
 // ── Toast Component ──────────────────────────────────────────
 const Toast: React.FC<{ msg: string; type: "success" | "error"; onClose: () => void }> = ({ msg, type, onClose }) => (
@@ -49,7 +46,7 @@ const LinkedAccountsSection: React.FC<LinkedAccountsProps> = ({ showToast }) => 
 
   const handleLink = () => { window.location.href = getKharchaLinkUrl(); };
   const handleUnlink = async () => {
-    if (!window.confirm("Remove your linked Kharcha account?")) return;
+    if (!(await confirmDialog("Remove your linked Kharcha account?", { title: "Unlink Kharcha", confirmText: "Unlink", tone: "danger" }))) return;
     setUnlinking(true);
     try {
       await removeKharchaLink();
@@ -67,20 +64,14 @@ const LinkedAccountsSection: React.FC<LinkedAccountsProps> = ({ showToast }) => 
   return (
     <div className="profile-section-modern">
       <div className="pm-header">
-        <div className="pm-header-icon">
-          <span className="material-symbols-rounded">payments</span>
-        </div>
-        <div>
-          <h2>Payment Methods</h2>
-          <div className="pm-header-sub">Manage your linked digital wallets</div>
-        </div>
+        <h2>Payment Methods</h2>
       </div>
       
-      <div className="payment-wallets-list">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Kharcha Card */}
         <div className="wallet-account-card">
           <div className="wallet-info-left">
-            <img src={kharchaLogo} alt="Kharcha Wallet Logo" className="wallet-logo-img kharcha" />
+            <div className="wallet-logo kharcha">K</div>
             <div className="wallet-details">
               <div className="wallet-name">Kharcha Wallet</div>
               <div className={`wallet-status ${status?.linked ? "active" : ""}`}>
@@ -102,7 +93,7 @@ const LinkedAccountsSection: React.FC<LinkedAccountsProps> = ({ showToast }) => 
         {/* Khalti Card */}
         <div className="wallet-account-card">
           <div className="wallet-info-left">
-            <img src={khaltiLogo} alt="Khalti Wallet Logo" className="wallet-logo-img khalti" />
+            <div className="wallet-logo khalti">K</div>
             <div className="wallet-details">
               <div className="wallet-name">Khalti</div>
               <div className="wallet-status active">Available</div>
@@ -215,25 +206,27 @@ const Profile: React.FC = () => {
   }, [activeTab]);
 
   const handleChange = (field: keyof ProfileData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    let val = e.target.value;
-    if (field === "phone") {
-      val = val.replace(/\D/g, "");
-    }
-    setFormData((prev) => ({ ...prev, [field]: val }));
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-
   const handleSave = async () => {
-    const calorieTarget = Number(formData.calorie_target);
-    if (!Number.isInteger(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
-      showToast("Calorie target must be between 500 and 10,000 kcal.", "error");
-      return;
+    // Calorie tracking is opt-in — only validate the target if one was
+    // actually entered. Leaving it blank clears/skips tracking entirely
+    // and shouldn't block saving the rest of the profile.
+    let calorieTarget: number | null = null;
+    const rawTarget = formData.calorie_target as unknown;
+    if (rawTarget !== null && rawTarget !== undefined && rawTarget !== ("" as unknown)) {
+      calorieTarget = Number(rawTarget);
+      if (!Number.isInteger(calorieTarget) || calorieTarget < 500 || calorieTarget > 10000) {
+        showToast("Calorie target must be between 500 and 10,000 kcal.", "error");
+        return;
+      }
     }
     setSaving(true);
     try {
       await updateProfile({ ...formData, calorie_target: calorieTarget });
       setFormData((prev) => ({ ...prev, calorie_target: calorieTarget }));
-      window.dispatchEvent(new Event("cart-updated")); // refresh calorie context
+      window.dispatchEvent(new Event("cart-updated"));
       showToast("Profile updated successfully!");
     } catch {
       showToast("Failed to update profile.", "error");
@@ -289,6 +282,7 @@ const Profile: React.FC = () => {
     ...(formData.has_password ? [{ key: "password", icon: "visibility", label: "Password", desc: "Change your password" }] : []),
     { key: "orders", icon: "receipt_long", label: "Order History", desc: "Track your past orders" },
     { key: "linked", icon: "payments", label: "Payment Methods", desc: "Add your wallet" },
+    { key: "invite", icon: "edit", label: "Invite Your Friends", desc: "Get rewards for invitations" },
   ];
 
   if (loading) {
@@ -315,61 +309,48 @@ const Profile: React.FC = () => {
           <div className="ranks-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="rm-header">
               <span className="material-symbols-rounded">stars</span>
-              <div>
-                <h2>Membership Ranks</h2>
-                <p className="rm-header-sub">Place more orders to unlock higher tiers</p>
-              </div>
+              <h2>KTM Bites Membership Ranks</h2>
               <button className="rm-close" onClick={() => setShowRanks(false)}>
                 <span className="material-symbols-rounded">close</span>
               </button>
             </div>
             <div className="rm-body">
-              <div className="rm-tier-list">
-                {rankTiers.map((tier) => {
-                  const isCurrent = formData.rank?.current_rank === tier.name;
-                  const isUnlocked = (formData.rank?.order_count || 0) >= tier.min;
-                  const tierSlug = tier.name.toLowerCase().replace(/\s+/g, '-');
-                  return (
-                    <div 
-                      key={tier.name} 
-                      className={`rm-tier-card rm-tier-${tierSlug} ${isCurrent ? 'rm-tier-current' : ''} ${!isUnlocked ? 'rm-tier-locked' : ''}`}
-                    >
-                      <div className="rm-tier-badge">
+              <p className="rm-intro">Unlock higher ranks by placing more orders and enjoy premium benefits.</p>
+              <div className="ranks-list">
+                {rankTiers.map((tier) => (
+                  <div 
+                    key={tier.name} 
+                    className={`profile-rank-card tier-${tier.name.toLowerCase().replace(/\s+/g, '-')} preview-card ${formData.rank?.current_rank === tier.name ? 'current' : ''}`}
+                    style={{ '--tier-color': tier.color } as any}
+                  >
+                    <div className="prc-top">
+                      <div className="prc-badge" style={{ backgroundColor: tier.color }}>
                         <span className="material-symbols-rounded">
-                          {tier.name === "Mythic Crimson" ? "military_tech" : 
-                           (tier.name === "Diamond" || tier.name === "Platinum") ? "workspace_premium" : "stars"}
+                          {tier.name === "Mythic Crimson" ? "military_tech" : (tier.name === "Diamond" || tier.name === "Platinum" ? "workspace_premium" : "stars")}
                         </span>
                       </div>
-                      <div className="rm-tier-body">
-                        <div className="rm-tier-top-row">
-                          <div className="rm-tier-name">
-                            {tier.name}
-                            {isCurrent && <span className="rm-tier-you">You</span>}
-                          </div>
-                          <div className="rm-tier-right-side">
-                            <div className="rm-tier-discount">
-                              {tier.discount > 0 ? `${tier.discount}%` : '—'}
-                            </div>
-                            {!isUnlocked && (
-                              <span className="material-symbols-rounded rm-tier-lock-inline">lock</span>
-                            )}
-                          </div>
+                      <div className="prc-info">
+                        <div className="prc-label">Rank Details</div>
+                        <div className="prc-name">
+                          {tier.name}
+                          {formData.rank?.current_rank === tier.name && <span className="rtc-current-label">Current</span>}
                         </div>
-                        <div className="rm-tier-req">
-                          {tier.min === 0 ? 'Starting tier' : `${tier.min} orders to unlock`}
-                        </div>
-                        <p className="rm-tier-perks">{tier.perks}</p>
+                      </div>
+                      <div className="prc-discount">
+                        <span>{tier.discount}% OFF</span>
                       </div>
                     </div>
-                  );
-                })}
+                    
+                    <div className="prc-preview-details">
+                      <div className="rtc-requirement">Unlocks at {tier.min} orders</div>
+                      <p className="rtc-perks">{tier.perks}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="rm-footer">
-              <button className="rm-action-btn" onClick={() => setShowRanks(false)}>
-                <span className="material-symbols-rounded">check</span>
-                Got it
-              </button>
+              <button className="rm-action-btn" onClick={() => setShowRanks(false)}>Got it, thanks!</button>
             </div>
           </div>
         </div>
@@ -383,51 +364,28 @@ const Profile: React.FC = () => {
             
             {/* Rank Card */}
             {formData.rank && (
-              <div className={`profile-rank-card tier-${formData.rank.current_rank.toLowerCase().replace(/\s+/g, '-')}`}>
-                {/* Card Header */}
-                <div className="prc-header">
+              <div className={`profile-rank-card tier-${formData.rank.current_rank.toLowerCase().replace(/\s+/g, '-')}`} style={{ borderColor: `${formData.rank.color}40` }}>
+                <div className="prc-top">
                   <div className="prc-badge" style={{ backgroundColor: formData.rank.color }}>
                     <span className="material-symbols-rounded">
-                      {formData.rank.current_rank === "Mythic Crimson" ? "military_tech" : 
-                       (formData.rank.current_rank === "Diamond" || formData.rank.current_rank === "Platinum") ? "workspace_premium" : "stars"}
+                      {formData.rank.current_rank === "Mythic Crimson" ? "military_tech" : "stars"}
                     </span>
                   </div>
+                  <div className="prc-info">
+                    <div className="prc-label">Your rank</div>
+                    <div className="prc-name">{formData.rank.current_rank}</div>
+                  </div>
                   <div className="prc-discount">
-                    {formData.rank.discount}% OFF
+                    <span>{formData.rank.discount}% OFF</span>
                   </div>
                 </div>
-
-                {/* Rank Title */}
-                <div className="prc-title-section">
-                  <div className="prc-label">Membership Tier</div>
-                  <div className="prc-name">{formData.rank.current_rank}</div>
-                </div>
-
-                {/* Stats Row */}
-                <div className="prc-stats-row">
-                  <div className="prc-stat">
-                    <span className="prc-stat-value">{formData.rank?.order_count}</span>
-                    <span className="prc-stat-label">Orders</span>
+                
+                <div className="prc-progress-wrap">
+                  <div className="prc-progress-labels">
+                    <span>{formData.rank?.order_count} orders</span>
+                    <span>{formData.rank?.next_rank}</span>
                   </div>
-                  <div className="prc-stat-divider" />
-                  <div className="prc-stat">
-                    <span className="prc-stat-value">{Math.round(formData.rank?.progress || 0)}%</span>
-                    <span className="prc-stat-label">Progress</span>
-                  </div>
-                  <div className="prc-stat-divider" />
-                  <div className="prc-stat">
-                    <span className="prc-stat-value">{formData.rank.discount}%</span>
-                    <span className="prc-stat-label">Discount</span>
-                  </div>
-                </div>
-
-                {/* Progress Section */}
-                <div className="prc-progress-section">
-                  <div className="prc-progress-meta">
-                    <span>{formData.rank?.order_count} / {(formData.rank?.order_count || 0) + (formData.rank?.orders_to_next || 0)} orders</span>
-                    <span>{formData.rank?.next_rank || "Max Rank"}</span>
-                  </div>
-                  <div className="prc-progress-track">
+                  <div className="prc-progress-bar">
                     <div 
                       className="prc-progress-fill" 
                       style={{ 
@@ -436,25 +394,19 @@ const Profile: React.FC = () => {
                       }} 
                     />
                   </div>
-                </div>
-
-                {/* Footer */}
-                <div className="prc-card-footer">
-                  {formData.rank?.orders_to_next > 0 ? (
-                    <div className="prc-hint">
-                      <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>trending_up</span>
-                      {formData.rank?.orders_to_next} more to {formData.rank?.next_rank}
-                    </div>
-                  ) : (
-                    <div className="prc-hint">
-                      <span className="material-symbols-rounded" style={{ fontSize: '14px' }}>emoji_events</span>
-                      Maximum rank achieved!
-                    </div>
-                  )}
-                  <button className="prc-info-btn" onClick={() => setShowRanks(true)}>
-                    All Tiers
-                    <span className="material-symbols-rounded">arrow_forward</span>
-                  </button>
+                  <div className="prc-footer-row">
+                    {formData.rank?.orders_to_next > 0 ? (
+                      <div className="prc-hint">
+                        {formData.rank?.orders_to_next} more orders to {formData.rank?.next_rank}
+                      </div>
+                    ) : (
+                      <div className="prc-hint">You are at maximum rank!</div>
+                    )}
+                    <button className="prc-info-btn" onClick={() => setShowRanks(true)}>
+                      <span className="material-symbols-rounded">info</span>
+                      View Benefits
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -501,110 +453,107 @@ const Profile: React.FC = () => {
                   </div>
                 </div>
 
-                <div className={`profile-avatar-wrap ${formData.rank?.current_rank === "Mythic Crimson" ? "vip-mythic-wrap" : ""}`}>
+                <div className="profile-avatar-wrap">
                   <div className="profile-avatar-circle">
                     {initials}
                   </div>
                   <div className="pav-info">
                     <h3>{formData.full_name || "Your Name"}</h3>
                     <span className="pav-email">{formData.email}</span>
-                    <div className="pav-badge-row">
-                      <div className="pav-badge">
-                        <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>verified</span>
-                        {formData.role || 'User'}
-                      </div>
-                      {formData.rank && (
-                        <div className={`pav-rank-badge rank-${formData.rank.current_rank.toLowerCase().replace(/\s+/g, '-')}`}>
-                          <span className="material-symbols-rounded">
-                            {formData.rank.current_rank === "Mythic Crimson" ? "military_tech" : "stars"}
-                          </span>
-                          {formData.rank.current_rank === "Mythic Crimson" ? "Mythic VIP" : formData.rank.current_rank}
-                        </div>
-                      )}
+                    <div className="pav-badge">
+                      <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>verified</span>
+                      {formData.role || 'User'}
                     </div>
                   </div>
                 </div>
 
                 <div className="profile-form-modern">
-                  <div className="pf-row">
-                    <div className="pf-field">
-                      <label className="pf-label">Full Name</label>
-                      <div className="pf-input-group">
-                        <span className="material-symbols-rounded pf-input-icon">person</span>
-                        <input 
-                          type="text" 
-                          value={formData.full_name || ""} 
-                          onChange={handleChange("full_name")} 
-                          placeholder="Full Name" 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pf-field">
-                      <label className="pf-label">Email Address</label>
-                      <div className="pf-input-group">
-                        <span className="material-symbols-rounded pf-input-icon">mail</span>
-                        <input 
-                          type="email" 
-                          value={formData.email || ""} 
-                          onChange={handleChange("email")} 
-                          placeholder="Email Address" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pf-row">
-                    <div className="pf-field">
-                      <label className="pf-label">Phone Number</label>
-                      <div className="pf-input-group">
-                        <span className="material-symbols-rounded pf-input-icon">call</span>
-                        <input 
-                          type="tel" 
-                          value={formData.phone || ""} 
-                          onChange={handleChange("phone")} 
-                          placeholder="Phone Number" 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pf-field">
-                      <label className="pf-label">Calorie Target</label>
-                      <div className="pf-input-group pf-calorie-input">
-                        <span className="material-symbols-rounded pf-input-icon" style={{ color: "#f28b46" }}>local_fire_department</span>
-                        <input
-                          type="number"
-                          min="500"
-                          max="10000"
-                          step="50"
-                          value={formData.calorie_target !== null && formData.calorie_target !== undefined ? formData.calorie_target : ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              calorie_target: e.target.value === "" ? null : Number(e.target.value),
-                            }))
-                          }
-                          placeholder="Daily calorie target"
-                        />
-                        <span className="pf-calorie-unit">kcal</span>
-                      </div>
-                      <div className="pf-field-hint">
-                        {formData.calorie_target
-                          ? "Your cart progress bar will use this target."
-                          : "Goal: Not set. Enter a value above and save to configure."}
-                      </div>
+                  <div className="pf-field">
+                    <label className="pf-label">Full Name</label>
+                    <div className="pf-input-group">
+                      <input 
+                        type="text" 
+                        value={formData.full_name || ""} 
+                        onChange={handleChange("full_name")} 
+                        placeholder="Full Name" 
+                      />
                     </div>
                   </div>
 
                   <div className="pf-field">
-                    <label className="pf-label">Street Address</label>
-                    <div className="pf-input-group" style={{ overflow: "visible" }}>
-                      <span className="material-symbols-rounded pf-input-icon">location_on</span>
-                      <AddressAutocomplete 
-                        value={formData.address || ""} 
-                        onChange={(val) => setFormData(prev => ({ ...prev, address: val }))} 
-                        placeholder="Street Address" 
+                    <label className="pf-label">Email Address</label>
+                    <div className="pf-input-group">
+                      <input 
+                        type="email" 
+                        value={formData.email || ""} 
+                        onChange={handleChange("email")} 
+                        placeholder="Email Address" 
                       />
+                    </div>
+                  </div>
+
+                  <div className="pf-field">
+                    <label className="pf-label">Phone Number</label>
+                    <div className="pf-input-group">
+                      <input 
+                        type="tel" 
+                        value={formData.phone || ""} 
+                        onChange={handleChange("phone")} 
+                        placeholder="Phone Number" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pf-field">
+                    <label className="pf-label">Calorie Target</label>
+                    <div className="pf-input-group pf-calorie-input">
+                      <span className="pf-calorie-icon">🔥</span>
+                      <input
+                        type="number"
+                        min="500"
+                        max="10000"
+                        step="50"
+                        value={formData.calorie_target ?? ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            calorie_target: e.target.value === "" ? null : Number(e.target.value),
+                          }))
+                        }
+                        placeholder="Not set — optional"
+                      />
+                      <span className="pf-calorie-unit">kcal</span>
+                    </div>
+                    <div className="pf-field-hint">
+                      {formData.calorie_target
+                        ? "Your cart progress bar will use this target."
+                        : "Goal: Not set. Calorie tracking is off until you set one."}
+                    </div>
+                  </div>
+
+                  <div className="pf-row">
+                    <div className="pf-field">
+                      <label className="pf-label">Street Address</label>
+                      <div className="pf-input-group">
+                        <input 
+                          type="text" 
+                          value={formData.address || ""} 
+                          onChange={handleChange("address")} 
+                          placeholder="Street Address" 
+                        />
+                      </div>
+                    </div>
+                    <div className="pf-field">
+                      <label className="pf-label">City</label>
+                      <div className="pf-input-group">
+                        <select value={formData.city || ""} onChange={handleChange("city")}>
+                          <option value="">Select City</option>
+                          <option value="Kathmandu">Kathmandu</option>
+                          <option value="Lalitpur">Lalitpur</option>
+                          <option value="Bhaktapur">Bhaktapur</option>
+                        </select>
+                        <span className="material-symbols-rounded pf-select-arrow">expand_more</span>
+                      </div>
                     </div>
                   </div>
 
@@ -911,7 +860,26 @@ const Profile: React.FC = () => {
               </div>
             )}
 
-            {/* Invite section removed */}
+            {activeTab === "invite" && (
+              <div className="invite-section-modern">
+                <div className="pm-header">
+                  <h2>Invite Your Friends</h2>
+                </div>
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '60px 20px', 
+                  background: 'rgba(242, 139, 70, 0.05)', 
+                  borderRadius: '24px',
+                  border: '1px dashed rgba(242, 139, 70, 0.3)'
+                }}>
+                  <span className="material-symbols-rounded" style={{ fontSize: '48px', color: '#f28b46', marginBottom: '16px' }}>group_add</span>
+                  <h3>Referral Program Coming Soon!</h3>
+                  <p style={{ color: '#8b7d72', maxWidth: '300px', margin: '12px auto' }}>
+                    Share the love for KTM Bites and get rewards for every friend who signs up and orders.
+                  </p>
+                </div>
+              </div>
+            )}
           </main>
 
         </div>

@@ -28,10 +28,10 @@ const AIRecommendations: React.FC = () => {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 11) setContextLabel('Good morning picks');
-    else if (hour < 15) setContextLabel('Lunch favourites');
-    else if (hour < 18) setContextLabel('Afternoon snacks');
-    else setContextLabel('Dinner tonight');
+    if (hour < 11) setContextLabel('Good morning picks ☀️');
+    else if (hour < 15) setContextLabel('Lunch favourites 🍱');
+    else if (hour < 18) setContextLabel('Afternoon snacks ☕');
+    else setContextLabel('Dinner tonight 🌙');
 
     getAIRecommendations()
       .then(res => {
@@ -128,7 +128,7 @@ const AIRecommendations: React.FC = () => {
                 )}
                 <div className="ai-rec-name">{item.name}</div>
                 <div className="ai-rec-price">Rs. {item.price}</div>
-                <div className="ai-rec-price"><span className="material-symbols-rounded" style={{ fontSize: '13px', color: '#f28b46', verticalAlign: 'middle' }}>local_fire_department</span> {item.calories} kcal</div>
+                <div className="ai-rec-price">🔥 {item.calories} kcal</div>
                 {item.reason && (
                   <div className="ai-rec-reason">
                     <span className="material-symbols-rounded">tips_and_updates</span>

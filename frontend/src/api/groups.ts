@@ -5,7 +5,7 @@ export interface GroupMember {
   user: number;
   name: string;
   email: string;
-  calorie_target: number;
+  calorie_target: number | null;
   kharcha_linked: boolean;
 }
 
@@ -54,7 +54,7 @@ export interface GroupOrderData {
   delivery_fee: number;
   total: number;
   total_calories: number;
-  calorie_target: number;
+  calorie_target: number | null;
   calorie_percentage: number;
   order?: number;
   kharcha_group_id?: string;

@@ -1,5 +1,6 @@
 import { type OrderData } from "../api/orders";
 import mascotIcon from "../assets/ktm-bites-transparent-notext.png";
+import { alertDialog } from "../components/ConfirmDialog";
 
 /**
  * Generates and downloads a beautifully structured, premium PDF order report for a KTM Bites order.
@@ -8,7 +9,7 @@ import mascotIcon from "../assets/ktm-bites-transparent-notext.png";
 export const downloadOrderPDF = (order: OrderData) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
-    alert("Please allow popups to preview your order report.");
+    void alertDialog("Please allow popups to preview your order report.", { title: "Popups blocked" });
     return;
   }
 

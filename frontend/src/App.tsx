@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import ChatWidget from "./components/ChatWidget";
 import { ToastProvider } from "./components/Toast";
+import { ConfirmDialogProvider } from "./components/ConfirmDialog";
 import AuthLayout from "./components/AuthLayout";
 import LoadingAnimation from "./components/LoadingAnimation";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -36,46 +37,48 @@ function App() {
 
   return (
     <ToastProvider>
-      <CalorieProvider>
-        <Suspense fallback={<LoadingAnimation message="Entering the kitchen..." />}>
-          <Routes>
-            {/* === Public routes (anyone can see) === */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/menu" element={<MenuBrowse />} />
-            <Route path="/menu/:id" element={<ItemDetail />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/about" element={<About />} />
+    <ConfirmDialogProvider>
+    <CalorieProvider>
+      <Suspense fallback={<LoadingAnimation message="Entering the kitchen..." />}>
+        <Routes>
+          {/* === Public routes (anyone can see) === */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/menu" element={<MenuBrowse />} />
+          <Route path="/menu/:id" element={<ItemDetail />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
 
-            {/* Login & Signup share a common layout (AuthLayout wraps them) */}
-            <Route element={<AuthLayout />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/rider-login" element={<RiderLogin />} />
-              <Route path="/rider-signup" element={<RiderSignup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-            </Route>
+          {/* Login & Signup share a common layout (AuthLayout wraps them) */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/rider-login" element={<RiderLogin />} />
+            <Route path="/rider-signup" element={<RiderSignup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Route>
 
-            {/* Admin, Kitchen, and Rider have their own login systems */}
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/kitchen" element={<Kitchen />} />
-            <Route path="/rider" element={<Rider />} />
-            <Route path="/rider/profile" element={<RiderProfile />} />
+          {/* Admin, Kitchen, and Rider have their own login systems */}
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/kitchen" element={<Kitchen />} />
+          <Route path="/rider" element={<Rider />} />
+          <Route path="/rider/profile" element={<RiderProfile />} />
 
-            {/* === Routes that require login === */}
-            <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-            <Route path="/order-tracking/:id" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/groups" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
-            <Route path="/groups/:code" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
-          </Routes>
-        </Suspense>
+          {/* === Routes that require login === */}
+          <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route path="/order-tracking/:id" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/groups" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
+          <Route path="/groups/:code" element={<ProtectedRoute><Groups /></ProtectedRoute>} />
+        </Routes>
+      </Suspense>
 
-        {/* AI Chat Widget — floating button on every page except landing page */}
-        {!isLandingPage && <ChatWidget />}
-      </CalorieProvider>
+      {/* AI Chat Widget — floating button on every page except landing page */}
+      {!isLandingPage && <ChatWidget />}
+    </CalorieProvider>
+    </ConfirmDialogProvider>
     </ToastProvider>
   );
 }

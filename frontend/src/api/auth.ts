@@ -36,7 +36,6 @@ export interface ProfileData {
   city: string;
   bio: string;
   calorie_target: number | null;
-
   has_password: boolean;
   role?: string;
   rank: {
@@ -198,7 +197,7 @@ export async function login(
   return data;
 }
 
-export async function googleLogin(token: string, isAccessToken: boolean = false, role: string = 'USER', rememberMe: boolean = false, calorieTarget?: number): Promise<AuthResponse> {
+export async function googleLogin(token: string, isAccessToken: boolean = false, role: string = 'USER', rememberMe: boolean = false, calorieTarget?: number | null): Promise<AuthResponse> {
   const payload = isAccessToken
     ? { access_token: token, role, calorie_target: calorieTarget }
     : { credential: token, role, calorie_target: calorieTarget };
@@ -214,7 +213,7 @@ export interface RegisterData {
   password?: string;
   is_google?: boolean;
   role?: string;
-  calorie_target?: number;
+  calorie_target?: number | null;
 }
 
 export async function register(payload: RegisterData, rememberMe: boolean = false): Promise<AuthResponse> {

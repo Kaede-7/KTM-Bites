@@ -381,6 +381,45 @@
   color: #c62828;
 }
 
+.cart-calorie-meter.cart-calorie-notset {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 0;
+  padding: 14px 16px;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.cart-calorie-meter.cart-calorie-notset:hover {
+  border-color: rgba(242, 139, 70, 0.4);
+}
+
+.cart-calorie-meter.cart-calorie-notset > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-calorie-meter.cart-calorie-notset strong {
+  display: block;
+  color: #2a2420;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.cart-calorie-meter.cart-calorie-notset p {
+  margin: 3px 0 0;
+  color: #8b7d72;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.cart-calorie-meter.cart-calorie-notset > .material-symbols-rounded:last-child {
+  color: #b8a89a;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
 .cart-summary-row {
   display: flex;
   justify-content: space-between;

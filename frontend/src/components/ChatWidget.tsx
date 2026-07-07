@@ -6,10 +6,10 @@ import { addToCart } from '../api/cart';
 import { isLoggedIn } from '../api/auth';
 
 const QUICK_CHIPS = [
-  { icon: 'eco', label: 'Vegan options?' },
-  { icon: 'local_fire_department', label: "What's most popular?" },
-  { icon: 'payments', label: 'Under Rs. 300?' },
-  { icon: 'outdoor_grill', label: 'Spicy dishes?' },
+  '🌱 Vegan options?',
+  '🔥 What\'s most popular?',
+  '💰 Under Rs. 300?',
+  '🌶️ Spicy dishes?',
 ];
 
 const HIDDEN_ROUTES = ['/login', '/signup', '/admin', '/kitchen', '/rider'];
@@ -121,14 +121,13 @@ const ChatWidget: React.FC = () => {
           <div className="chat-messages">
             {messages.length === 0 && (
               <div className="chat-welcome">
-                <div className="chat-welcome-icon"><span className="material-symbols-rounded" style={{ fontSize: 'inherit' }}>ramen_dining</span></div>
+                <div className="chat-welcome-icon">🍜</div>
                 <h4>Hey! I'm your food guide.</h4>
                 <p>Ask me anything about the menu — from allergens to what's perfect for your mood today.</p>
                 <div className="chat-chips">
                   {QUICK_CHIPS.map(chip => (
-                    <button key={chip.label} className="chat-chip" onClick={() => handleSend(chip.label)}>
-                      <span className="material-symbols-rounded" style={{ fontSize: '14px', verticalAlign: 'middle' }}>{chip.icon}</span>
-                      {chip.label}
+                    <button key={chip} className="chat-chip" onClick={() => handleSend(chip)}>
+                      {chip}
                     </button>
                   ))}
                 </div>
@@ -146,7 +145,7 @@ const ChatWidget: React.FC = () => {
                         <div className="chat-item-card-info">
                           <div className="chat-item-card-name">{item.name}</div>
                           <div className="chat-item-card-price">Rs. {item.price}</div>
-                          <div className="chat-item-card-price"><span className="material-symbols-rounded" style={{ fontSize: '13px', color: '#f28b46', verticalAlign: 'middle' }}>local_fire_department</span> {item.calories} kcal</div>
+                          <div className="chat-item-card-price">🔥 {item.calories} kcal</div>
                         </div>
                         <button
                           className={`chat-item-add-btn ${addedItems.has(item.id) ? 'added' : ''}`}
