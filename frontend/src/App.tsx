@@ -24,6 +24,8 @@ const About = lazy(() => import("./pages/About"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Kitchen = lazy(() => import("./pages/Kitchen"));
 const Rider = lazy(() => import("./pages/Rider"));
+const Cashier = lazy(() => import("./pages/Cashier"));
+const CashierLogin = lazy(() => import("./pages/CashierLogin"));
 const RiderProfile = lazy(() => import("./pages/RiderProfile"));
 const RiderSignup = lazy(() => import("./pages/RiderSignup"));
 const RiderLogin = lazy(() => import("./pages/RiderLogin"));
@@ -55,15 +57,17 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/rider-login" element={<RiderLogin />} />
             <Route path="/rider-signup" element={<RiderSignup />} />
+            <Route path="/cashier-login" element={<CashierLogin />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
           </Route>
 
-          {/* Admin, Kitchen, and Rider have their own login systems */}
+          {/* Admin, Kitchen, Rider, and Cashier have their own login systems */}
           <Route path="/admin" element={<Admin />} />
           <Route path="/kitchen" element={<Kitchen />} />
           <Route path="/rider" element={<Rider />} />
           <Route path="/rider/profile" element={<RiderProfile />} />
+          <Route path="/cashier" element={<Cashier />} />
 
           {/* === Routes that require login === */}
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />

@@ -4,13 +4,14 @@ import API from "./axios";
 // Each portal (User, Kitchen, Admin, Rider) gets its own scoped
 // localStorage keys so sessions never bleed across portals.
 
-export type Portal = 'user' | 'kitchen' | 'admin' | 'rider';
+export type Portal = 'user' | 'kitchen' | 'admin' | 'rider' | 'cashier';
 
 const PORTAL_KEYS: Record<Portal, { token: string; user: string }> = {
   user:    { token: 'ktmbites_token',         user: 'ktmbites_user' },
   kitchen: { token: 'ktmbites_kitchen_token', user: 'ktmbites_kitchen_user' },
   admin:   { token: 'ktmbites_admin_token',   user: 'ktmbites_admin_user' },
   rider:   { token: 'ktmbites_rider_token',   user: 'ktmbites_rider_user' },
+  cashier: { token: 'ktmbites_cashier_token', user: 'ktmbites_cashier_user' },
 };
 
 export interface AuthUser {
@@ -57,6 +58,7 @@ export function detectPortal(): Portal {
   if (path.startsWith('/kitchen')) return 'kitchen';
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/rider')) return 'rider';
+  if (path.startsWith('/cashier')) return 'cashier';
   return 'user';
 }
 

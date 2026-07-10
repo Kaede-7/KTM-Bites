@@ -30,8 +30,31 @@ function getPortalTokenKey(): string {
   if (path.startsWith('/kitchen')) return 'ktmbites_kitchen_token';
   if (path.startsWith('/admin'))   return 'ktmbites_admin_token';
   if (path.startsWith('/rider'))   return 'ktmbites_rider_token';
+  if (path.startsWith('/cashier')) return 'ktmbites_cashier_token';
   return 'ktmbites_token';
 }
+
+// ── Public/anonymous auth endpoints ──────────────────────────
+// These must NEVER carry a stored Authorization token. DRF's
+// TokenAuthentication validates any "Authorization: Token ..."
+// header it receives *before* view-level permission_classes (like
+// AllowAny) are checked. So if a stale/invalidated token is still
+// sitting in localStorage/sessionStorage from a previous session
+// (e.g. after a password change invalidated it, or the DB was
+// reseeded), it gets attached to the login request itself and DRF
+// rejects the whole request with 401 "Invalid token" — before the
+// view ever compares the submitted email/password. This makes
+// login look broken even when the credentials are 100% correct.
+const PUBLIC_AUTH_PATHS = [
+  '/auth/login/',
+  '/auth/register/',
+  '/auth/google/',
+  '/auth/forgot-password/',
+  '/auth/reset-password/',
+  '/rider/login/',
+  '/rider/register/',
+  '/cashier/login/',
+];
 
 // ── REQUEST INTERCEPTOR ──────────────────────────────────────
 // Before every request, check if the user is logged in on the
@@ -39,6 +62,11 @@ function getPortalTokenKey(): string {
 // Rider tokens (RIDER_TOKEN_*) are sent without the "Token " prefix
 // because they use a custom auth scheme, not DRF's TokenAuthentication.
 API.interceptors.request.use((config) => {
+  const isPublicAuthRequest = PUBLIC_AUTH_PATHS.some((path) => config.url?.includes(path));
+  if (isPublicAuthRequest) {
+    return config;
+  }
+
   const tokenKey = getPortalTokenKey();
   const token = localStorage.getItem(tokenKey) || sessionStorage.getItem(tokenKey);
   if (token) {

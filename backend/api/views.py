@@ -31,7 +31,7 @@ from .models import (
     Category, MenuItem, Cart, CartItem,
     Order, OrderItem, UserProfile, PasswordResetToken, RiderProfile,
     Notification, GroupOrder, GroupOrderMember, GroupCartItem,
-    GroupPaymentShare,
+    GroupPaymentShare, CashierProfile,
 )
 
 from .serializers import (
@@ -69,7 +69,20 @@ class IsStaffOrAuthorizedRole(BasePermission):
         if request.user.is_staff or request.user.is_superuser:
             return True
         try:
-            return request.user.profile.role in ['ADMIN', 'KITCHEN', 'RIDER']
+            return request.user.profile.role in ['ADMIN', 'KITCHEN', 'RIDER', 'CASHIER']
+        except Exception:
+            return False
+
+
+class IsCashier(BasePermission):
+    """Allows access only to authenticated users with the CASHIER role."""
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.user.is_superuser:
+            return True
+        try:
+            return request.user.profile.role == 'CASHIER'
         except Exception:
             return False
 
@@ -1851,6 +1864,13 @@ Your job:
             messages.append({"role": h['role'], "content": h['content']})
     messages.append({"role": "user", "content": user_message})
 
+    if not settings.GROQ_API_KEY:
+        print("ERROR: chat_view called but GROQ_API_KEY is not set in the environment.")
+        return Response(
+            {"reply": "Sorry, the food concierge is temporarily unavailable. Please try again later! 🙏", "items": []},
+            status=503,
+        )
+
     try:
         client = Groq(api_key=settings.GROQ_API_KEY)
         completion = client.chat.completions.create(
@@ -1861,8 +1881,13 @@ Your job:
         )
         raw_reply = completion.choices[0].message.content or ""
     except Exception as e:
+        # Log the real error server-side for debugging, but never leak
+        # internal exception details to end users in the chat window.
         import traceback; traceback.print_exc()
-        return Response({"error": str(e), "reply": f"⚠️ Debug: {str(e)}", "items": []}, status=200)
+        return Response(
+            {"reply": "Sorry, I'm having trouble connecting right now. Please try again in a moment! 🙏", "items": []},
+            status=502,
+        )
 
     # Parse optional [ITEMS] block from reply
     reply_text = raw_reply
@@ -2737,3 +2762,469 @@ def admin_rider_reviews(request, pk):
             'order_id': r.order.order_id if r.order else None
         })
     return Response(data)
+
+
+# ============================================================
+# CASHIER — Physical Store Point of Sale (POS)
+# ============================================================
+# A cashier is a real Django user with role=CASHIER, backed by a
+# CashierProfile. They log in on a dedicated portal and can:
+#   • ring up walk-in / counter orders from the live menu
+#   • work a queue of online "store pickup" orders
+#   • take payment via Cash, Kharcha dynamic QR, or Kharcha card
+# Kharcha payments reuse the merchant X-API-Key already configured
+# for the Khalti-style pay-portal, hitting Kharcha's POS endpoints.
+# ============================================================
+
+def _kharcha_headers():
+    return {
+        "X-API-Key":    settings.KHARCHA_API_KEY,
+        "Content-Type": "application/json",
+    }
+
+
+def _cashier_profile(request):
+    return getattr(request.user, 'cashier_profile', None)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def cashier_login_view(request):
+    """
+    POST /api/cashier/login/
+    Authenticate a cashier and return a DRF token + store context.
+    """
+    email = request.data.get('email', '').strip()
+    password = request.data.get('password', '')
+
+    user = authenticate(username=email, password=password)
+    if not user:
+        return Response({'error': 'Invalid cashier credentials.'}, status=401)
+
+    role = getattr(getattr(user, 'profile', None), 'role', 'USER')
+    profile = getattr(user, 'cashier_profile', None)
+    if role != 'CASHIER' or profile is None:
+        return Response({'error': 'This account is not a cashier account.'}, status=403)
+    if not profile.is_active:
+        return Response({'error': 'This cashier account has been deactivated.'}, status=403)
+
+    token, _ = Token.objects.get_or_create(user=user)
+    return Response({
+        'token': token.key,
+        'user': {
+            'id': user.id,
+            'email': user.email,
+            'full_name': user.first_name or profile.username or user.username,
+            'role': 'CASHIER',
+            'store_name': profile.store_name,
+            'counter_name': profile.counter_name,
+            'employee_id': profile.employee_id,
+        },
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsCashier])
+def cashier_me(request):
+    """GET /api/cashier/me/ — current cashier's store context."""
+    profile = _cashier_profile(request)
+    if not profile:
+        return Response({'error': 'Cashier profile not found.'}, status=404)
+    return Response({
+        'id': request.user.id,
+        'email': request.user.email,
+        'full_name': request.user.first_name or profile.username or request.user.username,
+        'store_name': profile.store_name,
+        'counter_name': profile.counter_name,
+        'employee_id': profile.employee_id,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsCashier])
+def cashier_create_order(request):
+    """
+    POST /api/cashier/orders/create/
+    Ring up a walk-in / counter order from the live menu.
+    Body: { items: [{menu_item_id, quantity}], order_type, customer_name?, customer_phone? }
+    The order is attributed to the cashier's user (walk-in customers
+    have no account) and stamped with served_by for reporting.
+    """
+    profile = _cashier_profile(request)
+    items_in = request.data.get('items', [])
+    if not items_in:
+        return Response({'error': 'No items provided.'}, status=400)
+
+    order_type = request.data.get('order_type', 'dine_in')
+    if order_type not in ('pickup', 'dine_in'):
+        order_type = 'dine_in'
+
+    # Resolve menu items and compute the subtotal
+    resolved = []
+    subtotal = Decimal('0')
+    for row in items_in:
+        try:
+            mi = MenuItem.objects.get(pk=row.get('menu_item_id'), is_available=True)
+        except MenuItem.DoesNotExist:
+            return Response({'error': f"Menu item {row.get('menu_item_id')} unavailable."}, status=400)
+        qty = int(row.get('quantity', 1))
+        if qty < 1:
+            continue
+        resolved.append((mi, qty))
+        subtotal += mi.price * qty
+
+    if not resolved:
+        return Response({'error': 'Cart is empty.'}, status=400)
+
+    order = Order.objects.create(
+        user=request.user,
+        served_by=profile,
+        order_type=order_type,
+        status='placed',
+        payment_method='cash',
+        payment_status='pending',
+        full_name=request.data.get('customer_name', '').strip() or 'Walk-in Customer',
+        phone=request.data.get('customer_phone', '').strip(),
+        address='In-store',
+        city='Kathmandu',
+        subtotal=subtotal,
+        delivery_fee=Decimal('0'),
+        discount_amount=Decimal('0'),
+        total=subtotal,
+    )
+    for mi, qty in resolved:
+        OrderItem.objects.create(order=order, menu_item=mi, quantity=qty, price=mi.price)
+
+    return Response(OrderSerializer(order, context={'request': request}).data, status=201)
+
+
+@api_view(['GET'])
+@permission_classes([IsCashier])
+def cashier_orders(request):
+    """
+    GET /api/cashier/orders/
+    Returns the cashier's POS orders (rung up at this counter) and the
+    live store-pickup queue (online orders awaiting collection).
+    """
+    profile = _cashier_profile(request)
+
+    # Everything this counter is responsible for: walk-in / counter orders the
+    # cashier rang up (served_by) plus online store-pickup orders.
+    scope = Order.objects.filter(Q(served_by=profile) | Q(order_type='pickup'))
+
+    # Remaining / actionable — not yet handed over or cancelled.
+    active = scope.exclude(status__in=['delivered', 'cancelled']).order_by('-created_at')[:60]
+    # Past — collected or cancelled, most recent first.
+    past = scope.filter(status__in=['delivered', 'cancelled']).order_by('-created_at')[:40]
+
+    ctx = {'request': request}
+    return Response({
+        'active': OrderSerializer(active, many=True, context=ctx).data,
+        'past':   OrderSerializer(past, many=True, context=ctx).data,
+    })
+
+
+def _get_cashier_order(pk):
+    try:
+        return Order.objects.get(pk=pk)
+    except Order.DoesNotExist:
+        return None
+
+
+def _enter_kitchen_queue(order):
+    """
+    Ensure a counter-paid order is in the kitchen's New Orders (status
+    'placed'). Cashier-rung orders are created 'placed' already; an online
+    order paid at the counter may still be 'pending_payment' and needs
+    promoting so the kitchen can see it. Returns True if the status changed.
+    """
+    if order.status == 'pending_payment':
+        order.status = 'placed'
+        return True
+    return False
+
+
+@api_view(['POST'])
+@permission_classes([IsCashier])
+def cashier_pay_cash(request):
+    """
+    POST /api/cashier/pay/cash/
+    Body: { order_id, amount_tendered }
+    Records a cash sale and computes change.
+    """
+    order = _get_cashier_order(request.data.get('order_id'))
+    if not order:
+        return Response({'error': 'Order not found.'}, status=404)
+    if order.payment_status == 'completed':
+        return Response({'error': 'Order is already paid.'}, status=400)
+
+    try:
+        tendered = Decimal(str(request.data.get('amount_tendered')))
+    except Exception:
+        return Response({'error': 'Invalid amount tendered.'}, status=400)
+    if tendered < order.total:
+        return Response({'error': 'Amount tendered is less than the total due.'}, status=400)
+
+    order.payment_method = 'cash'
+    order.payment_status = 'completed'
+    order.amount_tendered = tendered
+    order.change_due = tendered - order.total
+    # Keep the order in the kitchen's New Orders (status 'placed'); the kitchen
+    # advances it to preparing → ready before the cashier hands it over.
+    fields = ['payment_method', 'payment_status', 'amount_tendered', 'change_due']
+    if _enter_kitchen_queue(order):
+        fields.append('status')
+    order.save(update_fields=fields)
+
+    return Response({
+        'success': True,
+        'change_due': float(order.change_due),
+        'order': OrderSerializer(order, context={'request': request}).data,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsCashier])
+def cashier_kharcha_qr_create(request):
+    """
+    POST /api/cashier/pay/kharcha-qr/create/
+    Body: { order_id }
+    Opens a Kharcha *dynamic-QR* payment session (dynamic_qr_codes) and
+    returns the qr_payload for the customer to scan in the Kharcha app.
+
+    We use /api/org/qr-codes/payments/create (not /api/pos/checkout) because
+    that is the session the Kharcha app actually settles: scanning the QR
+    routes the customer to Send Money, and a successful wallet transfer with
+    that qr_id flips the session to paid. The store then polls
+    /api/org/qr-codes/payments/status/<id> which reports "success".
+    """
+    order = _get_cashier_order(request.data.get('order_id'))
+    if not order:
+        return Response({'error': 'Order not found.'}, status=404)
+    if order.payment_status == 'completed':
+        return Response({'error': 'Order is already paid.'}, status=400)
+
+    try:
+        res = requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/org/qr-codes/payments/create",
+            headers=_kharcha_headers(),
+            json={
+                'amount': float(order.total),
+                'note':   f"KTM Bites Order #{order.id}",
+            },
+            timeout=15,
+        )
+        data = res.json()
+    except Exception as e:
+        return Response({'error': 'Could not reach Kharcha.', 'details': str(e)}, status=502)
+
+    if not data.get('success'):
+        return Response({'error': data.get('message', 'Kharcha declined to create session.')}, status=400)
+
+    session_id = data.get('session_id')
+    order.kharcha_payment_id = session_id
+    order.payment_method = 'kharcha_qr'
+    order.save(update_fields=['kharcha_payment_id', 'payment_method'])
+
+    return Response({
+        'success':    True,
+        'order_id':   order.id,
+        'session_id': session_id,
+        'qr_payload': data.get('qr_payload'),
+        'amount':     float(order.total),
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsCashier])
+def cashier_kharcha_qr_status(request):
+    """
+    GET /api/cashier/pay/kharcha-qr/status/?order_id=
+    Polls the Kharcha dynamic-QR session; marks the order paid once settled.
+    Kharcha reports status "pending" until the customer pays, then "success".
+    """
+    order = _get_cashier_order(request.query_params.get('order_id'))
+    if not order:
+        return Response({'error': 'Order not found.'}, status=404)
+    if order.payment_status == 'completed':
+        return Response({'status': 'success', 'paid': True,
+                         'order': OrderSerializer(order, context={'request': request}).data})
+    if not order.kharcha_payment_id:
+        return Response({'error': 'No Kharcha session for this order.'}, status=400)
+
+    try:
+        res = requests.get(
+            f"{settings.KHARCHA_BASE_URL}/api/org/qr-codes/payments/status/{order.kharcha_payment_id}",
+            headers=_kharcha_headers(),
+            timeout=15,
+        )
+        data = res.json()
+    except Exception as e:
+        return Response({'error': 'Could not reach Kharcha.', 'details': str(e)}, status=502)
+
+    if not data.get('success'):
+        return Response({'error': data.get('message', 'Kharcha error.')}, status=400)
+
+    kh_status = data.get('status')
+    if kh_status == 'success':
+        order.payment_status = 'completed'
+        order.payment_method = 'kharcha_qr'
+        fields = ['payment_status', 'payment_method']
+        if _enter_kitchen_queue(order):
+            fields.append('status')
+        order.save(update_fields=fields)
+        return Response({'status': 'success', 'paid': True,
+                         'order': OrderSerializer(order, context={'request': request}).data})
+
+    return Response({'status': kh_status or 'pending', 'paid': False})
+
+
+@api_view(['POST'])
+@permission_classes([IsCashier])
+def cashier_kharcha_card_create(request):
+    """
+    POST /api/cashier/pay/kharcha-card/create/
+    Body: { order_id }
+    Opens a Kharcha POS *payment session* (pos_payment_sessions). The store
+    then waits while the customer taps their Kharcha card and enters their PIN
+    on the POS terminal, which drives the session:
+        pending → selected → awaiting_card → awaiting_pin → paid
+    The store polls /status until Kharcha reports "paid".
+    """
+    order = _get_cashier_order(request.data.get('order_id'))
+    if not order:
+        return Response({'error': 'Order not found.'}, status=404)
+    if order.payment_status == 'completed':
+        return Response({'error': 'Order is already paid.'}, status=400)
+
+    try:
+        res = requests.post(
+            f"{settings.KHARCHA_BASE_URL}/api/payment-sessions",
+            headers=_kharcha_headers(),
+            json={
+                'amount':          float(order.total),
+                'description':     f"KTM Bites Order #{order.id}",
+                'order_reference': str(order.id),
+            },
+            timeout=15,
+        )
+        data = res.json()
+    except Exception as e:
+        return Response({'error': 'Could not reach Kharcha.', 'details': str(e)}, status=502)
+
+    if not data.get('success'):
+        return Response({'error': data.get('message', 'Kharcha declined to open a card session.')}, status=400)
+
+    session = data.get('session', {})
+    order.kharcha_payment_id = session.get('session_id')
+    order.payment_method = 'kharcha_card'
+    order.save(update_fields=['kharcha_payment_id', 'payment_method'])
+
+    return Response({
+        'success':    True,
+        'order_id':   order.id,
+        'session_id': session.get('session_id'),
+        'status':     session.get('status'),
+        'amount':     float(order.total),
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsCashier])
+def cashier_kharcha_card_status(request):
+    """
+    GET /api/cashier/pay/kharcha-card/status/?order_id=
+    Polls the Kharcha POS payment session; marks the order paid once the
+    terminal authorizes the card (status "paid").
+    """
+    order = _get_cashier_order(request.query_params.get('order_id'))
+    if not order:
+        return Response({'error': 'Order not found.'}, status=404)
+    if order.payment_status == 'completed':
+        return Response({'status': 'paid', 'paid': True,
+                         'order': OrderSerializer(order, context={'request': request}).data})
+    if not order.kharcha_payment_id:
+        return Response({'error': 'No Kharcha card session for this order.'}, status=400)
+
+    try:
+        res = requests.get(
+            f"{settings.KHARCHA_BASE_URL}/api/payment-sessions/{order.kharcha_payment_id}",
+            headers=_kharcha_headers(),
+            timeout=15,
+        )
+        data = res.json()
+    except Exception as e:
+        return Response({'error': 'Could not reach Kharcha.', 'details': str(e)}, status=502)
+
+    if not data.get('success'):
+        return Response({'error': data.get('message', 'Kharcha error.')}, status=400)
+
+    session = data.get('session', {})
+    st = session.get('status')
+    if st == 'paid':
+        order.payment_status = 'completed'
+        order.payment_method = 'kharcha_card'
+        order.transaction_id = session.get('transaction_id') or ''
+        fields = ['payment_status', 'payment_method', 'transaction_id']
+        if _enter_kitchen_queue(order):
+            fields.append('status')
+        order.save(update_fields=fields)
+        return Response({'status': 'paid', 'paid': True,
+                         'order': OrderSerializer(order, context={'request': request}).data})
+
+    # Not paid yet — surface the live step (or a terminal failure state).
+    failed = st in ('expired', 'cancelled')
+    return Response({'status': st or 'pending', 'paid': False, 'failed': failed})
+
+
+@api_view(['POST'])
+@permission_classes([IsCashier])
+def cashier_mark_collected(request):
+    """
+    POST /api/cashier/orders/collect/
+    Body: { order_id }
+    Hands a paid, kitchen-ready order to the customer. Handover is only
+    allowed once the kitchen has finished preparing it (ready_for_pickup).
+    """
+    order = _get_cashier_order(request.data.get('order_id'))
+    if not order:
+        return Response({'error': 'Order not found.'}, status=404)
+    if order.payment_status != 'completed':
+        return Response({'error': 'Cannot hand over an unpaid order.'}, status=400)
+    if order.status != 'ready_for_pickup':
+        return Response({'error': 'The kitchen is still preparing this order.'}, status=400)
+    order.status = 'delivered'
+    order.save(update_fields=['status'])
+    return Response({'success': True,
+                     'order': OrderSerializer(order, context={'request': request}).data})
+
+
+@api_view(['POST'])
+@permission_classes([IsCashier])
+def cashier_confirm_payment(request):
+    """
+    POST /api/cashier/pay/confirm/
+    Body: { order_id, method? }
+    Manual fallback: the cashier confirms payment was received (e.g. the
+    customer's Kharcha app shows success but the poll hasn't caught up yet).
+    Marks the order paid without re-charging.
+    """
+    order = _get_cashier_order(request.data.get('order_id'))
+    if not order:
+        return Response({'error': 'Order not found.'}, status=404)
+    if order.payment_status == 'completed':
+        return Response({'success': True,
+                         'order': OrderSerializer(order, context={'request': request}).data})
+
+    method = request.data.get('method', order.payment_method or 'kharcha_qr')
+    if method not in ('cash', 'kharcha_qr', 'kharcha_card'):
+        method = 'kharcha_qr'
+
+    order.payment_method = method
+    order.payment_status = 'completed'
+    fields = ['payment_method', 'payment_status']
+    if _enter_kitchen_queue(order):
+        fields.append('status')
+    order.save(update_fields=fields)
+    return Response({'success': True,
+                     'order': OrderSerializer(order, context={'request': request}).data})

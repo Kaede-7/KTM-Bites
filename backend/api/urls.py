@@ -26,6 +26,19 @@ urlpatterns = [
     path('rider/register/', views.rider_register_view, name='rider-register'),
     path('rider/login/', views.rider_login_view, name='rider-login'),
 
+    # ── Cashier — Physical Store POS ──────────────────────────
+    path('cashier/login/', views.cashier_login_view, name='cashier-login'),
+    path('cashier/me/', views.cashier_me, name='cashier-me'),
+    path('cashier/orders/', views.cashier_orders, name='cashier-orders'),
+    path('cashier/orders/create/', views.cashier_create_order, name='cashier-order-create'),
+    path('cashier/orders/collect/', views.cashier_mark_collected, name='cashier-order-collect'),
+    path('cashier/pay/cash/', views.cashier_pay_cash, name='cashier-pay-cash'),
+    path('cashier/pay/kharcha-qr/create/', views.cashier_kharcha_qr_create, name='cashier-kharcha-qr-create'),
+    path('cashier/pay/kharcha-qr/status/', views.cashier_kharcha_qr_status, name='cashier-kharcha-qr-status'),
+    path('cashier/pay/kharcha-card/create/', views.cashier_kharcha_card_create, name='cashier-kharcha-card-create'),
+    path('cashier/pay/kharcha-card/status/', views.cashier_kharcha_card_status, name='cashier-kharcha-card-status'),
+    path('cashier/pay/confirm/', views.cashier_confirm_payment, name='cashier-pay-confirm'),
+
     # ── Menu (public — no login needed) ───────────────────────
     path('categories/', views.category_list, name='category-list'),
     path('menu/', views.menu_list, name='menu-list'),

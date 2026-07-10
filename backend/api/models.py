@@ -97,6 +97,14 @@ class Order(models.Model):
     PAYMENT_CHOICES = [
         ('khalti', 'Khalti'),
         ('kharcha', 'Kharcha'),
+        ('cash', 'Cash'),
+        ('kharcha_qr', 'Kharcha QR'),
+        ('kharcha_card', 'Kharcha Card'),
+    ]
+    ORDER_TYPE_CHOICES = [
+        ('delivery', 'Delivery'),
+        ('pickup', 'Store Pickup'),
+        ('dine_in', 'Dine In / Counter'),
     ]
     PAYMENT_STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -126,6 +134,15 @@ class Order(models.Model):
     pidx = models.CharField(max_length=255, null=True, blank=True)
     transaction_id = models.CharField(max_length=255, null=True, blank=True)
     kharcha_payment_id  = models.CharField(max_length=255, null=True, blank=True)
+
+    # ── Physical store / POS fields ──────────────────────────
+    order_type = models.CharField(max_length=20, choices=ORDER_TYPE_CHOICES, default='delivery')
+    served_by = models.ForeignKey(
+        'CashierProfile', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='served_orders',
+    )
+    amount_tendered = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    change_due = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -157,6 +174,7 @@ class Role(models.TextChoices):
     USER = 'USER', 'User'
     KITCHEN = 'KITCHEN', 'Kitchen'
     RIDER = 'RIDER', 'Rider'
+    CASHIER = 'CASHIER', 'Cashier'
 
 
 class UserProfile(models.Model):
@@ -238,6 +256,25 @@ class KitchenProfile(models.Model):
 
     def __str__(self):
         return f"Kitchen: {self.restaurant_name}"
+
+
+class CashierProfile(models.Model):
+    """
+    A cashier operating the physical-store point-of-sale.
+    Backed by a real Django User (role=CASHIER) so it can hold a DRF
+    auth token and reuse the same order pipeline as online orders.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cashier_profile')
+    email = models.EmailField(max_length=255, blank=True)
+    username = models.CharField(max_length=150, blank=True)
+    store_name = models.CharField(max_length=255, default='KTM Bites — Thamel Outlet')
+    counter_name = models.CharField(max_length=100, blank=True, default='Counter 1')
+    employee_id = models.CharField(max_length=50, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Cashier: {self.username or self.user.username} ({self.store_name})"
 
 
 class RiderProfile(models.Model):
@@ -523,5 +560,11 @@ def manage_user_profiles(sender, instance, created, **kwargs):
         instance.kitchen_profile.email = instance.email
         instance.kitchen_profile.username = instance.username
         instance.kitchen_profile.save()
+    if hasattr(instance, 'cashier_profile'):
+        instance.cashier_profile.email = instance.email
+        instance.cashier_profile.username = instance.username
+        instance.cashier_profile.save()
+
+# End of models — CashierProfile + POS order fields included.
 
 

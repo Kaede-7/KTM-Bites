@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
-    Category, MenuItem, Cart, CartItem, Order, OrderItem, 
-    UserProfile, AdminProfile, KitchenProfile, RiderProfile
+    Category, MenuItem, Cart, CartItem, Order, OrderItem,
+    UserProfile, AdminProfile, KitchenProfile, RiderProfile, CashierProfile
 )
 
 
@@ -64,4 +64,11 @@ class RiderProfileAdmin(admin.ModelAdmin):
     list_display = ['username', 'email', 'vehicle_type', 'is_available']
     list_filter = ['is_available', 'vehicle_type']
     search_fields = ['username', 'email', 'license_number']
+
+
+@admin.register(CashierProfile)
+class CashierProfileAdmin(admin.ModelAdmin):
+    list_display = ['username', 'email', 'store_name', 'counter_name', 'employee_id', 'is_active']
+    list_filter = ['is_active', 'store_name']
+    search_fields = ['username', 'email', 'employee_id', 'store_name']
 

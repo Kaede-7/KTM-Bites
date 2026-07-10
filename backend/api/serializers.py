@@ -340,6 +340,7 @@ class OrderSerializer(serializers.ModelSerializer):
     rider_info = serializers.SerializerMethodField()
     has_reviewed_rider = serializers.SerializerMethodField()
     can_manage = serializers.SerializerMethodField()
+    served_by_name = serializers.CharField(source='served_by.username', read_only=True, default=None)
 
     class Meta:
         model = Order
@@ -352,6 +353,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'total', 'items', 'created_at', 'rider_location', 'rider_info',
             'has_reviewed_rider',
             'can_manage',
+            'order_type', 'served_by', 'served_by_name', 'amount_tendered', 'change_due',
         ]
         read_only_fields = ['subtotal', 'delivery_fee', 'discount_amount', 'rank_applied', 'total', 'status', 'payment_status', 'pidx', 'transaction_id', 'rider']
 

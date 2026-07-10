@@ -323,7 +323,8 @@
   margin-bottom: 24px;
 }
 
-.auth-badge-rider {
+.auth-badge-rider,
+.auth-badge-cashier {
   display: inline-block;
   padding: 6px 14px;
   background: #2a2420;
@@ -333,6 +334,9 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   margin-bottom: 16px;
+}
+.auth-badge-cashier {
+  background: #f28b46;
 }
 
 /* Right Panel - Image */

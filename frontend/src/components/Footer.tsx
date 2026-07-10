@@ -36,6 +36,7 @@ const Footer: React.FC = () => {
             <div className="footer-links">
               <Link to="/rider-login">Rider Portal</Link>
               <Link to="/kitchen">Kitchen Login</Link>
+              <Link to="/cashier-login">Cashier Login</Link>
               <Link to="/admin">Admin Dashboard</Link>
               <Link to="/rider-signup">Become a Rider</Link>
             </div>
