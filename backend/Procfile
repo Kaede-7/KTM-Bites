@@ -1,1 +1,1 @@
-web: gunicorn ktmbites.wsgi:application
+web: gunicorn ktmbites.wsgi:application --bind 0.0.0.0:$PORT
