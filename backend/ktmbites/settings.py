@@ -116,10 +116,24 @@ REST_FRAMEWORK = {
 }
 
 # --- CORS Configuration ---
-CORS_ALLOW_ALL_ORIGINS = True
-
 CORS_ALLOW_CREDENTIALS = True
 CORS_PREFLIGHT_MAX_AGE = 600
+
+CORS_ALLOWED_ORIGINS = [
+    "https://ktm-bites.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
+# Fallback/broad settings to ensure maximum compatibility
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_ALLOW_ALL = True
+
+# --- CSRF Configuration ---
+CSRF_TRUSTED_ORIGINS = [
+    "https://ktm-bites.vercel.app",
+    "https://ktm-bites-production.up.railway.app",
+]
 
 # --- Security Headers ---
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
