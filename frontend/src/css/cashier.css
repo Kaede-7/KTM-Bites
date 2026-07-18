@@ -281,6 +281,13 @@
 .cx-collected { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #1f8b4c; font-weight: 600; }
 .cx-collected .material-symbols-rounded { font-size: 16px; }
 .cx-collected.cancelled { color: #c0392b; }
+.cx-collected-row { display: inline-flex; align-items: center; gap: 10px; }
+.cx-invoice-btn {
+  display: inline-flex; align-items: center; gap: 5px; border: 1px solid #ebdcd0; background: #fff;
+  color: #8b7d72; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.cx-invoice-btn .material-symbols-rounded { font-size: 15px; }
+.cx-invoice-btn:hover { background: #fff4e9; border-color: #f28b46; color: #d95e14; }
 .cx-preparing {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 12px; font-weight: 600; color: #d95e14;

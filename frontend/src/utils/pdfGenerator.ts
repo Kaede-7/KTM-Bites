@@ -3,10 +3,34 @@ import mascotIcon from "../assets/ktm-bites-transparent-notext.png";
 import { alertDialog } from "../components/ConfirmDialog";
 
 /**
+ * Shared shape accepted by the invoice generator. `OrderData` (customer app orders)
+ * satisfies this directly. In-store/cashier orders don't have a delivery address, so
+ * those fields are optional here and fall back to sensible "in-store" defaults.
+ */
+export interface InvoiceOrder {
+  order_id: string;
+  full_name: string;
+  phone: string;
+  address?: string;
+  city?: string;
+  landmark?: string;
+  notes?: string;
+  payment_method: string;
+  payment_status?: string;
+  subtotal: number | string;
+  delivery_fee: number | string;
+  discount_amount?: number | string;
+  rank_applied?: string;
+  total: number | string;
+  items: { name: string; price: number | string; quantity: number; subtotal: number | string }[];
+  created_at: string;
+}
+
+/**
  * Generates and downloads a beautifully structured, premium PDF order report for a KTM Bites order.
  * Opens a full-fidelity preview page first and gives the user an action button to trigger high-fidelity PDF printing.
  */
-export const downloadOrderPDF = (order: OrderData) => {
+export const downloadOrderPDF = (order: InvoiceOrder | OrderData) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
     void alertDialog("Please allow popups to preview your order report.", { title: "Popups blocked" });
@@ -307,10 +331,14 @@ export const downloadOrderPDF = (order: OrderData) => {
 
         <div class="meta-grid">
           <div class="meta-section">
-            <h3>Delivery Info</h3>
-            <p><strong>Customer Name:</strong> ${order.full_name}</p>
-            <p><strong>Contact Number:</strong> ${order.phone}</p>
-            <p><strong>Address:</strong> ${order.address}, ${order.city}</p>
+            <h3>${order.address ? "Delivery Info" : "Customer Info"}</h3>
+            <p><strong>Customer Name:</strong> ${order.full_name || "Walk-in Customer"}</p>
+            <p><strong>Contact Number:</strong> ${order.phone || "-"}</p>
+            ${
+              order.address
+                ? `<p><strong>Address:</strong> ${order.address}, ${order.city}</p>`
+                : `<p><strong>Fulfilment:</strong> ${order.city || "In-Store"}</p>`
+            }
             ${order.landmark ? `<p><strong>Landmark:</strong> ${order.landmark}</p>` : ""}
           </div>
           <div class="meta-section" style="text-align: right;">

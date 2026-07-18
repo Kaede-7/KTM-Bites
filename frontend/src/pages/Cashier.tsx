@@ -18,6 +18,7 @@ import {
   type QrSession,
 } from "../api/cashier";
 import { isLoggedIn, logout } from "../api/auth";
+import { downloadOrderPDF } from "../utils/pdfGenerator";
 
 interface TicketLine {
   item: MenuItemData;
@@ -320,6 +321,30 @@ const Cashier: React.FC = () => {
   const qrImg = (payload: string) =>
     `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(payload)}`;
 
+  // Build an invoice PDF for a collected in-store order — same document the
+  // customer app generates, adapted for orders with no delivery address.
+  const handleInvoice = (order: CashierOrder) => {
+    downloadOrderPDF({
+      order_id: order.order_id,
+      full_name: order.full_name || "Walk-in Customer",
+      phone: order.phone || "-",
+      city: order.order_type === "dine_in" ? "Dine In" : "Takeaway",
+      landmark: me?.counter_name,
+      payment_method: order.payment_method,
+      payment_status: order.payment_status,
+      subtotal: order.subtotal,
+      delivery_fee: order.delivery_fee || 0,
+      total: order.total,
+      items: order.items.map((it) => ({
+        name: it.name,
+        price: it.price,
+        quantity: it.quantity,
+        subtotal: it.subtotal,
+      })),
+      created_at: order.created_at,
+    });
+  };
+
   // ── Render ─────────────────────────────────────────────────
   return (
     <div className="cashier-app">
@@ -474,6 +499,7 @@ const Cashier: React.FC = () => {
                 emptyLabel="All caught up — no orders waiting."
                 onPay={openPayment}
                 onCollect={handleCollect}
+                onInvoice={handleInvoice}
               />
 
               {/* Gap, then past / collected orders below */}
@@ -489,6 +515,7 @@ const Cashier: React.FC = () => {
                 emptyLabel="No past orders yet today."
                 onPay={openPayment}
                 onCollect={handleCollect}
+                onInvoice={handleInvoice}
               />
             </>
           )}
@@ -651,7 +678,8 @@ const QueueGroup: React.FC<{
   orders: CashierOrder[];
   onPay: (o: CashierOrder) => void;
   onCollect: (o: CashierOrder) => void;
-}> = ({ title, subtitle, accent = "active", emptyLabel, orders, onPay, onCollect }) => (
+  onInvoice: (o: CashierOrder) => void;
+}> = ({ title, subtitle, accent = "active", emptyLabel, orders, onPay, onCollect, onInvoice }) => (
   <div className={`cx-qgroup ${accent}`}>
     <div className="cx-qgroup-head">
       <h4>{title} <span>{orders.length}</span></h4>
@@ -697,9 +725,14 @@ const QueueGroup: React.FC<{
                     <span className="material-symbols-rounded">point_of_sale</span> Take payment
                   </button>
                 ) : collected ? (
-                  <span className="cx-collected">
-                    <span className="material-symbols-rounded">check</span> Collected
-                  </span>
+                  <div className="cx-collected-row">
+                    <span className="cx-collected">
+                      <span className="material-symbols-rounded">check</span> Collected
+                    </span>
+                    <button className="cx-invoice-btn" onClick={() => onInvoice(o)}>
+                      <span className="material-symbols-rounded">picture_as_pdf</span> Invoice
+                    </button>
+                  </div>
                 ) : ready ? (
                   <button className="cx-collect" onClick={() => onCollect(o)}>
                     <span className="material-symbols-rounded">shopping_bag</span> Hand over

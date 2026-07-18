@@ -36,6 +36,7 @@ const Groups = lazy(() => import("./pages/Groups"));
 function App() {
   const location = useLocation();
   const isLandingPage = location.pathname === "/";
+  const isCashierPage = location.pathname.startsWith("/cashier");
 
   return (
     <ToastProvider>
@@ -79,8 +80,8 @@ function App() {
         </Routes>
       </Suspense>
 
-      {/* AI Chat Widget — floating button on every page except landing page */}
-      {!isLandingPage && <ChatWidget />}
+      {/* AI Chat Widget — floating button on every page except landing page and the cashier POS */}
+      {!isLandingPage && !isCashierPage && <ChatWidget />}
     </CalorieProvider>
     </ConfirmDialogProvider>
     </ToastProvider>
