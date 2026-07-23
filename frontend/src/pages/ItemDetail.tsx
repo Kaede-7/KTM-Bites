@@ -82,7 +82,6 @@ const ItemDetail: React.FC = () => {
           </div>
 
           <div className="item-detail-info">
-            <span className="item-detail-category">{item.category}</span>
             <h1 className="item-detail-name">{item.name}</h1>
 
             <div className="item-detail-rating-row">
@@ -90,15 +89,12 @@ const ItemDetail: React.FC = () => {
                 <span className="material-symbols-rounded">star</span>{item.rating}
               </span>
               <span className="item-detail-reviews">({item.reviews} reviews)</span>
-              <span className="item-detail-time">
-                <span className="material-symbols-rounded">schedule</span>{item.time}
-              </span>
             </div>
 
             <p className="item-detail-desc">{item.description}</p>
 
             <div className="item-detail-calories">
-              <span>🔥</span>
+               <span className="material-symbols-rounded" style={{ color: "#f28b46", marginRight: "6px" }}>local_fire_department</span>
               <strong>{item.calories * qty} kcal</strong>
               <small>{item.calories} kcal per item</small>
             </div>
@@ -134,16 +130,22 @@ const ItemDetail: React.FC = () => {
             <h2>You might also like</h2>
             <div className="item-detail-related-grid">
               {item.related.map((r) => (
-                <Link to={`/menu/${r.id}`} key={r.id} className="food-card">
-                  <div className="food-card-image-wrapper">
-                    <FastImage src={r.image} alt={r.name} className="food-card-image" />
+                <Link to={`/menu/${r.id}`} key={r.id} className="idr-card">
+                  <div className="idr-img-wrap">
+                    <FastImage src={r.image} alt={r.name} />
+                    {r.badge && <span className="idr-badge">{r.badge}</span>}
                   </div>
-                  <div className="food-card-body">
-                    <p className="food-card-category">{r.category}</p>
-                    <h3 className="food-card-name">{r.name}</h3>
-                    <div className="food-card-footer">
-                      <span className="food-card-price">Rs. {r.price}</span>
-                      <span className="food-card-rating"><span className="material-symbols-rounded">star</span>{r.rating}</span>
+                  <div className="idr-body">
+                    <span className="idr-category">{r.category_name || r.category}</span>
+                    <h3 className="idr-name">{r.name}</h3>
+                    <div className="idr-footer">
+                      <span className="idr-price">Rs. {r.price}</span>
+                      {r.rating > 0 && (
+                        <span className="idr-rating">
+                          <span className="material-symbols-rounded">star</span>
+                          {r.rating}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>

@@ -16,6 +16,7 @@ import PageTransition from "../components/PageTransition";
 import LoadingAnimation from "../components/LoadingAnimation";
 import { downloadOrderPDF } from "../utils/pdfGenerator";
 import { confirmDialog } from "../components/ConfirmDialog";
+import { AddressAutocomplete } from "../components/AddressAutocomplete";
 
 // ── Toast Component ──────────────────────────────────────────
 const Toast: React.FC<{ msg: string; type: "success" | "error"; onClose: () => void }> = ({ msg, type, onClose }) => (
@@ -206,7 +207,11 @@ const Profile: React.FC = () => {
   }, [activeTab]);
 
   const handleChange = (field: keyof ProfileData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    let val = e.target.value;
+    if (field === "phone") {
+      val = val.replace(/\D/g, '');
+    }
+    setFormData((prev) => ({ ...prev, [field]: val }));
   };
 
   const handleSave = async () => {
@@ -282,7 +287,6 @@ const Profile: React.FC = () => {
     ...(formData.has_password ? [{ key: "password", icon: "visibility", label: "Password", desc: "Change your password" }] : []),
     { key: "orders", icon: "receipt_long", label: "Order History", desc: "Track your past orders" },
     { key: "linked", icon: "payments", label: "Payment Methods", desc: "Add your wallet" },
-    { key: "invite", icon: "edit", label: "Invite Your Friends", desc: "Get rewards for invitations" },
   ];
 
   if (loading) {
@@ -310,9 +314,6 @@ const Profile: React.FC = () => {
             <div className="rm-header">
               <span className="material-symbols-rounded">stars</span>
               <h2>KTM Bites Membership Ranks</h2>
-              <button className="rm-close" onClick={() => setShowRanks(false)}>
-                <span className="material-symbols-rounded">close</span>
-              </button>
             </div>
             <div className="rm-body">
               <p className="rm-intro">Unlock higher ranks by placing more orders and enjoy premium benefits.</p>
@@ -453,16 +454,27 @@ const Profile: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="profile-avatar-wrap">
-                  <div className="profile-avatar-circle">
-                    {initials}
-                  </div>
-                  <div className="pav-info">
-                    <h3>{formData.full_name || "Your Name"}</h3>
-                    <span className="pav-email">{formData.email}</span>
-                    <div className="pav-badge">
-                      <span className="material-symbols-rounded" style={{ fontSize: '11px' }}>verified</span>
-                      {formData.role || 'User'}
+                <div className="profile-identity-card">
+                  <div className="pic-body">
+                    <div className="pic-avatar">{initials}</div>
+                    <div className="pic-info">
+                      <div className="pic-name-row">
+                        <h3>{formData.full_name || "Your Name"}</h3>
+                        <div className="pic-role-badge">
+                          <span className="material-symbols-rounded">verified</span>
+                          {formData.role || 'User'}
+                        </div>
+                      </div>
+                      <span className="pic-email">{formData.email}</span>
+                      {formData.rank && (
+                        <div className="pic-rank-badge" style={{ '--rank-color': formData.rank.color } as any}>
+                          <span className="material-symbols-rounded">
+                            {formData.rank.current_rank === "Mythic Crimson" ? "military_tech" : (formData.rank.current_rank === "Diamond" || formData.rank.current_rank === "Platinum" ? "workspace_premium" : "stars")}
+                          </span>
+                          <span>{formData.rank.current_rank}</span>
+                          <span className="pic-rank-discount">{formData.rank.discount}% off</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -507,7 +519,7 @@ const Profile: React.FC = () => {
                   <div className="pf-field">
                     <label className="pf-label">Calorie Target</label>
                     <div className="pf-input-group pf-calorie-input">
-                      <span className="pf-calorie-icon">🔥</span>
+                      <span className="material-symbols-rounded pf-calorie-icon">local_fire_department</span>
                       <input
                         type="number"
                         min="500"
@@ -531,29 +543,14 @@ const Profile: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="pf-row">
-                    <div className="pf-field">
-                      <label className="pf-label">Street Address</label>
-                      <div className="pf-input-group">
-                        <input 
-                          type="text" 
-                          value={formData.address || ""} 
-                          onChange={handleChange("address")} 
-                          placeholder="Street Address" 
-                        />
-                      </div>
-                    </div>
-                    <div className="pf-field">
-                      <label className="pf-label">City</label>
-                      <div className="pf-input-group">
-                        <select value={formData.city || ""} onChange={handleChange("city")}>
-                          <option value="">Select City</option>
-                          <option value="Kathmandu">Kathmandu</option>
-                          <option value="Lalitpur">Lalitpur</option>
-                          <option value="Bhaktapur">Bhaktapur</option>
-                        </select>
-                        <span className="material-symbols-rounded pf-select-arrow">expand_more</span>
-                      </div>
+                  <div className="pf-field">
+                    <label className="pf-label">Street Address</label>
+                    <div className="pf-input-group">
+                      <AddressAutocomplete 
+                        value={formData.address || ""} 
+                        onChange={(val) => setFormData((prev) => ({ ...prev, address: val }))} 
+                        placeholder="Street Address" 
+                      />
                     </div>
                   </div>
 
@@ -856,27 +853,6 @@ const Profile: React.FC = () => {
                   >
                     {updatingPwd ? "Updating..." : "Update Password"}
                   </button>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "invite" && (
-              <div className="invite-section-modern">
-                <div className="pm-header">
-                  <h2>Invite Your Friends</h2>
-                </div>
-                <div style={{ 
-                  textAlign: 'center', 
-                  padding: '60px 20px', 
-                  background: 'rgba(242, 139, 70, 0.05)', 
-                  borderRadius: '24px',
-                  border: '1px dashed rgba(242, 139, 70, 0.3)'
-                }}>
-                  <span className="material-symbols-rounded" style={{ fontSize: '48px', color: '#f28b46', marginBottom: '16px' }}>group_add</span>
-                  <h3>Referral Program Coming Soon!</h3>
-                  <p style={{ color: '#8b7d72', maxWidth: '300px', margin: '12px auto' }}>
-                    Share the love for KTM Bites and get rewards for every friend who signs up and orders.
-                  </p>
                 </div>
               </div>
             )}

@@ -115,9 +115,6 @@
 }
 
 /* === In Progress === */
-.home-in-progress {
-  /* Side part design removed */
-}
 
 .hip-header {
   display: flex;
@@ -462,17 +459,16 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #c68233;
+  background: rgba(242, 139, 70, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 20px;
-  box-shadow: 0 8px 24px rgba(198, 130, 51, 0.3);
 }
 
 .address-modal-icon .material-symbols-rounded {
   font-size: 32px;
-  color: #fff;
+  color: #f28b46;
 }
 
 .address-modal h2 {
@@ -494,16 +490,16 @@
   align-items: center;
   gap: 16px;
   padding: 0 24px;
-  border: 1px solid #e0dbd5;
-  border-radius: 50px;
+  border: 1.5px solid #eae5df;
+  border-radius: 16px;
   background: #ffffff;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
   margin-bottom: 16px;
 }
 
 .address-modal-input-wrap:focus-within {
-  border-color: #c68233;
-  box-shadow: 0 0 0 4px rgba(198, 130, 51, 0.1);
+  border-color: #f28b46;
+  box-shadow: 0 0 0 4px rgba(242, 139, 70, 0.1);
 }
 
 .address-modal-input-wrap .material-symbols-rounded {
@@ -542,26 +538,27 @@
 .address-modal-skip {
   padding: 14px 28px;
   background: none;
-  border: 1px solid #e0dbd5;
-  border-radius: 50px;
+  border: 1.5px solid #eae5df;
+  border-radius: 16px;
   font-size: 15px;
   font-weight: 600;
   color: #8b7d72;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   font-family: 'Inter', sans-serif;
 }
 
 .address-modal-skip:hover {
-  border-color: #c0b3a8;
-  color: #2a2420;
+  border-color: #f28b46;
+  color: #f28b46;
+  background: rgba(242, 139, 70, 0.04);
 }
 
 .address-modal-save {
   padding: 14px 32px;
-  background: #c68233;
+  background: #f28b46;
   border: none;
-  border-radius: 50px;
+  border-radius: 16px;
   font-size: 15px;
   font-weight: 600;
   color: #fff;
@@ -570,11 +567,14 @@
   gap: 8px;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
-  box-shadow: 0 4px 16px rgba(198, 130, 51, 0.3);
+  box-shadow: 0 4px 16px rgba(242, 139, 70, 0.2);
+  transition: all 0.2s ease;
 }
 
 .address-modal-save:hover:not(:disabled) {
-  background: #b5762d;
+  background: #e06c22;
+  box-shadow: 0 6px 20px rgba(242, 139, 70, 0.3);
+  transform: translateY(-1px);
 }
 
 .address-modal-save:disabled {

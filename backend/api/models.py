@@ -194,13 +194,13 @@ class UserProfile(models.Model):
         order_count = self.user.orders.filter(payment_status='completed').count()
         
         ranks = [
-            {'name': 'Rookie', 'min': 0, 'max': 1, 'discount': 0, 'color': '#8b7d72'},
-            {'name': 'Bronze', 'min': 2, 'max': 5, 'discount': 2, 'color': '#cd7f32'},
-            {'name': 'Silver', 'min': 6, 'max': 15, 'discount': 4, 'color': '#c0c0c0'},
-            {'name': 'Gold', 'min': 16, 'max': 30, 'discount': 6, 'color': '#ffd700'},
-            {'name': 'Platinum', 'min': 31, 'max': 50, 'discount': 8, 'color': '#e2f0ff'},
-            {'name': 'Diamond', 'min': 51, 'max': 499, 'discount': 10, 'color': '#b9f2ff'},
-            {'name': 'Mythic Crimson', 'min': 500, 'max': 99999, 'discount': 25, 'color': '#8b0000'},
+            {'name': 'Rookie', 'min': 0, 'max': 1, 'discount': 0, 'color': '#6b7280'},
+            {'name': 'Bronze', 'min': 2, 'max': 5, 'discount': 2, 'color': '#a0522d'},
+            {'name': 'Silver', 'min': 6, 'max': 15, 'discount': 4, 'color': '#64748b'},
+            {'name': 'Gold', 'min': 16, 'max': 30, 'discount': 6, 'color': '#b8860b'},
+            {'name': 'Platinum', 'min': 31, 'max': 50, 'discount': 8, 'color': '#0891b2'},
+            {'name': 'Diamond', 'min': 51, 'max': 499, 'discount': 10, 'color': '#0369a1'},
+            {'name': 'Mythic Crimson', 'min': 500, 'max': 99999, 'discount': 25, 'color': '#991b1b'},
         ]
         
         current_rank = ranks[0]

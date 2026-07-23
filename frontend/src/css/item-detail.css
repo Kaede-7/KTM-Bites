@@ -244,9 +244,120 @@
 
 .item-detail-related-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
 }
+
+/* ── Related Item Card (idr) ─────────────────────────────────── */
+.idr-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid rgba(42, 36, 32, 0.07);
+  border-radius: 18px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 2px 12px rgba(42, 36, 32, 0.04);
+}
+
+.idr-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(42, 36, 32, 0.1);
+}
+
+.idr-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #f5f0eb;
+}
+
+.idr-img-wrap img,
+.idr-img-wrap .fast-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.idr-card:hover .idr-img-wrap img,
+.idr-card:hover .idr-img-wrap .fast-image {
+  transform: scale(1.05);
+}
+
+.idr-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #f28b46;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.idr-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.idr-category {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #f28b46;
+}
+
+.idr-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2a2420;
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.idr-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.idr-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2a2420;
+}
+
+.idr-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b5d52;
+}
+
+.idr-rating .material-symbols-rounded {
+  font-size: 15px;
+  color: #f28b46;
+  font-variation-settings: 'FILL' 1;
+}
+
 
 @media (min-width: 768px) {
   .item-detail-content {

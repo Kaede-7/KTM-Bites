@@ -128,7 +128,10 @@ const AIRecommendations: React.FC = () => {
                 )}
                 <div className="ai-rec-name">{item.name}</div>
                 <div className="ai-rec-price">Rs. {item.price}</div>
-                <div className="ai-rec-price">🔥 {item.calories} kcal</div>
+                <div className="ai-rec-price">
+                  <span className="material-symbols-rounded" style={{ fontSize: "14px", verticalAlign: "middle", marginRight: "3px", color: "#f28b46" }}>local_fire_department</span>
+                  {item.calories} kcal
+                </div>
                 {item.reason && (
                   <div className="ai-rec-reason">
                     <span className="material-symbols-rounded">tips_and_updates</span>

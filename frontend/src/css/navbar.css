@@ -65,23 +65,22 @@
   font-style: italic;
 }
 
-/* ── Nav links (center) ──────────────────────────────────────── */
 .navbar-links {
   display: none;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 8px;
   flex: 1;
 }
 
 .navbar-link {
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   color: #6b5d52;
   background: none;
   border: none;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 999px;
   transition: color 0.2s ease, background 0.2s ease;
   text-decoration: none;
@@ -92,7 +91,9 @@
 }
 
 .navbar-link .material-symbols-rounded {
-  font-size: 20px;
+  display: inline-block;
+  font-size: 18px;
+  opacity: 0.75;
 }
 
 .navbar-link:hover {
@@ -370,7 +371,7 @@
 }
 
 /* ── Desktop breakpoint ──────────────────────────────────────── */
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .navbar-links {
     display: flex;
   }
